@@ -49,7 +49,7 @@ async function chatModel(env: Env): Promise<string> {
 }
 
 export async function generateText(env: Env, system: string, message: string): Promise<string> {
-  const out = await step<{ content: string }>(env, "generateText", {
+  const out = await step<{ content: string }>(env, "userMessage", {
     message,
     modelOverride: { model: await chatModel(env), temperature: 0.6, maxResponseTokens: 1200, preamble: system },
   });
