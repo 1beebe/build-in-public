@@ -6,7 +6,7 @@ const STYLE = `
   --ink:#0d2a1c; --muted:#4c5a51; --faint:#5f6b64;
   --border:#e1e3dd; --control:#c3c9c2;
   --accent:#f6e016; --accent-ink:#0d2a1c; --accent-press:#e5cf06;
-  --field:#0d2a1c; --field-ink:#f6f6f3; --field-muted:#b9c6bd;
+  --field:#0d2a1c; --field-ink:#f6f6f3; --field-muted:#b9c6bd; --ink-bg:#0d2a1c;
   --live:#d7361f; --warn:#a33a12;
   --add:#e3f4e6; --add-fg:#1d6b2c; --del:#fbe7e6; --del-fg:#a1302b; --code:#f1f2ee;
   --font:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
@@ -20,7 +20,7 @@ const STYLE = `
   --ground:#07150e; --surface:#0d2117; --raised:#14301f; --active:#1b3a27;
   --ink:#edf2eb; --muted:#adbcb1; --faint:#98a89c;
   --border:#1d3a28; --control:#3c5a47;
-  --field:#f6e016; --field-ink:#0d2a1c; --field-muted:#3e4a1a;
+  --field:#f6e016; --field-ink:#0d2a1c; --field-muted:#3e4a1a; --ink-bg:#14301f;
   --live:#ff6a4d; --warn:#f0a36b;
   --add:#16301d; --add-fg:#7fd492; --del:#3a1b1a; --del-fg:#f29b94; --code:#0a1b12;
   color-scheme:dark}}
@@ -124,6 +124,9 @@ const PAGE_STYLE = `
 
 /* The yellow field */
 .field{background:var(--accent);color:var(--accent-ink)}
+.ink{background:var(--ink-bg);color:#f6f6f3}
+.ink .say{color:#f6f6f3}
+.ink .say+.say{color:#b9c6bd}
 .field .say{color:var(--accent-ink)}
 .idea{background:#fffef5;color:#0d2a1c;border-radius:18px;padding:clamp(20px,2.4vw,32px);display:grid;gap:18px;font-size:.98rem;line-height:1.5;box-shadow:0 18px 40px -24px rgba(13,42,28,.45);transform:rotate(-1deg)}
 .idea .t{font-size:1.4rem;font-weight:600;letter-spacing:-.025em;line-height:1.15}
@@ -276,6 +279,16 @@ ${NAV}
       <div><p class="lbl">Prompts to develop it</p><ul><li>What did a tidy summary lose that you needed?</li><li>Who is this post for?</li></ul></div>
       <span class="tag"><i></i>Building</span>
     </article>
+  </div>
+</section>
+
+<section class="sec ink" aria-labelledby="whyH">
+  <div class="wrap two">
+    <h2 class="rise" id="whyH">It won't write your posts. On purpose.</h2>
+    <div>
+      <p class="say rise" style="--i:1">Writing is thinking. When you put your week into your own sentences, you find out what you actually learned, what you'd do again, and what you believe about the thing you're building. Hand that to a model and you skip the part that makes it yours.</p>
+      <p class="say rise" style="--i:2">So The Interviewer does the part that's hard to do alone. It asks, it listens, and it keeps your answers exactly as you said them. The writing stays with you, and so does your voice.</p>
+    </div>
   </div>
 </section>
 
