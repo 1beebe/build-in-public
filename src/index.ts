@@ -164,7 +164,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         // A few live sessions an hour per person keeps the voice bill sane.
         const now = Date.now();
         s.voiceStarts = (s.voiceStarts ?? []).filter((t) => now - t < 3600_000);
-        if (s.voiceStarts.length >= 6) throw new UserError("That's a lot of talking for one hour. Type for now, or come back in a bit.");
+        if (s.voiceStarts.length >= 12) throw new UserError("That's a lot of talking for one hour. Type for now, or come back in a bit.");
         s.voiceStarts.push(now);
         result = await voiceSession(env, s);
         break;
