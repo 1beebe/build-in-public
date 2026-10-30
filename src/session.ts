@@ -44,6 +44,7 @@ export interface Session {
   turns?: Turn[]; // the conversation, kept only until it's saved or reset
   drafts?: Draft[];
   saved?: string[]; // draft ids already sent to Buffer
+  voiceStarts?: number[]; // when live voice sessions began, for a per-hour cap
   brief?: string; // repo, their note and recent posts, for the interviewer's context
   weekNote?: string; // their one-line "what did you work on", used only to aim questions
 }

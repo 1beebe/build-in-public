@@ -16,7 +16,8 @@ import {
 import { RepoError, getSource, parseRepo, whatShipped, type Source } from "./github";
 import { planQuestions } from "./interview";
 import { harvest, opening, reply } from "./conversation";
-import { MindStudioError, chatModel, generateText, speak, transcribe } from "./mindstudio";
+import { voiceSession } from "./realtime";
+import { MindStudioError, speak, transcribe } from "./mindstudio";
 import { appPage, landingPage, privacyPage } from "./pages";
 import { cookie, createSession, destroySession, loadSession, readCookie, saveSession, type Session } from "./session";
 
@@ -149,6 +150,32 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         result = await view(env, client, s);
         break;
       }
+      case "/api/voice": {
+        if (!env.OPENAI_API_KEY) throw new UserError("Live voice isn't turned on yet. Type instead.");
+        if (!s.questions?.length) throw new UserError("Start an interview first.");
+        // A few live sessions an hour per person keeps the voice bill sane.
+        const now = Date.now();
+        s.voiceStarts = (s.voiceStarts ?? []).filter((t) => now - t < 3600_000);
+        if (s.voiceStarts.length >= 6) throw new UserError("That's a lot of talking for one hour. Type for now, or come back in a bit.");
+        s.voiceStarts.push(now);
+        result = await voiceSession(env, s);
+        break;
+      }
+      case "/api/voice-turns": {
+        // The live conversation's transcript, sent from the page as it goes.
+        if (!s.turns) throw new UserError("Start an interview first.");
+        const turns = Array.isArray(body.turns) ? (body.turns as Record<string, unknown>[]).slice(0, MAX_TURNS) : [];
+        const agendaSize = s.questions?.length ?? 0;
+        s.turns = turns
+          .map((t) => ({
+            who: t.who === "you" ? ("you" as const) : ("interviewer" as const),
+            text: String(t.text ?? "").trim().slice(0, 4000),
+            about: Number.isInteger(t.about) && (t.about as number) >= 0 && (t.about as number) < agendaSize ? (t.about as number) : undefined,
+          }))
+          .filter((t) => t.text);
+        result = { ok: true };
+        break;
+      }
       case "/api/harvest": {
         if (!s.turns?.some((t) => t.who === "you")) throw new UserError("Answer at least one question first.");
         const pillars = (s.tags ?? []).filter((t) => (s.pillarTagIds ?? []).includes(t.id));
@@ -211,15 +238,6 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         if (!q?.ref || !s.repo) throw new UserError("Nothing to show for this question.");
         return json(await source(env, s.repo, q.ref)); // read-only: the session doesn't change
       }
-      case "/api/model-check": {
-        // Temporary: shows why a MindStudio call fails. Error text only, never keys.
-        try {
-          result = { ok: true, model: await chatModel(env), reply: await generateText(env, "Reply with one word.", "Say ready.") };
-        } catch (e) {
-          result = { ok: false, error: String((e as Error).message).slice(0, 600) };
-        }
-        break;
-      }
       case "/api/reset":
         Object.assign(s, { questions: [], turns: [], drafts: [], saved: [], brief: undefined });
         result = await view(env, client, s);
@@ -278,6 +296,7 @@ async function view(env: Env, client: BufferClient, s: Session, refresh = false)
     drafts: s.drafts ?? [],
     saved: s.saved ?? [],
     voice: Boolean(env.MINDSTUDIO_API_KEY),
+    live: Boolean(env.OPENAI_API_KEY),
   };
 }
 

@@ -12,6 +12,10 @@ export interface Env {
   // Optional overrides for the MindStudio model ids.
   INTERVIEW_MODEL?: string;
   VOICE_MODEL?: string;
+  // Optional. Turns on the live voice conversation (OpenAI's realtime model).
+  OPENAI_API_KEY?: string;
+  REALTIME_MODEL?: string;
+  REALTIME_VOICE?: string;
   // Optional fallback for questions when MindStudio isn't set up. Without
   // either key the interviewer asks rule-based questions from the commits.
   ANTHROPIC_API_KEY?: string;

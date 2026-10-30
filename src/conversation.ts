@@ -74,7 +74,7 @@ export async function harvest(env: Env, agenda: Question[], turns: Turn[], pilla
       const text = await complete(
         env,
         `You turn an interview into post ideas for the person who was interviewed. You never write post copy. For each idea you write a short title naming the angle (under 12 words, plain, not clickbait), and you pick the exact sentences they said that carry it.`,
-        `Their content pillars: ${pillars.map((p) => `${p.name} (id ${p.id})`).join(", ")}\n\nInterview:\n${transcript(turns)}\n\nPropose 2 to 6 distinct ideas, strongest first. Reply with JSON only: [{"title": "...", "quotes": ["exact sentences copied character for character from THEM lines"], "pillar": "<pillar id>"}]`,
+        `Their content pillars: ${pillars.map((p) => `${p.name} (id ${p.id})`).join(", ")}\n\nInterview:\n${transcript(turns)}\n\nPropose one idea per distinct thread they opened, strongest first: as few as 1, at most 6. Never use the same sentence in two ideas. Reply with JSON only: [{"title": "...", "quotes": ["exact sentences copied character for character from THEM lines"], "pillar": "<pillar id>"}]`,
       );
       const parsed = JSON.parse(text.slice(text.indexOf("["), text.lastIndexOf("]") + 1)) as { title: string; quotes: string[]; pillar?: string }[];
       drafts = parsed
@@ -84,6 +84,12 @@ export async function harvest(env: Env, agenda: Question[], turns: Turn[], pilla
           pillar: d.pillar,
         }))
         .filter((d) => d.title && d.quotes.length)
+        // Belt and braces: an idea whose words are all already used elsewhere is a duplicate.
+        .filter(function (this: Set<string>, d) {
+          const fresh = d.quotes.filter((q) => !this.has(norm(q)));
+          d.quotes.forEach((q) => this.add(norm(q)));
+          return fresh.length > 0;
+        }, new Set<string>())
         .slice(0, 6)
         .map((d) => ({ id: randomToken(6), title: d.title, text: d.quotes.join("\n\n"), tagId: pillarIds.has(d.pillar ?? "") ? d.pillar : pillars[0]?.id }));
     } catch (err) {
