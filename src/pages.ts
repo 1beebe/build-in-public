@@ -162,27 +162,28 @@ const PAGE_STYLE = `
 .where li::before{content:counter(w);font-weight:600;font-size:1.6em;line-height:1;letter-spacing:-.04em}
 .where b{font-weight:600}
 .bmock{margin:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);overflow:hidden;font-size:.9rem}
-.bm-bar{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border)}
-.bm-logo{width:26px;height:26px;border-radius:8px;background:var(--ink)}
-.bm-nav{width:56px;height:10px;border-radius:5px;background:var(--raised)}
-.bm-create,.bm-ideas{border-radius:var(--r-ctl);padding:7px 16px;font-weight:600}
-.bm-create{margin-left:auto;background:var(--accent);color:var(--accent-ink)}
-.bm-tabs{display:flex;gap:10px;align-items:center;padding:14px 18px 0}
-.bm-tab{width:64px;height:10px;border-radius:5px;background:var(--raised)}
-.bm-ideas{background:var(--ink);color:var(--ground)}
-.bm-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:18px}
-.bm-card{background:var(--ground);border-radius:14px;padding:14px;display:grid;gap:8px;align-content:start;min-height:150px}
+.bm-bar{display:flex;align-items:center;gap:6px;padding:12px 18px;border-bottom:1px solid var(--border)}
+.bm-logo{width:26px;height:26px;border-radius:8px;background:var(--ink);margin-right:8px}
+.bm-nav{padding:7px 12px;color:var(--muted);font-weight:500}
+.bm-create,.bm-ideas{border-radius:var(--r-ctl);padding:7px 14px;font-weight:600}
+.bm-create{background:var(--accent);color:var(--accent-ink)}
+.bm-ideas{justify-self:start;background:var(--ink);color:var(--ground);font-size:.875rem;padding:5px 12px}
+.bm-board{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:12px;padding:18px}
+.bm-col{display:grid;gap:10px;align-content:start}
+.bm-empty{border:1px dashed var(--border);border-radius:14px;padding:12px;min-height:120px}
+.bm-head{height:10px;width:60%;border-radius:5px;background:var(--raised)}
+.bm-card{background:var(--ground);border-radius:14px;padding:12px 14px;display:grid;gap:8px;align-content:start}
 .bm-card b{font-weight:600;line-height:1.25}
-.bm-card i{height:8px;border-radius:4px;background:var(--raised)}.bm-card i+i{width:70%}
-.bm-tag{justify-self:start;margin-top:auto;font-size:.8125rem;padding:3px 10px;border-radius:var(--r-ctl);box-shadow:inset 0 0 0 1px var(--control)}
+.bm-card i{height:8px;width:80%;border-radius:4px;background:var(--raised)}
+.bm-tag{justify-self:start;font-size:.8125rem;padding:3px 10px;border-radius:var(--r-ctl);box-shadow:inset 0 0 0 1px var(--control)}
 .bmock figcaption{padding:0 18px 14px;color:var(--muted);font-size:.875rem}
-@media (max-width:560px){.bm-board{grid-template-columns:1fr 1fr}.bm-card:nth-child(3){display:none}.bm-nav{display:none}}
+@media (max-width:560px){.bm-board{grid-template-columns:1fr}.bm-empty{display:none}.bm-nav:last-child{display:none}}
 .js .bmock.in .bm-create{animation:bm-create 9s var(--ease) infinite}
 .js .bmock.in .bm-ideas{animation:bm-ideas 9s var(--ease) infinite}
 .js .bmock.in .bm-card{animation:bm-card 9s var(--ease) infinite}
 .js .bmock.in .bm-card:nth-child(2){animation-name:bm-card2}.js .bmock.in .bm-card:nth-child(3){animation-name:bm-card3}
 @keyframes bm-create{0%,6%{background:var(--raised);color:var(--ink);transform:none}12%{transform:scale(.94)}16%,100%{background:var(--accent);color:var(--accent-ink);transform:none}}
-@keyframes bm-ideas{0%,26%{background:transparent;color:var(--muted)}30%{transform:scale(.94)}34%,100%{background:var(--ink);color:var(--ground);transform:none}}
+@keyframes bm-ideas{0%,26%{background:var(--raised);color:var(--muted)}30%{transform:scale(.94)}34%,100%{background:var(--ink);color:var(--ground);transform:none}}
 @keyframes bm-card{0%,40%{opacity:0;transform:translateY(12px)}48%,92%{opacity:1;transform:none}100%{opacity:0}}
 @keyframes bm-card2{0%,46%{opacity:0;transform:translateY(12px)}54%,92%{opacity:1;transform:none}100%{opacity:0}}
 @keyframes bm-card3{0%,52%{opacity:0;transform:translateY(12px)}60%,92%{opacity:1;transform:none}100%{opacity:0}}
@@ -240,30 +241,30 @@ ${NAV}
 <section class="wrap hero">
   <div>
     <h1 class="rise">Talk about what you shipped.</h1>
-    <p class="lead rise" style="--i:1">Everyone says build in public. Hardly anyone tells you where to start. The Interviewer reads your public GitHub repo, asks about your week out loud or typed, and saves the stories worth telling to Buffer as Ideas, in your own words.</p>
+    <p class="lead rise" style="--i:1">Everyone says build in public. Hardly anyone tells you where to start. The Interviewer looks at what you worked on this week, asks you about it (out loud or typed), and saves the stories worth telling to your Buffer as Ideas, in your own words.</p>
     ${error ? `<p class="alert" role="alert">${escapeHtml(error)}</p>` : ""}
     <div class="act rise" style="--i:2"><a class="btn" href="/connect">Connect with Buffer</a><span class="small muted">Signs in with Buffer, the social media planner. New to it? <a href="https://buffer.com" target="_blank" rel="noopener">The free plan</a> works.</span></div>
   </div>
   <div class="demo rise" style="--i:3" data-ui>
     <form id="try">
-      <label for="tryRepo">See what it would ask about a public repo</label>
-      <input id="tryRepo" name="repo" value="1beebe/build-in-public" autocomplete="off" spellcheck="false">
+      <label for="tryRepo">Try it on any public GitHub repo</label>
+      <input id="tryRepo" name="repo" placeholder="owner/repo" autocomplete="off" spellcheck="false">
       <button class="btn small" type="submit">Ask me</button>
     </form>
     <div class="stage">
       <div class="work" id="tryWork">
         <span class="kind">Merged pull request</span>
-        <span class="ttl">One live conversation instead of a list of questions</span>
-        <span class="meta"><span>this week</span></span>
-        <pre aria-hidden="true"><span class="d">- askNextQuestion(list)</span><span class="a">+ startConversation(agenda)</span><span>  harvestIdeas(transcript)</span></pre>
+        <span class="ttl">Let people try it before they sign up</span>
+        <span class="meta"><span>example</span><span>this week</span></span>
+        <pre aria-hidden="true"><span class="d">- requireAccount()</span><span class="a">+ letGuestsTryIt()</span><span>  askToSignUpAfter()</span></pre>
       </div>
       <div class="asks">
         <span class="who">${MARK.replace('class="mark"', 'class="mark" style="width:20px;height:20px"')}The Interviewer</span>
-        <p class="q" id="tryQ" aria-live="polite">You swapped the question list for one live conversation. What wasn't working before?</p>
+        <p class="q" id="tryQ" aria-live="polite">You let people try it before signing up. What were you seeing that made you change it?</p>
         <div class="reply"><span class="dot"></span><span>Your answer, out loud or typed</span></div>
       </div>
     </div>
-    <p class="note" id="tryNote">An opening question from your latest public work. In the real interview it has read your whole week and your recent posts first.</p>
+    <p class="note" id="tryNote">An example opening question. Paste a public repo above to see one about your own latest work.</p>
   </div>
 </section>
 
@@ -282,30 +283,30 @@ ${NAV}
 <section class="sec" id="sounds" style="background:var(--raised)">
   <div class="wrap two">
     <div>
-      <h2 class="rise">It follows what you say.</h2>
-      <p class="say rise" style="--i:1">It reads your commits before you start, so it can skip the obvious and ask why. When you get to a change, the change itself opens beside the conversation. When something you say is more interesting than its plan, it follows you.</p>
+      <h2 class="rise" id="soundsH">It follows what you say.</h2>
+      <p class="say rise" style="--i:1">It reads your week before you start, so it can skip the obvious and ask what led you there. When you get to a change, the change itself opens beside the conversation. When something you say is more interesting than its plan, it follows you.</p>
       <figure class="pic rise" style="--i:2"><img src="/img/cafe.webp" alt="Two people talking across a small cafe table, one laughing mid-story" width="960" height="1190" loading="lazy" decoding="async"></figure>
     </div>
     <ol class="talk" aria-label="An example conversation">
-      <li class="them rise"><span class="who">The Interviewer</span><p>You rebuilt how answers get saved. What made the old way feel wrong?</p></li>
-      <li class="you rise" style="--i:1"><span class="who">You</span><p>It was saving tidy summaries. I'd go to write and nothing sounded like me anymore.</p></li>
-      <li class="flag rise" style="--i:2">Opened beside you: the commit that changed it</li>
-      <li class="them rise" style="--i:3"><span class="who">The Interviewer</span><p>Who noticed first, you or someone using it?</p></li>
+      <li class="them rise"><span class="who">The Interviewer</span><p>You let people try it before signing up. What were you seeing before that?</p></li>
+      <li class="you rise" style="--i:1"><span class="who">You</span><p>Like half the people who found it would hit the sign-up screen and just leave.</p></li>
+      <li class="flag rise" style="--i:2">Opened beside you: the change you made</li>
+      <li class="them rise" style="--i:3"><span class="who">The Interviewer</span><p>Half is a lot. How did you figure out that's where they were going?</p></li>
     </ol>
   </div>
 </section>
 
-<section class="sec field" id="keep">
+<section class="sec field" id="keep" aria-labelledby="keepH">
   <div class="wrap two flip">
     <div>
-      <h2 class="rise">Your words, pulled into one thought.</h2>
-      <p class="say rise" style="--i:1">When you're done it reads the conversation back, finds the few stories worth telling, and pulls each one into a single thought made from your own words, with what you actually said underneath. You see every one before anything is saved. Edit, untick, pick a pillar, then send them to your Buffer Ideas.</p>
+      <h2 class="rise" id="keepH">Your stories, saved in your own words.</h2>
+      <p class="say rise" style="--i:1">When you're done, it reads the conversation back and finds the few stories worth telling. For each one, it gathers what you said into a short paragraph, using only your words, and keeps your exact quotes underneath. You check every card before anything is saved. Edit it, drop it, or tag it with one of your themes, then send the ones you like to Buffer.</p>
     </div>
     <article class="idea rise" style="--i:1" aria-label="An Idea as it lands in Buffer">
-      <p class="t">Why the summaries had to go</p>
-      <div><p class="lbl">Your words</p><p>It was saving tidy summaries, and nothing sounded like me anymore. So now it keeps my own sentences and just puts them in order.</p></div>
-      <div><p class="lbl">What you said</p><p>"It was saving tidy summaries. I'd go to write and nothing sounded like me anymore."</p><p>"So now it keeps my own sentences and just puts them in order."</p></div>
-      <div><p class="lbl">Prompts to develop it</p><ul><li>What did a tidy summary lose that you needed?</li><li>Who is this post for?</li></ul></div>
+      <p class="t">Why I let people in before they sign up</p>
+      <div><p class="lbl">The story, in your words</p><p>Half the people who found it would hit the sign-up screen and leave. Why would they give their email to something they hadn't seen work? I wouldn't. So now you try it first and sign up after.</p></div>
+      <div><p class="lbl">What you said in the interview</p><p>"Like half the people who found it would hit the sign-up screen and just leave."</p><p>"I mean, I wouldn't give my email to something I hadn't seen work. Why would they?"</p><p>"So now you just try it first. Sign up after."</p></div>
+      <div><p class="lbl">Questions to help you write it</p><ul><li>What did you worry you'd lose by letting people in free?</li><li>Who was the first person to try it this way?</li></ul></div>
       <span class="tag"><i></i>Building</span>
     </article>
   </div>
@@ -329,7 +330,7 @@ ${NAV}
     </div>
     <ol class="steps">
       <li class="rise"><span class="min num">10<small>sec</small></span><p>Connect your Buffer account. Nothing else to sign up for.</p></li>
-      <li class="rise" style="--i:1"><span class="min num">1<small>min</small></span><p>Paste a public GitHub repo and pick up to three Buffer tags as your pillars.</p></li>
+      <li class="rise" style="--i:1"><span class="min num">1<small>min</small></span><p>Paste a public GitHub repo, or skip it and just say what you're working on. Pick up to three Buffer tags as the themes you post about.</p></li>
       <li class="rise" style="--i:2"><span class="min num">8<small>min</small></span><p>Talk about your week, out loud or typed. Stop whenever you like.</p></li>
       <li class="rise" style="--i:3"><span class="min num">1<small>min</small></span><p>Keep the ideas you want. They land in Buffer, ready for you to write.</p></li>
     </ol>
@@ -341,20 +342,22 @@ ${NAV}
     <div>
       <h2 class="rise" id="landH">Where your ideas land.</h2>
       <ol class="where rise" style="--i:1">
-        <li><p>Open Buffer and click <b>Create</b>.</p></li>
-        <li><p>Switch to <b>Ideas</b>.</p></li>
-        <li><p>Your interview is there, one card per story, tagged with your pillar. Write from it whenever you're ready.</p></li>
+        <li><p>Open Buffer and click <b>Create</b> in the top bar.</p></li>
+        <li><p>Your ideas are on the board, under <b>Unassigned</b>, one card per story. The <b>Tags</b> filter shows one theme at a time.</p></li>
+        <li><p>When you're ready to write, click a card, then <b>New Post</b>.</p></li>
       </ol>
     </div>
     <figure class="bmock rise" style="--i:2" aria-hidden="true">
-      <div class="bm-bar"><span class="bm-logo"></span><span class="bm-nav"></span><span class="bm-nav"></span><span class="bm-create">Create</span></div>
-      <div class="bm-tabs"><span class="bm-tab"></span><span class="bm-ideas">Ideas</span></div>
+      <div class="bm-bar"><span class="bm-logo"></span><span class="bm-nav">Publish</span><span class="bm-create">Create</span><span class="bm-nav">Analyze</span></div>
       <div class="bm-board">
-        <div class="bm-card"><b>Why a form isn't an interview</b><i></i><i></i><span class="bm-tag">Building</span></div>
-        <div class="bm-card"><b>Building for the Friday blank page</b><i></i><i></i><span class="bm-tag">Adoption</span></div>
-        <div class="bm-card"><b>Keeping your own words</b><i></i><i></i><span class="bm-tag">Humanity</span></div>
+        <div class="bm-col"><span class="bm-ideas">Unassigned</span>
+          <div class="bm-card"><b>Why I let people in before they sign up</b><i></i><span class="bm-tag">Building</span></div>
+          <div class="bm-card"><b>The bug that only showed up on Fridays</b><i></i><span class="bm-tag">Lessons</span></div>
+          <div class="bm-card"><b>Who I'm really building this for</b><i></i><span class="bm-tag">Customers</span></div>
+        </div>
+        <div class="bm-col bm-empty"><span class="bm-head"></span></div>
       </div>
-      <figcaption>A simplified sketch of Buffer</figcaption>
+      <figcaption>A simplified sketch of Buffer's Create tab</figcaption>
     </figure>
   </div>
 </section>
@@ -508,7 +511,7 @@ textarea{resize:vertical;min-height:120px;line-height:1.5}
 .chip:has(input:checked){background:var(--ink);color:var(--ground);box-shadow:none}
 .chip:has(input:focus-visible){outline:3px solid var(--ink);outline-offset:2px}
 .chip:has(input:disabled){cursor:default;opacity:.7}
-.check{display:flex;gap:10px;align-items:center;color:var(--muted);cursor:pointer}.check input{width:auto;margin:0}
+.check{display:flex;gap:12px;align-items:center;color:var(--muted);cursor:pointer;min-height:44px}.check input{width:20px;height:20px;margin:0;flex:none;accent-color:var(--ink)}
 #repo:disabled{opacity:.45}
 .chip .swatch{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 0 1.5px var(--surface)}
 .row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
@@ -634,7 +637,7 @@ export function appPage(): string {
     <label class="check"><input id="noRepo" type="checkbox"> No GitHub? Skip it. You'll just tell it what you're working on.</label>
     <div class="fieldset" role="group" aria-labelledby="pillarsLbl">
       <span class="lbl" id="pillarsLbl">Content pillars</span>
-      <span class="hint">Pick up to three of your Buffer tags. Each idea gets one, so your week spreads across what you post about.</span>
+      <span class="hint">The themes you post about. Pick up to three of your Buffer tags, and each idea gets one.</span>
       <div id="tags" class="chips"></div>
       <p id="noTags" class="hint" hidden>You don't have any tags in Buffer yet. Create one to three in Buffer (for example: what I built, what I learned, who it's for), then reload this page.</p>
     </div>
@@ -683,7 +686,7 @@ export function appPage(): string {
 </section>
 
 <section id="review" class="screen wide" hidden>
-  <header><h1>Ideas from your interview</h1><p class="lede">Each title names an angle. Under it is your thought pulled together from your own words, what you actually said, and a few questions to help you shape a post. Edit anything, untick what you don't want, then save.</p></header>
+  <header><h1>Ideas from your interview</h1><p class="lede">One card per story. Each has a working title, the story pulled together from your own words, the exact quotes it came from, and a few questions to help you write the post. Edit anything, untick what you don't want, then save.</p></header>
   <div id="drafts" class="drafts"></div>
   <div class="savebar"><span class="count" id="saveCount"></span><div class="row"><button id="backTalk" class="btn quiet small" type="button">Back to the conversation</button><button id="saveAll" class="btn" type="button">Save to Buffer</button></div></div>
 </section>
@@ -693,8 +696,8 @@ export function appPage(): string {
     <div class="orb" data-s="idle" aria-hidden="true"><i></i><i></i><b></b></div>
     <header style="display:grid;gap:10px"><h1>That's this week.</h1><p class="lede" id="doneLine"></p></header>
     <ul class="done-list" id="doneList"></ul>
-    <p class="muted">To find them, open Buffer, click <b>Create</b>, then <b>Ideas</b>.</p>
-    <div class="row"><a class="btn" href="https://publish.buffer.com" target="_blank" rel="noopener">Open Buffer</a><button id="again" class="btn quiet" type="button">Start a new interview</button></div>
+    <p class="muted">They're in Buffer's <b>Create</b> tab, under <b>Unassigned</b>. Click one, then <b>New Post</b>, when you're ready to write.</p>
+    <div class="row"><a class="btn" href="https://publish.buffer.com/create" target="_blank" rel="noopener">Open my Ideas in Buffer</a><button id="again" class="btn quiet" type="button">Start a new interview</button></div>
   </div>
 </section>
 </main>`,
@@ -1081,7 +1084,7 @@ function renderReview(){
     const t = el("input", "title"); t.type = "text"; t.value = d.title; t.setAttribute("aria-label", "Idea title"); card.append(t);
     const words = el("div"); words.append(el("span", "lbl", d.later ? "A question for later" : "Your words")); const x = el("textarea", "text"); x.value = d.text; x.setAttribute("aria-label", "Idea text, in your words"); words.append(x); card.append(words);
     if ((d.prompts||[]).length) {
-      const pw = el("div"); pw.append(el("span", "lbl", "Prompts to develop it, one per line"));
+      const pw = el("div"); pw.append(el("span", "lbl", "Questions to help you write it, one per line"));
       const pr = el("textarea", "prompts"); pr.value = d.prompts.join("\\n"); pr.setAttribute("aria-label", "Shaping questions, one per line"); pw.append(pr); card.append(pw);
     }
     const chips = el("div", "chips"); chips.setAttribute("aria-label", "Pillar"); pillars().forEach((p, k) => chips.append(chip(p, "pl-" + d.id, "radio", d.tagId ? d.tagId === p.id : k === 0))); card.append(chips);
