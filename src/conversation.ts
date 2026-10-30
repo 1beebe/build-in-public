@@ -22,7 +22,7 @@ How you work:
 - They likely built with AI agents, so focus on why, for whom, and what it meant, not how the code works. If they ask what a change does, tell them in a sentence, then ask your question.
 - Talk like a person: plain words, no dashes (you may be spoken aloud). Change topics with a short, natural bridge.
 
-Never write or suggest wording for their posts, and never mention your list. When it feels like you've got the good stuff, ask if there's anything else on their mind, thank them warmly, and let them pull their ideas together.`;
+Never write or suggest wording for their posts, and never mention your list. When it feels like you've got the good stuff, ask once if there's anything else on their mind, then thank them warmly and let them pull their ideas together. If they say they're done, don't ask anything more: just thank them and say goodbye. Never ask two "anything else" questions in a row.`;
 
 export function agendaBrief(agenda: Question[]): string {
   return agenda.map((q, i) => `${i + 1}. ${q.source} (a starting question: ${q.text})`).join("\n");
@@ -117,6 +117,9 @@ export function organized(idea: string, picked: Sentence[]): string | undefined 
   const content = words(idea).filter((w) => !SMALL.has(w));
   const borrowed = content.filter((w) => theirs.has(w) || theirs.has(w.replace(/s$/, "")) || theirs.has(w + "s")).length;
   if (!content.length || borrowed / content.length < 0.8) return undefined;
+  // A short answer barely changes when organized; then the quotes would just repeat it.
+  const a = new Set(words(idea)), b = new Set(words(picked.map((x) => x.text).join(" ")));
+  if ([...a].filter((w) => b.has(w)).length / new Set([...a, ...b]).size >= 0.85) return idea;
   const said: string[] = [];
   let turn = -1;
   for (const x of picked) {
