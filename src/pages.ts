@@ -157,6 +157,35 @@ const PAGE_STYLE = `
 @media (min-width:900px){.keptwrap{grid-template-columns:minmax(0,4fr) minmax(0,8fr)}}
 .keptwrap .pic{aspect-ratio:4/5}
 .keptwrap .kept{margin-top:0}
+.where{list-style:none;margin:36px 0 0;padding:0;display:grid;gap:20px;counter-reset:w;max-width:40ch}
+.where li{display:grid;grid-template-columns:2.2rem 1fr;gap:12px;align-items:baseline;counter-increment:w;font-size:clamp(1.1rem,1rem + .35vw,1.3rem);line-height:1.45}
+.where li::before{content:counter(w);font-weight:600;font-size:1.6em;line-height:1;letter-spacing:-.04em}
+.where b{font-weight:600}
+.bmock{margin:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);overflow:hidden;font-size:.9rem}
+.bm-bar{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border)}
+.bm-logo{width:26px;height:26px;border-radius:8px;background:var(--ink)}
+.bm-nav{width:56px;height:10px;border-radius:5px;background:var(--raised)}
+.bm-create,.bm-ideas{border-radius:var(--r-ctl);padding:7px 16px;font-weight:600}
+.bm-create{margin-left:auto;background:var(--accent);color:var(--accent-ink)}
+.bm-tabs{display:flex;gap:10px;align-items:center;padding:14px 18px 0}
+.bm-tab{width:64px;height:10px;border-radius:5px;background:var(--raised)}
+.bm-ideas{background:var(--ink);color:var(--ground)}
+.bm-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:18px}
+.bm-card{background:var(--ground);border-radius:14px;padding:14px;display:grid;gap:8px;align-content:start;min-height:150px}
+.bm-card b{font-weight:600;line-height:1.25}
+.bm-card i{height:8px;border-radius:4px;background:var(--raised)}.bm-card i+i{width:70%}
+.bm-tag{justify-self:start;margin-top:auto;font-size:.8125rem;padding:3px 10px;border-radius:var(--r-ctl);box-shadow:inset 0 0 0 1px var(--control)}
+.bmock figcaption{padding:0 18px 14px;color:var(--muted);font-size:.875rem}
+@media (max-width:560px){.bm-board{grid-template-columns:1fr 1fr}.bm-card:nth-child(3){display:none}.bm-nav{display:none}}
+.js .bmock.in .bm-create{animation:bm-create 9s var(--ease) infinite}
+.js .bmock.in .bm-ideas{animation:bm-ideas 9s var(--ease) infinite}
+.js .bmock.in .bm-card{animation:bm-card 9s var(--ease) infinite}
+.js .bmock.in .bm-card:nth-child(2){animation-name:bm-card2}.js .bmock.in .bm-card:nth-child(3){animation-name:bm-card3}
+@keyframes bm-create{0%,6%{background:var(--raised);color:var(--ink);transform:none}12%{transform:scale(.94)}16%,100%{background:var(--accent);color:var(--accent-ink);transform:none}}
+@keyframes bm-ideas{0%,26%{background:transparent;color:var(--muted)}30%{transform:scale(.94)}34%,100%{background:var(--ink);color:var(--ground);transform:none}}
+@keyframes bm-card{0%,40%{opacity:0;transform:translateY(12px)}48%,92%{opacity:1;transform:none}100%{opacity:0}}
+@keyframes bm-card2{0%,46%{opacity:0;transform:translateY(12px)}54%,92%{opacity:1;transform:none}100%{opacity:0}}
+@keyframes bm-card3{0%,52%{opacity:0;transform:translateY(12px)}60%,92%{opacity:1;transform:none}100%{opacity:0}}
 @media (min-width:900px){.keptwrap .kept{grid-template-columns:1fr}}
 .kept{display:grid;gap:28px;margin-top:48px}
 @media (min-width:900px){.kept{grid-template-columns:repeat(3,minmax(0,1fr))}}
@@ -176,7 +205,8 @@ const PAGE_STYLE = `
 .doc{max-width:720px;padding-block:clamp(40px,7vw,96px) 96px;display:grid;gap:22px}
 .doc h1{font-size:clamp(2.6rem,1.6rem + 4vw,4.5rem);margin-bottom:12px}
 .doc h2{font-size:1.6rem;letter-spacing:-.025em;margin-top:28px}
-.doc p{max-width:62ch}
+.doc p,.doc li{max-width:62ch}
+.doc ul{margin:0;padding-left:1.2em;display:grid;gap:10px}
 `;
 
 const MARK = `<svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3C8.8 3 3 8.4 3 15.1c0 3.6 1.7 6.8 4.4 9L6.2 29l5.6-2.8c1.3.4 2.7.6 4.2.6 7.2 0 13-5.4 13-12.1S23.2 3 16 3Z" fill="#f6e016"/><circle cx="16" cy="15" r="4.2" fill="#d7361f"/></svg>`;
@@ -197,7 +227,7 @@ ${FONTS}
 
 const NAV = `<header class="wrap nav">
   <a class="wordmark" href="/">${MARK}The Interviewer</a>
-  <nav aria-label="Main"><ul><li><a href="/#sounds">How it sounds</a></li><li><a href="/#keep">What you keep</a></li><li><a href="/privacy">Privacy</a></li></ul></nav>
+  <nav aria-label="Main"><ul><li><a href="/#sounds">How it sounds</a></li><li><a href="/#keep">What you keep</a></li><li><a href="/#data">Your data</a></li><li><a href="/privacy">Privacy</a></li></ul></nav>
   <a class="btn small" href="/connect">Connect<span class="long">&nbsp;with Buffer</span></a>
 </header>`;
 
@@ -212,7 +242,7 @@ ${NAV}
     <h1 class="rise">Talk about what you shipped.</h1>
     <p class="lead rise" style="--i:1">Everyone says build in public. Hardly anyone tells you where to start. The Interviewer reads your public GitHub repo, asks about your week out loud or typed, and saves the stories worth telling to Buffer as Ideas, in your own words.</p>
     ${error ? `<p class="alert" role="alert">${escapeHtml(error)}</p>` : ""}
-    <div class="act rise" style="--i:2"><a class="btn" href="/connect">Connect with Buffer</a><span class="small muted">Buffer is the only sign-in.</span></div>
+    <div class="act rise" style="--i:2"><a class="btn" href="/connect">Connect with Buffer</a><span class="small muted">Signs in with Buffer, the social media planner. New to it? <a href="https://buffer.com" target="_blank" rel="noopener">The free plan</a> works.</span></div>
   </div>
   <div class="demo rise" style="--i:3" data-ui>
     <form id="try">
@@ -306,16 +336,40 @@ ${NAV}
   </div>
 </section>
 
-<section class="sec" style="background:var(--raised)" aria-labelledby="keptH">
+<section class="sec land" aria-labelledby="landH">
+  <div class="wrap two">
+    <div>
+      <h2 class="rise" id="landH">Where your ideas land.</h2>
+      <ol class="where rise" style="--i:1">
+        <li><p>Open Buffer and click <b>Create</b>.</p></li>
+        <li><p>Switch to <b>Ideas</b>.</p></li>
+        <li><p>Your interview is there, one card per story, tagged with your pillar. Write from it whenever you're ready.</p></li>
+      </ol>
+    </div>
+    <figure class="bmock rise" style="--i:2" aria-hidden="true">
+      <div class="bm-bar"><span class="bm-logo"></span><span class="bm-nav"></span><span class="bm-nav"></span><span class="bm-create">Create</span></div>
+      <div class="bm-tabs"><span class="bm-tab"></span><span class="bm-ideas">Ideas</span></div>
+      <div class="bm-board">
+        <div class="bm-card"><b>Why a form isn't an interview</b><i></i><i></i><span class="bm-tag">Building</span></div>
+        <div class="bm-card"><b>Building for the Friday blank page</b><i></i><i></i><span class="bm-tag">Adoption</span></div>
+        <div class="bm-card"><b>Keeping your own words</b><i></i><i></i><span class="bm-tag">Humanity</span></div>
+      </div>
+      <figcaption>A simplified sketch of Buffer</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="sec" id="data" style="background:var(--raised)" aria-labelledby="keptH">
   <div class="wrap">
-    <h2 class="rise" id="keptH">What it keeps, and for how long.</h2>
+    <h2 class="rise" id="keptH">What happens when you connect.</h2>
     <div class="keptwrap">
     <figure class="pic rise"><img src="/img/couch.webp" alt="Someone on a couch at night with a laptop, talking and smiling" width="960" height="1190" loading="lazy" decoding="async"></figure>
     <div class="kept">
-      <div class="rise"><h3>Kept, briefly</h3><p>Your Buffer sign-in, encrypted. Your repo link and pillars. Your latest conversation, until you start a new one. All of it expires 30 days after your last visit.</p></div>
-      <div class="rise" style="--i:1"><h3>Read, not kept</h3><p>Public commits, pull requests and issues in the repo you name. Your Buffer tags and up to 20 recent posts, so it knows who you write for.</p></div>
-      <div class="rise" style="--i:2"><h3>Never</h3><p>No tracking, no analytics, nothing sold or shared. The Ideas you save live in your own Buffer account. <a href="/privacy">Full privacy note</a></p></div>
-    </div>
+      <div class="rise"><h3>You sign in with Buffer</h3><p>Buffer asks you to approve access. The Interviewer reads your account, your tags, recent Ideas and up to 20 posts from the last 30 days, so its questions fit who you write for. The only thing it ever writes is the Ideas you choose to save. It never creates, edits or deletes posts.</p></div>
+      <div class="rise" style="--i:1"><h3>You share a public repo</h3><p>If you point it at a public GitHub repo, it reads only what anyone can see: the last week of commits, pull requests and issues. There's no GitHub sign-in, so private code stays out of reach.</p></div>
+      <div class="rise" style="--i:2"><h3>You talk it through</h3><p>Claude, by Anthropic, reads your week and your recent posts and plans what to ask. Talk out loud and OpenAI's voice model holds the conversation. Type and DeepSeek asks the follow-ups. When you're done, Claude sorts what you said into ideas. None of them ever sees your Buffer sign-in.</p></div>
+      <div class="rise" style="--i:3"><h3>What it keeps</h3><p>Your Buffer sign-in, repo link, pillars and latest conversation, all encrypted. It expires 30 days after your last visit, and Disconnect deletes it right away. No tracking, no analytics, nothing sold. <a href="/privacy">The full privacy note</a> names every service.</p></div>
+</div>
     </div>
   </div>
 </section>
@@ -405,6 +459,15 @@ ${NAV}
 <p>Anything after you're done with it. The Ideas you choose go to your own Buffer account. Nothing is sold, shared or used for ads, and there's no tracking or analytics.</p>
 <h2>What's read</h2>
 <p>From Buffer: your organization, tags, recent Ideas and up to 20 posts from the last 30 days, only to aim the questions, understand who you write for, and avoid repeats. From GitHub: public commits, pull requests and issues in the repo you name. That context is sent to MindStudio, which runs the AI model that writes the questions. The example on the home page asks GitHub directly from your browser and sends nothing here.</p>
+<h2>Which AI does what</h2>
+<p>Each service gets only what its step needs: your week on GitHub, a summary of your recent posts, the questions and your answers. None of them ever sees your Buffer sign-in.</p>
+<ul>
+<li><b>Claude Sonnet</b>, by Anthropic, through MindStudio: plans the interview from your week and your recent posts, and at the end turns the conversation into ideas.</li>
+<li><b>DeepSeek</b>, through MindStudio: asks the next question when you type your answers.</li>
+<li><b>OpenAI GPT-Live</b>, or OpenAI's realtime model if you switch to the classic voice: holds the live spoken conversation.</li>
+<li><b>ElevenLabs Scribe</b>, through MindStudio: turns a recorded answer into text.</li>
+<li><b>OpenAI text to speech</b>, through MindStudio: reads questions aloud if you turn that on.</li>
+</ul>
 <h2>Voice</h2>
 <p>A live voice conversation streams between your browser and OpenAI's voice model. This app only sets up the call, either by passing your browser's connection request to OpenAI or by handing your browser a key that works for two minutes, and keeps the written transcript for the harvest. The live audio isn't stored here. If you answer out loud, the recording is held here for at most 10 minutes behind a random link so MindStudio can transcribe it, then deleted. You see the text and can edit it before anything is saved. Questions read aloud are generated by MindStudio from the question text.</p>
 <h2>Contact</h2>
@@ -627,6 +690,7 @@ export function appPage(): string {
     <div class="orb" data-s="idle" aria-hidden="true"><i></i><i></i><b></b></div>
     <header style="display:grid;gap:10px"><h1>That's this week.</h1><p class="lede" id="doneLine"></p></header>
     <ul class="done-list" id="doneList"></ul>
+    <p class="muted">To find them, open Buffer, click <b>Create</b>, then <b>Ideas</b>.</p>
     <div class="row"><a class="btn" href="https://publish.buffer.com" target="_blank" rel="noopener">Open Buffer</a><button id="again" class="btn quiet" type="button">Start a new interview</button></div>
   </div>
 </section>
