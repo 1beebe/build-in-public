@@ -162,28 +162,29 @@ const PAGE_STYLE = `
 .where li::before{content:counter(w);font-weight:600;font-size:1.6em;line-height:1;letter-spacing:-.04em}
 .where b{font-weight:600}
 .bmock{margin:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);overflow:hidden;font-size:.9rem}
-.bm-bar{display:flex;align-items:center;gap:6px;padding:12px 18px;border-bottom:1px solid var(--border)}
-.bm-logo{width:26px;height:26px;border-radius:8px;background:var(--ink);margin-right:8px}
-.bm-nav{padding:7px 12px;color:var(--muted);font-weight:500}
-.bm-create,.bm-ideas{border-radius:var(--r-ctl);padding:7px 14px;font-weight:600}
+.bm-app{display:grid;grid-template-columns:8.5rem minmax(0,1fr)}
+.bm-side{display:grid;gap:4px;align-content:start;padding:16px 10px;border-right:1px solid var(--border)}
+.bm-logo{width:26px;height:26px;border-radius:8px;background:var(--ink);margin:0 0 10px 8px}
+.bm-nav{padding:6px 10px;color:var(--muted);font-weight:500}
+.bm-create,.bm-ideas{border-radius:var(--r-ctl);padding:6px 10px;font-weight:600}
 .bm-create{background:var(--accent);color:var(--accent-ink)}
-.bm-ideas{justify-self:start;background:var(--ink);color:var(--ground);font-size:.875rem;padding:5px 12px}
-.bm-board{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:12px;padding:18px}
+.bm-main{padding:14px 18px 18px;display:grid;gap:14px;align-content:start;min-width:0}
+.bm-tabs{display:flex;gap:4px;align-items:center;border-bottom:1px solid var(--border);padding-bottom:10px}
+.bm-ideas{background:var(--ink);color:var(--ground)}
 .bm-col{display:grid;gap:10px;align-content:start}
-.bm-empty{border:1px dashed var(--border);border-radius:14px;padding:12px;min-height:120px}
-.bm-head{height:10px;width:60%;border-radius:5px;background:var(--raised)}
+.bm-head{font-weight:600;font-size:.875rem}
 .bm-card{background:var(--ground);border-radius:14px;padding:12px 14px;display:grid;gap:8px;align-content:start}
-.bm-card b{font-weight:600;line-height:1.25}
+.bm-card b{font-weight:600;line-height:1.3}
+.bm-pre{display:block;font-weight:500;font-size:.8125rem;color:var(--muted);letter-spacing:.01em}
 .bm-card i{height:8px;width:80%;border-radius:4px;background:var(--raised)}
-.bm-tag{justify-self:start;font-size:.8125rem;padding:3px 10px;border-radius:var(--r-ctl);box-shadow:inset 0 0 0 1px var(--control)}
 .bmock figcaption{padding:0 18px 14px;color:var(--muted);font-size:.875rem}
-@media (max-width:560px){.bm-board{grid-template-columns:1fr}.bm-empty{display:none}.bm-nav:last-child{display:none}}
+@media (max-width:560px){.bm-app{grid-template-columns:6.5rem minmax(0,1fr)}.bm-side .bm-nav:last-child,.bm-feeds{display:none}.bm-main{padding:12px}}
 .js .bmock.in .bm-create{animation:bm-create 9s var(--ease) infinite}
 .js .bmock.in .bm-ideas{animation:bm-ideas 9s var(--ease) infinite}
 .js .bmock.in .bm-card{animation:bm-card 9s var(--ease) infinite}
 .js .bmock.in .bm-card:nth-child(2){animation-name:bm-card2}.js .bmock.in .bm-card:nth-child(3){animation-name:bm-card3}
 @keyframes bm-create{0%,6%{background:var(--raised);color:var(--ink);transform:none}12%{transform:scale(.94)}16%,100%{background:var(--accent);color:var(--accent-ink);transform:none}}
-@keyframes bm-ideas{0%,26%{background:var(--raised);color:var(--muted)}30%{transform:scale(.94)}34%,100%{background:var(--ink);color:var(--ground);transform:none}}
+@keyframes bm-ideas{0%,26%{background:transparent;color:var(--muted)}30%{transform:scale(.94)}34%,100%{background:var(--ink);color:var(--ground);transform:none}}
 @keyframes bm-card{0%,40%{opacity:0;transform:translateY(12px)}48%,92%{opacity:1;transform:none}100%{opacity:0}}
 @keyframes bm-card2{0%,46%{opacity:0;transform:translateY(12px)}54%,92%{opacity:1;transform:none}100%{opacity:0}}
 @keyframes bm-card3{0%,52%{opacity:0;transform:translateY(12px)}60%,92%{opacity:1;transform:none}100%{opacity:0}}
@@ -342,22 +343,24 @@ ${NAV}
     <div>
       <h2 class="rise" id="landH">Where your ideas land.</h2>
       <ol class="where rise" style="--i:1">
-        <li><p>Open Buffer and click <b>Create</b> in the top bar.</p></li>
-        <li><p>Your ideas are on the board, under <b>Unassigned</b>, one card per story. The <b>Tags</b> filter shows one theme at a time.</p></li>
-        <li><p>When you're ready to write, click a card, then <b>New Post</b>.</p></li>
+        <li><p>Open Buffer and click <b>Create</b> in the left sidebar.</p></li>
+        <li><p>You land on <b>Ideas</b>. Your stories are in the <b>Unassigned</b> column, each titled <b>INTERVIEW</b> with its theme. <b>Filter by Tags</b> shows one theme at a time.</p></li>
+        <li><p>When you're ready to write, open a card and click <b>Create Post</b>.</p></li>
       </ol>
     </div>
     <figure class="bmock rise" style="--i:2" aria-hidden="true">
-      <div class="bm-bar"><span class="bm-logo"></span><span class="bm-nav">Publish</span><span class="bm-create">Create</span><span class="bm-nav">Analyze</span></div>
-      <div class="bm-board">
-        <div class="bm-col"><span class="bm-ideas">Unassigned</span>
-          <div class="bm-card"><b>Why I let people in before they sign up</b><i></i><span class="bm-tag">Building</span></div>
-          <div class="bm-card"><b>The bug that only showed up on Fridays</b><i></i><span class="bm-tag">Lessons</span></div>
-          <div class="bm-card"><b>Who I'm really building this for</b><i></i><span class="bm-tag">Customers</span></div>
+      <div class="bm-app">
+        <div class="bm-side"><span class="bm-logo"></span><span class="bm-nav">Home</span><span class="bm-create">Create</span><span class="bm-nav">Publish</span><span class="bm-nav">Insights</span></div>
+        <div class="bm-main">
+          <div class="bm-tabs"><span class="bm-ideas">Ideas</span><span class="bm-nav">Templates</span><span class="bm-nav bm-feeds">Feeds</span></div>
+          <div class="bm-col"><span class="bm-head">Unassigned</span>
+            <div class="bm-card"><b><span class="bm-pre">INTERVIEW | Building |</span> Why I let people in before they sign up</b><i></i></div>
+            <div class="bm-card"><b><span class="bm-pre">INTERVIEW | Lessons |</span> The bug that only showed up on Fridays</b><i></i></div>
+            <div class="bm-card"><b><span class="bm-pre">INTERVIEW | Customers |</span> Who I'm really building this for</b><i></i></div>
+          </div>
         </div>
-        <div class="bm-col bm-empty"><span class="bm-head"></span></div>
       </div>
-      <figcaption>A simplified sketch of Buffer's Create tab</figcaption>
+      <figcaption>A simplified sketch of Buffer</figcaption>
     </figure>
   </div>
 </section>
@@ -696,7 +699,7 @@ export function appPage(): string {
     <div class="orb" data-s="idle" aria-hidden="true"><i></i><i></i><b></b></div>
     <header style="display:grid;gap:10px"><h1>That's this week.</h1><p class="lede" id="doneLine"></p></header>
     <ul class="done-list" id="doneList"></ul>
-    <p class="muted">They're in Buffer's <b>Create</b> tab, under <b>Unassigned</b>. Click one, then <b>New Post</b>, when you're ready to write.</p>
+    <p class="muted" style="max-width:62ch">In Buffer, click <b>Create</b> in the left sidebar. They're under <b>Ideas</b>, in the <b>Unassigned</b> column, each titled INTERVIEW. Open one and click <b>Create Post</b> when you're ready to write.</p>
     <div class="row"><a class="btn" href="https://publish.buffer.com/create" target="_blank" rel="noopener">Open my Ideas in Buffer</a><button id="again" class="btn quiet" type="button">Start a new interview</button></div>
   </div>
 </section>
