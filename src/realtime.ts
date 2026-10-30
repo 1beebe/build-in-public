@@ -10,13 +10,15 @@ const MODEL = "gpt-realtime-2.1";
 const VOICE_RULES = `This is a live voice conversation.
 - When you move to an agenda item, call show_work with its number in the same response as you start talking about it, so it appears on screen while you speak. Don't wait for show_work before speaking.
 - Never read code, file paths, hashes or URLs aloud. Say what the change does in plain words.
-- Start with a short hello (a few words) and ask about the first agenda item.
+- If the conversation hasn't started, say a short hello (a few words) and ask about the first agenda item, in fewer words than it's written.
 - Let silences be. Don't fill them, and don't talk over someone who's thinking.
 - If they say they're done, thank them in one sentence and tell them to press "Find my ideas".`;
 
 export async function voiceSession(env: Env, s: Session): Promise<{ key: string; model: string }> {
   const agenda: Question[] = s.questions ?? [];
-  const sofar = (s.turns ?? []).map((t) => `${t.who === "you" ? "THEM" : "YOU"}: ${t.text}`).join("\n");
+  // Before they've said anything, the opening question on screen is replaced by the live hello.
+  const answered = (s.turns ?? []).some((t) => t.who === "you");
+  const sofar = !answered ? "" : (s.turns ?? []).map((t) => `${t.who === "you" ? "THEM" : "YOU"}: ${t.text}`).join("\n");
   const instructions = [
     CONVERSE,
     VOICE_RULES,

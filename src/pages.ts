@@ -402,7 +402,7 @@ async function startLive(){
   try {
     mic = await navigator.mediaDevices.getUserMedia({audio:true});
     const { key } = await api("/api/voice", {});
-    items = {}; liveTurns = (state.turns || []).map(t => ({...t})); liveAbout = currentAbout();
+    items = {}; liveTurns = (state.turns || []).some(t => t.who === "you") ? state.turns.map(t => ({...t})) : []; liveAbout = currentAbout();
     pc = new RTCPeerConnection();
     const out = new Audio(); out.autoplay = true;
     pc.ontrack = (e) => { out.srcObject = e.streams[0]; };
