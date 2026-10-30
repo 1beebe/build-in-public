@@ -49,6 +49,17 @@ async function gh<T>(env: Env, path: string): Promise<T> {
 // Everything public that changed in the last `days` days. Merge commits and
 // bot noise are dropped so questions land on work a person actually did.
 export async function whatShipped(env: Env, repo: string, days = 7): Promise<Shipped> {
+  // Cached briefly: setup, a restart and a second person on the same repo
+  // shouldn't each spend four GitHub requests.
+  const cacheKey = `ship:${repo.toLowerCase()}:${days}`;
+  const cached = await env.SESSIONS.get<Shipped>(cacheKey, "json");
+  if (cached) return cached;
+  const fresh = await readShipped(env, repo, days);
+  await env.SESSIONS.put(cacheKey, JSON.stringify(fresh), { expirationTtl: 600 });
+  return fresh;
+}
+
+async function readShipped(env: Env, repo: string, days: number): Promise<Shipped> {
   const since = new Date(Date.now() - days * 86400_000).toISOString();
   const [meta, commits, pulls, issues] = await Promise.all([
     gh<{ description?: string; private?: boolean }>(env, `/repos/${repo}`),
