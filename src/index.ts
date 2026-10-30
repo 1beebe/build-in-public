@@ -120,7 +120,6 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const ids = Array.isArray(body.pillarTagIds) ? body.pillarTagIds.map(String).slice(0, 3) : [];
         if (!ids.length) throw new UserError("Pick at least one pillar.");
         if (body.organizationId) s.organizationId = String(body.organizationId);
-        s.profile = String(body.profile ?? "").trim().slice(0, 600) || undefined;
         await whatShipped(env, repo, 1); // fails fast with a clear message if the repo isn't public
         Object.assign(s, { repo, pillarTagIds: ids, questions: [], turns: [], drafts: [], saved: [] });
         result = await view(env, client, s, true);
@@ -131,12 +130,12 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         s.weekNote = String(body.weekNote ?? "").slice(0, 500);
         const [shipped, recent] = await Promise.all([whatShipped(env, s.repo), getRecent(client, s.organizationId)]);
         s.questions = await planQuestions(env, shipped, recent, s.weekNote);
+        s.posts = recent.posts.map((p) => p.slice(0, 300));
         s.brief = [
-          s.profile ? `Who they are and who they post for, in their words: ${s.profile}` : "",
           `Repo: ${shipped.repo}${shipped.description ? ` — ${shipped.description}` : ""}`,
           `What they said they worked on this week: ${s.weekNote || "(nothing)"}`,
-          `Their recent posts, newest first (don't steer back to these):`,
-          ...recent.posts.slice(0, 5).map((p) => `- ${p.slice(0, 200)}`),
+          `Their recent posts, newest first. They show who they are and who they write for; don't steer back to these topics:`,
+          ...recent.posts.slice(0, 8).map((p) => `- ${p.slice(0, 200)}`),
         ].join("\n");
         Object.assign(s, { turns: [opening(s.questions)], drafts: [], saved: [] });
         result = await view(env, client, s);
@@ -181,7 +180,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
       case "/api/harvest": {
         if (!s.turns?.some((t) => t.who === "you")) throw new UserError("Answer at least one question first.");
         const pillars = (s.tags ?? []).filter((t) => (s.pillarTagIds ?? []).includes(t.id));
-        s.drafts = await harvest(env, s.questions ?? [], s.turns, pillars, s.profile);
+        s.drafts = await harvest(env, s.questions ?? [], s.turns, pillars, s.posts);
         s.saved = [];
         result = await view(env, client, s);
         break;
@@ -304,7 +303,6 @@ async function view(env: Env, client: BufferClient, s: Session, refresh = false)
     repo: s.repo,
     tags,
     pillarTagIds: s.pillarTagIds ?? [],
-    profile: s.profile ?? "",
     questions: s.questions ?? [],
     turns: s.turns ?? [],
     drafts: s.drafts ?? [],

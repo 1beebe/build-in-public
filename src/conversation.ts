@@ -140,7 +140,7 @@ const DEFAULT_PROMPTS = [
 
 // Turn the conversation into proposed Ideas: the model picks the angles and
 // which of their sentences carry each one.
-export async function harvest(env: Env, agenda: Question[], turns: Turn[], pillars: Tag[], profile = ""): Promise<Draft[]> {
+export async function harvest(env: Env, agenda: Question[], turns: Turn[], pillars: Tag[], posts: string[] = []): Promise<Draft[]> {
   const all = sentences(turns);
   const pillarIds = new Set(pillars.map((p) => p.id));
   let drafts: Draft[] = [];
@@ -157,7 +157,7 @@ export async function harvest(env: Env, agenda: Question[], turns: Turn[], pilla
       const text = await complete(
         env,
         HARVEST,
-        `${profile ? `Who they are and who they post for, in their words: ${profile}\n\n` : ""}Their content pillars: ${pillars.map((p) => `${p.name} (id ${p.id})`).join(", ")}\n\nInterview (their sentences are numbered):\n${lines}\n\nReply with JSON only, strongest idea first: [{"title": "...", "sentences": [numbers of their sentences, in order], "pillar": "<pillar id>", "prompts": ["question", "question"]}]. A sentence belongs to at most one idea. Give each idea the pillar its angle fits best, judging by the pillar names: a story about people, feelings or how it was to build fits a different pillar than a technical decision. Don't put everything in one pillar unless it truly all fits there.`,
+        `${posts.length ? `Their recent posts, newest first, to see who they are, who they write for and what they've already said (questions should point somewhere new):\n${posts.map((p) => `- ${p}`).join("\n")}\n\n` : ""}Their content pillars: ${pillars.map((p) => `${p.name} (id ${p.id})`).join(", ")}\n\nInterview (their sentences are numbered):\n${lines}\n\nReply with JSON only, strongest idea first: [{"title": "...", "sentences": [numbers of their sentences, in order], "pillar": "<pillar id>", "prompts": ["question", "question"]}]. A sentence belongs to at most one idea. Give each idea the pillar its angle fits best, judging by the pillar names: a story about people, feelings or how it was to build fits a different pillar than a technical decision. Don't put everything in one pillar unless it truly all fits there.`,
         60_000,
         4000,
         true,

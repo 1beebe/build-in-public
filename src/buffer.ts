@@ -195,24 +195,32 @@ export interface RecentIdea {
 }
 
 // Recent Ideas and posts, in one request, so questions can follow up on earlier
-// answers and avoid repeating what they already posted.
+// answers and avoid repeating what they already posted. The posts also show
+// who they are and who they write for, so nobody has to fill in a profile:
+// up to 20 from the last 30 days, enough to hear their voice without going stale.
+const POST_DAYS = 30;
+const MAX_POSTS = 20;
+
 export async function getRecent(
   client: BufferClient,
   organizationId: string,
 ): Promise<{ ideas: RecentIdea[]; posts: string[] }> {
   const data = await client.query<{
     ideas: { edges: { node: { id: string; content: { title?: string; text?: string } } }[] };
-    posts: { edges: { node: { text: string } }[] };
+    posts: { edges: { node: { text: string; createdAt?: string } }[] };
   }>(
     `query Recent($o: OrganizationId!) {
       ideas(first: 30, input: { organizationId: $o }) { edges { node { id content { title text } } } }
-      posts(first: 15, input: { organizationId: $o, sort: [{ field: createdAt, direction: desc }] }) { edges { node { text } } }
+      posts(first: 40, input: { organizationId: $o, sort: [{ field: createdAt, direction: desc }] }) { edges { node { text createdAt } } }
     }`,
     { o: organizationId },
   );
   return {
     ideas: data.ideas.edges.map((e) => ({ id: e.node.id, ...e.node.content })),
-    posts: data.posts.edges.map((e) => e.node.text),
+    posts: data.posts.edges
+      .filter((e) => e.node.text?.trim() && (!e.node.createdAt || Date.now() - Date.parse(e.node.createdAt) < POST_DAYS * 86400_000))
+      .slice(0, MAX_POSTS)
+      .map((e) => e.node.text),
   };
 }
 
