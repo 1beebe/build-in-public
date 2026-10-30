@@ -1,0 +1,14 @@
+name = "interviewer"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+
+# Public, non-secret settings. Secrets (BUFFER_CLIENT_SECRET, TOKEN_KEY, and the
+# optional GITHUB_TOKEN and ANTHROPIC_API_KEY) are set in the Cloudflare dashboard
+# or with `wrangler secret put`, never committed.
+[vars]
+APP_URL = "https://interviewer.lbeebe.com"
+BUFFER_CLIENT_ID = ""
+
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"

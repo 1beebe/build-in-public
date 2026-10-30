@@ -1,0 +1,26 @@
+{
+  "name": "interviewer",
+  "version": "1.0.0",
+  "description": "A weekly interview about what you built, saved to Buffer as Ideas in your own words.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "check": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/1beebe/build-in-public.git"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/1beebe/build-in-public/issues"
+  },
+  "homepage": "https://github.com/1beebe/build-in-public#readme",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260702.1",
+    "typescript": "^7.0.2",
+    "wrangler": "^3.114.17"
+  },
+  "private": true
+}
