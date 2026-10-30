@@ -320,7 +320,7 @@ ${NAV}
   <div class="wrap two flip">
     <div>
       <h2 class="rise" id="keepH">Your stories, saved in your own words.</h2>
-      <p class="say rise" style="--i:1">It turns the conversation into a few editable Ideas, dropping ums and repetition but keeping your meaning. Each includes optional questions to help you take it further. Nothing is saved until you choose it.</p>
+      <p class="say rise" style="--i:1">It never makes things up. It finds the stories with a real turn in them and shapes each one for the channels you post on, as a draft built from your words, an outline you write yourself, or just the transcript. Nothing is saved until you choose it.</p>
     </div>
     <article class="idea rise" style="--i:1" aria-label="An Idea as it lands in Buffer">
       <p class="t">Why I let people in before they sign up</p>
@@ -475,11 +475,11 @@ ${NAV}
 <h2>Feedback</h2>
 <p>If you send feedback or a bug report, the message, optional contact detail, page path, and time are encrypted at rest and kept for up to 180 days. A one-way daily hash of your IP address is used only to limit spam and expires within two days; the IP itself is never stored.</p>
 <h2>What's read</h2>
-<p>From Buffer: your organization, tags, recent Ideas and up to 20 posts from the last 30 days, only to understand who you write for and avoid repeats. From GitHub: public commits, pull requests and issues in the repo you name. The example on the home page asks GitHub directly from your browser and sends nothing here.</p>
+<p>From Buffer: your organization, tags, connected channels, recent Ideas and up to 20 posts from the last 30 days, only to understand who you write for, where you publish, and to avoid repeats. From GitHub: public commits, pull requests and issues in the repo you name. The example on the home page asks GitHub directly from your browser and sends nothing here.</p>
 <h2>Which AI does what</h2>
 <p>Each service gets only what its step needs: your week on GitHub, a summary of your recent posts, the questions and your answers. None of them ever sees your Buffer sign-in.</p>
 <ul>
-<li><b>Claude Sonnet 5.5</b>, by Anthropic, through MindStudio: at the end, organizes the conversation into ideas while preserving meaning and voice.</li>
+<li><b>Claude Sonnet 5.5</b>, by Anthropic, through MindStudio: at the end, finds the stories in the conversation and shapes each one for your channels, using only your words. If you ask for the transcript instead, no model is called.</li>
 <li><b>DeepSeek Flash</b>, through MindStudio: asks the next question when you type your answers.</li>
 <li><b>OpenAI GPT-Live</b>: holds the live spoken conversation.</li>
 </ul>
@@ -615,6 +615,15 @@ button.chip.on{background:var(--ink);color:var(--ground);box-shadow:none}
 .draft .text{min-height:150px}
 .draft .prompts{min-height:84px;font-size:.92rem}
 .pick{justify-self:start}
+.draft .shape{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
+.draft .fmt{font-weight:600;font-size:.92rem}
+.draft .why{color:var(--muted);font-size:.92rem;margin:0;max-width:62ch}
+.draft .flag{font-size:.875rem;color:var(--muted);margin:0;padding-left:10px;box-shadow:inset 2px 0 0 var(--control)}
+.more-row{display:flex;justify-content:center}
+.handback{display:grid;gap:8px}
+.handback .lbl{font-size:.875rem;font-weight:600;color:var(--muted)}
+.note-more summary{cursor:pointer;margin-top:6px}
+.transcript{min-height:320px;font-size:.92rem}
 .savebar{position:sticky;bottom:16px;z-index:4;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;background:var(--ink);color:var(--ground);border-radius:var(--r-ctl);padding:8px 8px 8px 22px;box-shadow:0 18px 36px -18px rgba(0,0,0,.5)}
 .savebar .btn.quiet{color:var(--ground);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--ground) 40%,transparent)}
 .savebar .btn.quiet:hover{background:color-mix(in srgb,var(--ground) 12%,transparent)}
@@ -675,6 +684,7 @@ export function appPage(): string {
   <div class="panel">
     <label class="fieldset" id="orgWrap" hidden><span class="lbl">Buffer organization</span><select id="org"></select></label>
     <label class="fieldset"><span class="lbl">A repo or a quick note</span><span class="hint">With a repo, it reads this week's public commits, pull requests and issues. Otherwise it starts from what you write here. 500 characters maximum.</span><textarea id="work" maxlength="500" placeholder="github.com/you/project — or — I rebuilt the onboarding for…"></textarea></label>
+    <div class="fieldset" id="chanWrap" hidden><span class="lbl">Shape stories for</span><span class="hint" id="chanHint"></span><div class="chips" id="chans" aria-label="Channels to shape stories for"></div></div>
     <div class="row"><button id="saveSetup" class="btn" type="button"><span class="rec"></span>Start the interview</button></div>
     <p class="busyline" id="setupBusy" aria-live="polite"></p>
   </div>
@@ -697,14 +707,30 @@ export function appPage(): string {
       <button id="sendBtn" class="btn small" type="button">Send</button><button id="nextBtn" class="btn small text" type="button" title="Enough on this one. Ask about something else.">Next topic</button>
     </div>
   </div>
-  <div class="done-row"><span class="small muted">Stop whenever you like. It finds the stories in what you said.</span><button id="harvestBtn" class="btn quiet" type="button">I'm done. Find my ideas</button></div>
+  <div class="done-row">
+    <div class="handback"><span class="lbl">When you stop, hand me back</span><div class="chips" id="modes" role="radiogroup" aria-label="What to hand back">
+      <label class="chip"><input type="radio" name="mode" value="draft"><span>Story drafts from my words</span></label>
+      <label class="chip"><input type="radio" name="mode" value="outline"><span>An outline. I'll write it</span></label>
+      <label class="chip"><input type="radio" name="mode" value="transcript"><span>Just the transcript</span></label>
+    </div></div>
+    <button id="harvestBtn" class="btn quiet" type="button">I'm done. Find my stories</button>
+  </div>
 </div>
 </section>
 
 <section id="review" class="screen wide" hidden>
-  <header><h1>Ideas from your interview</h1><p class="lede">One card per story. Edit anything, untick what you don't want, and choose an optional Buffer tag before saving.</p></header>
+  <header><h1>Stories from your interview</h1><p class="lede" id="reviewLede">Each card is one post, shaped for where you publish and built only from what you said. Edit anything, untick what you don't want, and save them to Buffer as Ideas.</p></header>
   <div id="drafts" class="drafts"></div>
-  <div class="savebar"><span class="count" id="saveCount"></span><div class="row"><button id="backTalk" class="btn quiet small" type="button">Back to the conversation</button><button id="saveAll" class="btn" type="button">Save to Buffer</button></div></div>
+  <div class="more-row"><button id="showMore" class="btn quiet small" type="button" hidden></button></div>
+  <div class="savebar"><span class="count" id="saveCount"></span><div class="row"><button id="backTalk" class="btn quiet small" type="button">Back to the conversation</button><button id="getTranscript" class="btn quiet small" type="button">Transcript</button><button id="saveAll" class="btn" type="button">Save to Buffer</button></div></div>
+</section>
+
+<section id="transcript" class="screen" hidden>
+  <header><h1>Your transcript</h1><p class="lede">The whole conversation, word for word. Copy it or download it and take it wherever you write.</p></header>
+  <div class="panel">
+    <textarea id="transcriptText" class="transcript" readonly aria-label="Interview transcript"></textarea>
+    <div class="row"><button id="copyTranscript" class="btn" type="button">Copy</button><button id="downloadTranscript" class="btn quiet" type="button">Download .md</button><button id="transcriptBack" class="btn quiet" type="button">Back to the conversation</button></div>
+  </div>
 </section>
 
 <section id="done" class="screen" hidden>
@@ -724,7 +750,7 @@ export function appPage(): string {
 const APP_SCRIPT = `
 const $ = (id) => document.getElementById(id);
 let state = null, shown = null, busy = false;
-const SCREENS = ["setup","talk","review","done"];
+const SCREENS = ["setup","talk","review","transcript","done"];
 function show(id){ for (const s of SCREENS) $(s).hidden = s !== id; $("scope").textContent = state && state.repo ? state.repo : ""; }
 function err(m){ $("msg").textContent = m || ""; $("msg").hidden = !m; if (m) $("msg").scrollIntoView({block:"nearest", behavior:"smooth"}); }
 function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -781,6 +807,16 @@ function renderSetup(){
   $("orgWrap").hidden = orgs.length < 2;
   $("org").innerHTML = ""; for (const o of orgs){ const op = new Option(o.name, o.id); op.selected = o.id === state.organizationId; $("org").add(op); }
   $("work").value = state.repo || state.weekNote || "";
+  const chans = state.channels || [], picked = new Set(state.targets || []);
+  const seen = new Set(); $("chans").innerHTML = "";
+  for (const c of chans) {
+    if (seen.has(c.service)) continue; seen.add(c.service);
+    const l = el("label", "chip"), i = el("input"); i.type = "checkbox"; i.value = c.service; i.checked = picked.has(c.service);
+    l.append(i, el("span", "", c.label)); l.title = c.name; $("chans").append(l);
+  }
+  $("chanWrap").hidden = !seen.size;
+  const main = chans.filter(c => picked.has(c.service)).map(c => c.label).filter((v, k, a) => a.indexOf(v) === k);
+  $("chanHint").textContent = main.length ? "Looks like you post mostly on " + main.join(" and ") + ". Change it if you like." : "Pick where you'd like to post these stories.";
   show("setup");
 }
 
@@ -838,6 +874,11 @@ function renderTalk(){
   turns.forEach((t, k) => {
     const li = el("li", (t.who === "you" ? "you" : "them") + (k >= drawn ? " new" : ""));
     li.append(el("span", "who", t.who === "you" ? "You" : "The Interviewer"), el("p", "", t.text));
+    // The opening quotes a short piece of their note; let them read it all.
+    if (k === 0 && state.noRepo && state.weekNote && t.text.includes("…")) {
+      const more = el("details", "note-more"), sum = el("summary", "small muted", "See more");
+      more.append(sum, el("p", "small", state.weekNote)); li.append(more);
+    }
     log.append(li);
   });
   drawn = turns.length;
@@ -956,40 +997,81 @@ async function startGptLive(){
     gl.opening = opening;
     await pc.setRemoteDescription({type:"answer", sdp});
     liveLabel(true);
-    liveTimer = setTimeout(() => { stopLive(); err("Paused after 20 minutes. Start talking again to keep going, or find your ideas."); }, 20 * 60 * 1000);
+    liveTimer = setTimeout(() => { stopLive(); err("Paused after 20 minutes. Start talking again to keep going, or find your stories."); }, 20 * 60 * 1000);
   } catch (e) { stopLive(); err(e.message === "Permission denied" ? "The browser didn't allow the microphone. You can type instead." : e.message); }
   finally { $("liveBtn").disabled = false; }
 }
 
 // Harvest and review
+// What they want back: drafts from their words, an outline, or the raw transcript.
+function handBack(){ const c = document.querySelector('#modes input:checked'); return c ? c.value : "draft"; }
+(function(){ let m = "draft"; try { m = localStorage.getItem("handBack") || "draft"; } catch {} const i = document.querySelector('#modes input[value="' + m + '"]') || document.querySelector('#modes input'); i.checked = true; })();
+$("modes").onchange = () => { try { localStorage.setItem("handBack", handBack()); } catch {} };
+const HARVEST_LABEL = "I'm done. Find my stories";
 $("harvestBtn").onclick = async () => {
   err(""); $("harvestBtn").disabled = true; $("harvestBtn").textContent = "Reading the conversation…";
   try {
     if (liveTurns) await stopLive();
-    orbState("thinking"); busyLines("voiceState", ["Reading the conversation back", "Finding the stories worth telling", "Pulling your words together", "Writing a few questions for each one"]);
-    state = await api("/api/harvest", {}); renderReview(); window.scrollTo({top:0});
+    // Words still in the box count. Save them before reading the conversation.
+    const pending = $("say").value.trim();
+    if (pending && !busy) { state = await api("/api/say", {text:pending, final:true}); $("say").value = ""; renderTalk(); }
+    const mode = handBack();
+    if (mode === "transcript") return renderTranscript();
+    orbState("thinking"); busyLines("voiceState", ["Reading the conversation back", "Finding the stories with a turn in them", "Shaping each one for where you post", "Writing a few questions for each one"]);
+    state = await api("/api/harvest", {mode}); renderReview(); window.scrollTo({top:0});
   }
-  catch(e){ err(e.message); } finally { busyDone("voiceState"); orbState("idle"); $("harvestBtn").disabled = false; $("harvestBtn").textContent = "I'm done. Find my ideas"; }
+  catch(e){ err(e.message); } finally { busyDone("voiceState"); orbState("idle"); $("harvestBtn").disabled = false; $("harvestBtn").textContent = HARVEST_LABEL; }
+};
+function transcriptMd(){
+  const day = new Date().toLocaleDateString(undefined, {month:"long", day:"numeric", year:"numeric"});
+  const lines = ["# Interview, " + day, ""];
+  for (const t of state.turns || []) lines.push("**" + (t.who === "you" ? "You" : "The Interviewer") + ":** " + t.text, "");
+  return lines.join("\\n");
+}
+function renderTranscript(){ $("transcriptText").value = transcriptMd(); show("transcript"); window.scrollTo({top:0}); }
+$("getTranscript").onclick = renderTranscript;
+$("transcriptBack").onclick = () => (state.drafts||[]).length ? renderReview() : renderTalk();
+$("copyTranscript").onclick = async () => {
+  try { await navigator.clipboard.writeText($("transcriptText").value); $("copyTranscript").textContent = "Copied"; }
+  catch { $("transcriptText").select(); $("copyTranscript").textContent = "Press Cmd+C or Ctrl+C"; }
+  setTimeout(() => { $("copyTranscript").textContent = "Copy"; }, 2000);
+};
+$("downloadTranscript").onclick = () => {
+  const a = el("a"); a.href = URL.createObjectURL(new Blob([$("transcriptText").value], {type:"text/markdown"}));
+  a.download = "interview-" + new Date().toISOString().slice(0, 10) + ".md"; document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 };
 function countPicked(){
   const cards = [...document.querySelectorAll(".draft")];
   cards.forEach(c => c.classList.toggle("off", !c.querySelector(".pick input").checked));
   const n = cards.filter(c => c.querySelector(".pick input").checked).length;
-  $("saveCount").textContent = n ? n + (n === 1 ? " idea" : " ideas") + " ticked" : "Nothing ticked yet";
+  $("saveCount").textContent = n ? n + (n === 1 ? " story" : " stories") + " ticked" : "Nothing ticked yet";
   $("saveAll").textContent = n ? "Save " + n + " to Buffer" : "Save to Buffer";
 }
 function renderReview(){
   const box = $("drafts"); box.innerHTML = "";
+  const outline = state.harvestMode === "outline";
+  $("reviewLede").textContent = outline
+    ? "Each card is one post, outlined in your words for where you publish. Write it your way, untick what you don't want, and save them to Buffer as Ideas."
+    : "Each card is one post, shaped for where you publish and built only from what you said. Edit anything, untick what you don't want, and save them to Buffer as Ideas.";
+  const extra = (state.drafts || []).filter(d => d.extra && !(state.saved||[]).includes(d.id));
   for (const d of state.drafts || []) {
     const card = el("article", "panel draft" + (d.later ? " later" : "")); card.dataset.id = d.id;
-    const top = el("label", "chip pick"); const cb = el("input"); cb.type = "checkbox"; cb.checked = !d.later; top.append(cb, el("span", "", d.later ? "Save to answer later" : "Save this idea")); card.append(top);
+    if (d.extra) { card.hidden = true; card.classList.add("extra"); }
+    const top = el("label", "chip pick"); const cb = el("input"); cb.type = "checkbox"; cb.checked = !d.later && !d.extra; top.append(cb, el("span", "", d.later ? "Save to answer later" : "Save this one")); card.append(top);
     if ((state.saved||[]).includes(d.id)) { cb.checked = false; cb.disabled = true; top.lastChild.textContent = "Saved"; }
     cb.onchange = countPicked;
-    const t = el("input", "title"); t.type = "text"; t.maxLength = 200; t.value = d.title; t.setAttribute("aria-label", "Idea title"); card.append(t);
-    const words = el("div"); words.append(el("span", "lbl", d.later ? "A question for later" : "Your idea, cleaned up")); const x = el("textarea", "text"); x.maxLength = 10000; x.value = d.text; x.setAttribute("aria-label", "Idea text, lightly cleaned up"); words.append(x); card.append(words);
+    if (d.format) {
+      const sh = el("div", "shape"); sh.append(el("span", "fmt", channelName(d.channel) + " · " + d.format)); card.append(sh);
+      if (d.why) card.append(el("p", "why", d.why));
+    }
+    const t = el("input", "title"); t.type = "text"; t.maxLength = 200; t.value = d.title; t.setAttribute("aria-label", "Story title"); card.append(t);
+    const words = el("div"); words.append(el("span", "lbl", d.later ? "A question for later" : outline ? "Outline, in your words" : "Draft, from your words"));
+    const x = el("textarea", "text"); x.maxLength = 10000; x.value = d.text; x.setAttribute("aria-label", "Post text"); words.append(x); card.append(words);
+    for (const f of d.flags || []) card.append(el("p", "flag", f));
     if ((d.prompts||[]).length) {
-      const pw = el("div"); pw.append(el("span", "lbl", "Questions to help you write it, one per line"));
-      const pr = el("textarea", "prompts"); pr.maxLength = 1000; pr.value = d.prompts.join("\\n"); pr.setAttribute("aria-label", "Shaping questions, one per line"); pw.append(pr); card.append(pw);
+      const pw = el("div"); pw.append(el("span", "lbl", "Questions to finish or adapt it, one per line"));
+      const pr = el("textarea", "prompts"); pr.maxLength = 1000; pr.value = d.prompts.join("\\n"); pr.setAttribute("aria-label", "Questions, one per line"); pw.append(pr); card.append(pw);
     }
     if (tags().length) {
       const tagWrap = el("div"); tagWrap.append(el("span", "lbl", "Buffer tag (optional)"));
@@ -997,8 +1079,12 @@ function renderReview(){
     }
     box.append(card);
   }
+  $("showMore").hidden = !extra.length;
+  $("showMore").textContent = "Show " + extra.length + " more " + (extra.length === 1 ? "story" : "stories");
   show("review"); countPicked();
 }
+function channelName(service){ const c = (state.channels||[]).find(c => c.service === service); return c ? c.label : service ? service : "Any channel"; }
+$("showMore").onclick = () => { document.querySelectorAll(".draft.extra").forEach(c => { c.hidden = false; }); $("showMore").hidden = true; };
 $("backTalk").onclick = renderTalk;
 $("saveAll").onclick = async () => {
   err("");
@@ -1007,7 +1093,7 @@ $("saveAll").onclick = async () => {
     prompts: c.querySelector(".prompts") ? c.querySelector(".prompts").value.split("\\n").map(x => x.trim()).filter(Boolean) : [],
     tagId: (c.querySelector('.chips input:checked') || {}).value,
   }));
-  if (!drafts.length) return err("Tick at least one idea to save.");
+  if (!drafts.length) return err("Tick at least one story to save.");
   $("saveAll").disabled = true; $("saveAll").textContent = "Saving to Buffer…";
   try { state = await api("/api/save", {drafts}); renderDone(); }
   catch(e){ err(e.message); try { state = await api("/api/state"); renderReview(); } catch {} }
@@ -1015,7 +1101,7 @@ $("saveAll").onclick = async () => {
 };
 function renderDone(){
   const n = (state.saved||[]).length;
-  $("doneLine").textContent = n + (n === 1 ? " idea is" : " ideas are") + " in your Buffer Ideas, in your own words. Write from them whenever you're ready.";
+  $("doneLine").textContent = n + (n === 1 ? " story is" : " stories are") + " in your Buffer Ideas, built from your own words. Finish them whenever you're ready.";
   const list = $("doneList"); list.innerHTML = "";
   (state.drafts||[]).filter(d => (state.saved||[]).includes(d.id)).forEach((d, k) => { const li = el("li", "", d.title); li.style.setProperty("--i", k); list.append(li); });
   show("done"); window.scrollTo({top:0});
@@ -1032,7 +1118,8 @@ $("saveSetup").onclick = async () => {
   err(""); $("saveSetup").disabled = true; orbState("thinking");
   busyLines("setupBusy", ["Reading this week's public work", "Looking at what you've posted lately", "Choosing a few threads to pull on", "Almost ready"]);
   try {
-    state = await api("/api/setup", {organizationId:$("org").value, work:$("work").value});
+    const targets = [...document.querySelectorAll("#chans input:checked")].map(i => i.value);
+    state = await api("/api/setup", {organizationId:$("org").value, work:$("work").value, targets: $("chanWrap").hidden ? undefined : targets});
     state = await api("/api/start", {}); shown = null; drawn = 0; renderTalk(); $("say").focus({preventScroll:true});
   }
   catch(e){ err(e.message); }

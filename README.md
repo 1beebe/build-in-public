@@ -9,7 +9,7 @@ Built by Ligaya Beebe for Buffer Commit 2026. Not made by or affiliated with Buf
 1. **Connect with Buffer.** OAuth 2.0 Authorization Code with PKCE. Buffer is the only sign-in. The PKCE verifier and the `state` value stay on the server, and the state is pinned to the browser by a short-lived cookie.
 2. **Name the work.** One field accepts either a public GitHub repo or a sentence about what you're working on. GitHub needs no sign-in and private code stays out of reach.
 3. **Talk.** One live conversation, not a form. GPT-Live 1 handles spoken conversations; DeepSeek Flash (through MindStudio) handles typed turns. The app ranks a few useful threads from the week's work and recent posts. When a question points to a concrete pull request, commit, issue or post, an evidence panel appears with technical details tucked away; otherwise the conversation uses the full width.
-4. **Harvest.** When you stop, Claude Sonnet 5.5 reads the whole conversation, finds the bigger story, and proposes one to five Ideas. Each has an angle for a title, one coherent paragraph that removes fillers, false starts, and repetition without inventing claims, and three short questions to help you develop it.
+4. **Harvest.** When you stop, you choose what comes back: story drafts from your words, an outline you'll write yourself, or just the transcript (built in the browser, no model call). For drafts and outlines, Claude Sonnet 5.5 finds the stories that have a tension and a turn, picks a channel and format for each from the channels you post on (text post, thread, carousel outline, image pairing, video script, infographic brief), and prepares every post the material supports. Each post is built only from your sentences: a check confirms at least 80% of its words are yours, with structure and visual directions in [brackets], or it falls back to your cleaned-up words. Swear words are masked and flagged. The top three show first; the rest sit behind "Show more". With `CHALLENGER=on`, DeepSeek reviews each post once and keeps, revises or drops it.
 5. **Save.** You edit and untick, optionally choose a Buffer tag on each card, then save the ones you keep (`aiAssisted: true`, since the AI chose and arranged the words).
 
 ## Buffer API use
@@ -58,7 +58,7 @@ npm run dev     # local, needs a .dev.vars file with the secrets below
 - An interview holds at most 32 turns and 24,000 transcript characters. Live transcript sync is clamped to the same limits server-side.
 - Each session gets at most 20 typed model calls and four voice starts per hour, and six harvests per day.
 - Harvest is idempotent: repeating the request returns the existing cards instead of paying for another model call.
-- Model input is capped at 40,000 characters. Typed output is capped at 500 tokens and harvest output at 2,500 tokens.
+- Model input is capped at 40,000 characters. Typed output is capped at 500 tokens and harvest output at 8,000 tokens.
 - Repository text, recent posts, notes and transcripts are serialized as untrusted JSON and the system prompts explicitly forbid following instructions found inside them.
 - Saving to Buffer caps Idea text at 10,000 characters and shaping prompts at 200 characters each.
 

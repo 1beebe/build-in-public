@@ -33,6 +33,21 @@ export interface Draft {
   prompts?: string[]; // questions that help shape it into a post (never wording)
   tagId?: string;
   later?: boolean; // an agenda topic they didn't get to
+  channel?: string; // Buffer service this post is shaped for, e.g. "linkedin"
+  format?: string; // "Text post", "Thread", "Carousel outline"...
+  why?: string; // the editor's one-line reason for this channel and format
+  flags?: string[]; // what we changed and they should know, e.g. a softened word
+  extra?: boolean; // ranked below the top three: shown behind "Show more"
+  sentences?: number[]; // which of their numbered sentences it was built from
+}
+
+export type HarvestMode = "draft" | "outline";
+
+export interface Channel {
+  id: string;
+  service: string; // Buffer's service name: linkedin, twitter, threads...
+  name: string;
+  posts: number; // how many of their recent posts went out here
 }
 
 export interface Session {
@@ -53,6 +68,9 @@ export interface Session {
   voice?: VoiceClock; // the live session in progress, for the spend meter
   brief?: string; // repo, their note and recent posts, for the interviewer's context
   weekNote?: string; // plain-language work description when there is no repo
+  channels?: Channel[]; // connected Buffer channels, read at setup
+  targets?: string[]; // services they want stories shaped for
+  harvestMode?: HarvestMode; // what the current drafts were made as
 }
 
 const SESSION_TTL = 60 * 60 * 24 * 30; // 30 days, matches a refresh token's useful life for us

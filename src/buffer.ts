@@ -1,5 +1,5 @@
 import type { Env } from "./env";
-import type { Session, Tokens } from "./session";
+import type { Channel, Session, Tokens } from "./session";
 
 const AUTH_URL = "https://auth.buffer.com/auth";
 const TOKEN_URL = "https://auth.buffer.com/token";
@@ -224,10 +224,51 @@ export async function getRecent(
   };
 }
 
+// Their connected channels, with how often they've posted to each lately, so
+// stories get shaped for where they actually publish. Optional: any failure
+// means no channel hints, never a broken setup.
+export async function getChannels(client: BufferClient, organizationId: string): Promise<Channel[]> {
+  const data = await client.query<{ channels: { id: string; service: string; name?: string; displayName?: string; isDisconnected?: boolean }[] }>(
+    `query Channels($o: OrganizationId!) { channels(input: { organizationId: $o }) { id service name displayName isDisconnected } }`,
+    { o: organizationId },
+  );
+  const counts = new Map<string, number>();
+  try {
+    const recent = await client.query<{ posts: { edges: { node: { channelId?: string } }[] } }>(
+      `query Where($o: OrganizationId!) { posts(first: 40, input: { organizationId: $o, sort: [{ field: createdAt, direction: desc }] }) { edges { node { channelId } } } }`,
+      { o: organizationId },
+    );
+    for (const e of recent.posts.edges) if (e.node.channelId) counts.set(e.node.channelId, (counts.get(e.node.channelId) ?? 0) + 1);
+  } catch (err) {
+    console.error("post channels unavailable", err);
+  }
+  return data.channels
+    .filter((c) => !c.isDisconnected && c.service)
+    .slice(0, 20)
+    .map((c) => ({ id: c.id, service: c.service, name: (c.displayName || c.name || c.service).slice(0, 80), posts: counts.get(c.id) ?? 0 }));
+}
+
 export async function createIdea(
   client: BufferClient,
   organizationId: string,
+  idea: { title: string; text: string; tags: Tag[]; aiAssisted: boolean; services?: string[] },
+): Promise<string> {
+  // Target platforms help them find it later. If Buffer won't take the hint,
+  // save the Idea without it rather than not at all.
+  if (!idea.services?.length) return saveIdea(client, organizationId, idea);
+  try {
+    return await saveIdea(client, organizationId, idea, idea.services);
+  } catch (err) {
+    console.error("idea services rejected, saving without", err);
+    return saveIdea(client, organizationId, idea);
+  }
+}
+
+async function saveIdea(
+  client: BufferClient,
+  organizationId: string,
   idea: { title: string; text: string; tags: Tag[]; aiAssisted: boolean },
+  services?: string[],
 ): Promise<string> {
   const data = await client.query<{ createIdea: { id?: string; idea?: { id: string }; message?: string } }>(
     `mutation Save($input: CreateIdeaInput!) {
@@ -245,6 +286,7 @@ export async function createIdea(
           text: idea.text,
           aiAssisted: idea.aiAssisted,
           tags: idea.tags.map((t) => ({ id: t.id, name: t.name, color: t.color })),
+          ...(services ? { services } : {}),
         },
       },
     },

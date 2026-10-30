@@ -24,11 +24,18 @@ function shippedLines(s: Shipped): Item[] {
 
 const POST_SOURCE = "Your latest Buffer post";
 
+// Shorten at a word boundary so a quote never ends mid-word.
+export function clip(text: string, max: number): string {
+  const flat = text.replace(/\s+/g, " ").trim();
+  if (flat.length <= max) return flat;
+  const cut = flat.slice(0, max + 1).replace(/\s+\S*$/, "").replace(/[\s,;:.!?-]+$/, "");
+  return (cut || flat.slice(0, max)) + "…";
+}
+
 function postQuestion(post: string): Question {
-  const quote = post.replace(/\s+/g, " ").trim();
   return {
     id: randomToken(8),
-    text: `In your latest Buffer post you wrote "${quote.length > 70 ? quote.slice(0, 70) + "…" : quote}". What happened after it went out?`,
+    text: `In your latest Buffer post you wrote "${clip(post, 70)}". What happened after it went out?`,
     source: POST_SOURCE,
     ref: { kind: "post", key: post.slice(0, 2000) },
   };
@@ -56,7 +63,7 @@ export const hasModel = (env: Env) => Boolean(env.MINDSTUDIO_API_KEY || env.ANTH
 export async function complete(env: Env, system: string, message: string, timeoutMs?: number, maxTokens = 1200, deep = false): Promise<string> {
   system = system.slice(0, 12_000);
   message = message.slice(0, 40_000);
-  maxTokens = Math.max(1, Math.min(maxTokens, 2_500));
+  maxTokens = Math.max(1, Math.min(maxTokens, deep ? 8_000 : 2_500));
   if (env.MINDSTUDIO_API_KEY) return generateText(env, system, message, timeoutMs, maxTokens, deep);
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -84,8 +91,8 @@ function ruleQuestions(shipped: Shipped, items: Item[], weekNote: string, latest
     .sort((a, b) => weight(b.label) - weight(a.label))
     .slice(0, latestPost ? MAX_QUESTIONS - 1 : MAX_QUESTIONS);
   const out: Question[] = ranked.map((it, i) => {
-    const title = it.label.replace(/^(Merged PR|Closed issue|Commit): /, "").split(" — ")[0].slice(0, 80);
-    return { id: randomToken(8), text: prompts[i % prompts.length](title), source: it.label.split(" — ")[0], sourceUrl: it.url, ref: it.ref };
+    const title = it.label.replace(/^(Merged PR|Closed issue|Commit): /, "").split(" — ")[0];
+    return { id: randomToken(8), text: prompts[i % prompts.length](clip(title, 80)), source: it.label.split(" — ")[0], sourceUrl: it.url, ref: it.ref };
   });
   // One follow-up on what they last posted, after the GitHub questions.
   if (latestPost && out.length) out.push(postQuestion(latestPost));
@@ -93,7 +100,7 @@ function ruleQuestions(shipped: Shipped, items: Item[], weekNote: string, latest
     out.push({
       id: randomToken(8),
       text: weekNote
-        ? `You said you worked on "${weekNote.slice(0, 80)}". What was the hardest part?`
+        ? `You said you worked on "${clip(weekNote, 80)}". What was the hardest part?`
         : `Nothing public changed in ${shipped.repo} this week. What did you work on that isn't in the repo yet?`,
       source: weekNote ? "What you said about your week" : shipped.repo,
     });

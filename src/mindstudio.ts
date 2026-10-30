@@ -71,7 +71,7 @@ const THINKING_MODEL = "claude-5-5-sonnet";
 export async function generateText(env: Env, system: string, message: string, timeoutMs?: number, maxTokens = 1200, deep = false): Promise<string> {
   system = system.slice(0, 12_000);
   message = message.slice(0, 40_000);
-  maxTokens = Math.max(1, Math.min(maxTokens, 2_500));
+  maxTokens = Math.max(1, Math.min(maxTokens, deep ? 8_000 : 2_500));
   const modelOverride: Record<string, unknown> = {
     model: deep ? env.THINKING_MODEL || THINKING_MODEL : await chatModel(env),
     maxResponseTokens: maxTokens,

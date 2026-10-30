@@ -7,6 +7,7 @@ import {
   authorizeUrl,
   createIdea,
   exchangeCode,
+  getChannels,
   getRecent,
   getStart,
   getTags,
@@ -15,13 +16,13 @@ import {
 } from "./buffer";
 import { RepoError, getSource, parseRepo, whatShipped, type Shipped, type Source } from "./github";
 import { hasModel, planQuestions } from "./interview";
-import { harvest, opening, reply } from "./conversation";
+import { channelLabel, harvest, opening, reply } from "./conversation";
 import { gptLiveSession, openaiKey } from "./realtime";
 import { MindStudioError } from "./mindstudio";
 import { storeFeedback } from "./feedback";
 import { appPage, landingPage, privacyPage } from "./pages";
 import { SpendCapError, countFunnel, countInterview, modelAllowedToday, statsPage, tickVoice, voiceAllowedToday } from "./spend";
-import { cookie, createSession, destroySession, loadSession, readCookie, saveSession, type Session } from "./session";
+import { cookie, createSession, destroySession, loadSession, readCookie, saveSession, type Channel, type HarvestMode, type Session } from "./session";
 
 const SECURITY_HEADERS: Record<string, string> = {
   "Content-Security-Policy": [
@@ -303,7 +304,10 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           s.organizationId = requested;
         }
         if (repo) await whatShipped(env, repo, 1); // fails fast with a clear message if the repo isn't public
-        Object.assign(s, { repo, noRepo, weekNote: repo ? undefined : work, questions: [], turns: [], drafts: [], saved: [] });
+        // The channels to shape stories for, from the ones they have connected.
+        const connected = new Set((s.channels ?? []).map((c) => c.service));
+        const targets = Array.isArray(body.targets) ? [...new Set(body.targets.map(String))].filter((t) => connected.has(t)).slice(0, 6) : undefined;
+        Object.assign(s, { repo, noRepo, weekNote: repo ? undefined : work, targets, questions: [], turns: [], drafts: [], saved: [], harvestMode: undefined });
         result = await view(env, client, s, true);
         break;
       }
@@ -320,6 +324,12 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
             ? `Repo: ${shipped.repo}${shipped.description ? ` — ${shipped.description}` : ""}`
             : "They don't have a GitHub repo for this. Everything you know about their work is what they told you below, so let them show you around it.",
           s.weekNote ? `What they said they worked on this week: ${s.weekNote}` : "They didn't add a note about their week (that's optional; it doesn't mean they did nothing).",
+          ...(() => {
+            const where = s.targets ?? mainServices(s.channels ?? []);
+            return where.length
+              ? [`They publish on ${where.map(channelLabel).join(", ")}. Without saying so, lean toward moments that would make a good story there: a scene, a choice, something they could show.`]
+              : [];
+          })(),
           `Their recent posts, newest first. They show who they are and who they write for; don't steer back to these topics:`,
           ...recent.posts.slice(0, 8).map((p) => `- ${p.slice(0, 200)}`),
         ].join("\n");
@@ -333,7 +343,13 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         if (!text) throw new UserError("Say something first.");
         if (!s.questions?.length || !s.turns) throw new UserError("Start an interview first.");
         if (s.turns.length >= MAX_TURNS || transcriptSize(s.turns) + text.length > MAX_TRANSCRIPT_CHARS) {
-          throw new UserError("That's a full interview. Find your ideas, then start a new one.");
+          throw new UserError("That's a full interview. Find your stories, then start a new one.");
+        }
+        // Last words typed before "Find my stories": keep them, no reply needed.
+        if (body.final === true) {
+          s.turns.push({ who: "you", text });
+          result = await view(env, client, s);
+          break;
         }
         if (hasModel(env)) {
           if (!(await modelAllowedToday(env, "typed"))) throw new UsageLimitError("Typed interviews are resting for today. Try again tomorrow.");
@@ -370,7 +386,10 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
       }
       case "/api/harvest": {
         if (!s.turns?.some((t) => t.who === "you")) throw new UserError("Answer at least one question first.");
-        if (s.drafts?.length) {
+        // A story draft or an outline they'll write themselves. The transcript
+        // option never reaches here: the page builds it.
+        const mode: HarvestMode = body.mode === "outline" ? "outline" : "draft";
+        if (s.drafts?.length && (s.harvestMode ?? "draft") === mode) {
           result = await view(env, client, s); // idempotent: never pay twice for the same transcript
           break;
         }
@@ -382,7 +401,8 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const pillars = s.tags ?? [];
         await tickVoice(env, s.voice);
         s.voice = undefined; // the conversation's over; stop the meter
-        s.drafts = await harvest(env, s.questions ?? [], s.turns, pillars, s.posts);
+        s.drafts = await harvest(env, s.questions ?? [], s.turns, pillars, s.posts, s.targets ?? [], mode);
+        s.harvestMode = mode;
         s.saved = [];
         result = await view(env, client, s);
         break;
@@ -403,18 +423,21 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           const prompts = (Array.isArray(d.prompts) ? d.prompts : draft.prompts ?? []).map((q) => String(q).trim().slice(0, 200)).filter(Boolean).slice(0, 5);
           const tags = (s.tags ?? []).filter((t) => t.id === d.tagId);
           const day = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
+          const where = draft.format ? `${channelLabel(draft.channel)} · ${draft.format}` : "";
           const text = draft.later
             ? words
             : [
-                `INTERVIEW ${day} | your words, organized | not for publishing as-is`,
+                `INTERVIEW ${day} | ${s.harvestMode === "outline" ? "outline in your words" : "story draft from your words"}${where ? ` | ${where}` : ""}`,
+                draft.why ? `WHY THIS SHAPE: ${draft.why}` : "",
                 words,
-                prompts.length ? `PROMPTS TO DEVELOP IT (questions, not wording)\n${prompts.map((q) => `- ${q}`).join("\n")}` : "",
+                prompts.length ? `QUESTIONS TO FINISH OR ADAPT IT\n${prompts.map((q) => `- ${q}`).join("\n")}` : "",
               ].filter(Boolean).join("\n\n");
           if (client.nearLimit) throw new RateLimited(60);
           await createIdea(client, s.organizationId!, {
-            title: draft.later || /^INTERVIEW \|/.test(title) ? title : `INTERVIEW | ${tags[0]?.name ? `${tags[0].name} | ` : ""}${title}`,
+            title: draft.later || /^INTERVIEW \|/.test(title) ? title : `INTERVIEW | ${where ? `${where} | ` : ""}${title}`,
             text,
             tags,
+            services: draft.channel ? [draft.channel] : undefined,
             aiAssisted: true, // their words, but the AI chose and arranged them
           });
           (s.saved ??= []).push(draft.id);
@@ -430,7 +453,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         return json(await source(env, s.repo, q.ref)); // read-only: the session doesn't change
       }
       case "/api/reset":
-        Object.assign(s, { questions: [], turns: [], drafts: [], saved: [], brief: undefined, voice: undefined });
+        Object.assign(s, { questions: [], turns: [], drafts: [], saved: [], brief: undefined, voice: undefined, harvestMode: undefined });
         result = await view(env, client, s);
         break;
       default:
@@ -480,7 +503,17 @@ async function view(env: Env, client: BufferClient, s: Session, refresh = false)
   if (refresh && (!s.organizationId || !s.repo)) orgs = (await getStart(client)).orgs;
   if (!s.organizationId && orgs.length) s.organizationId = orgs[0].id;
   if (s.organizationId && (refresh || !s.tags)) s.tags = await getTags(client, s.organizationId);
+  // Channels are re-read only while they're setting up, to spare Buffer calls.
+  if (s.organizationId && (!s.channels || (refresh && !s.questions?.length))) {
+    try {
+      s.channels = await getChannels(client, s.organizationId);
+    } catch (err) {
+      console.error("channels unavailable", err);
+      s.channels ??= [];
+    }
+  }
   const tags: Tag[] = s.tags ?? [];
+  const channels = s.channels ?? [];
   return {
     orgs,
     organizationId: s.organizationId,
@@ -488,12 +521,24 @@ async function view(env: Env, client: BufferClient, s: Session, refresh = false)
     noRepo: Boolean(s.noRepo),
     tags,
     weekNote: s.weekNote ?? "",
+    channels: channels.map((c) => ({ service: c.service, name: c.name, label: channelLabel(c.service) })),
+    targets: s.targets ?? mainServices(channels),
+    harvestMode: s.harvestMode ?? "draft",
     questions: s.questions ?? [],
     turns: s.turns ?? [],
     drafts: s.drafts ?? [],
     saved: s.saved ?? [],
     live: Boolean(openaiKey(env)),
   };
+}
+
+// Where they actually publish: services with recent posts, busiest first. If
+// they haven't posted lately, every connected channel.
+function mainServices(channels: Channel[]): string[] {
+  const counts = new Map<string, number>();
+  for (const c of channels) counts.set(c.service, (counts.get(c.service) ?? 0) + c.posts);
+  const used = [...counts].filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]).map(([k]) => k);
+  return (used.length ? used : [...counts.keys()]).slice(0, 4);
 }
 
 const VOICE_RESTING = "Voice is resting for today. Type your answers instead; it works the same.";

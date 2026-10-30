@@ -12,6 +12,7 @@ export interface Env {
   // Optional overrides for the MindStudio model ids.
   INTERVIEW_MODEL?: string;
   THINKING_MODEL?: string;
+  CHALLENGER?: string; // "on": a second model reviews each harvested post
   // Optional. Turns on the live voice conversation (OpenAI's realtime model).
   OPENAI_API_KEY?: string;
   OPEN_AI_KEY?: string; // the same key under the name it was first saved with
