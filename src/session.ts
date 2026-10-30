@@ -1,5 +1,6 @@
 import type { Env } from "./env";
 import { randomToken, seal, unseal } from "./crypto";
+import type { VoiceClock } from "./spend";
 
 export interface Tokens {
   accessToken: string;
@@ -48,6 +49,7 @@ export interface Session {
   drafts?: Draft[];
   saved?: string[]; // draft ids already sent to Buffer
   voiceStarts?: number[]; // when live voice sessions began, for a per-hour cap
+  voice?: VoiceClock; // the live session in progress, for the spend meter
   brief?: string; // repo, their note and recent posts, for the interviewer's context
   weekNote?: string; // their one-line "what did you work on", used only to aim questions
 }

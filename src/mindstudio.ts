@@ -1,4 +1,5 @@
 import type { Env } from "./env";
+import { countModelCall } from "./spend";
 
 // MindStudio's step API: one key reaches DeepSeek for the questions and the
 // speech models for voice. A step is started, then polled until it finishes.
@@ -58,6 +59,7 @@ export async function generateText(env: Env, system: string, message: string, ti
     message,
     modelOverride: { model: deep ? env.THINKING_MODEL || THINKING_MODEL : await chatModel(env), temperature: 0.6, maxResponseTokens: maxTokens, preamble: system },
   }, timeoutMs);
+  await countModelCall(env, deep ? "deep" : "chat");
   return out.content;
 }
 
@@ -71,6 +73,7 @@ export async function speak(env: Env, text: string): Promise<string> {
       config: { instructions: "A warm, curious interviewer. Unhurried, plain, friendly. Not a radio host." },
     },
   });
+  await countModelCall(env, "speech");
   return out.audioUrl;
 }
 
@@ -80,5 +83,6 @@ export async function transcribe(env: Env, audioUrl: string, keyterms: string[])
     prompt: "A builder answering an interview question about their software project.",
     transcriptionModelOverride: { model: "elevenlabs-scribe-v2", config: { keyterms: keyterms.slice(0, 50) } },
   });
+  await countModelCall(env, "speech");
   return out.text.trim();
 }
