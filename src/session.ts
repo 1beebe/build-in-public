@@ -29,7 +29,7 @@ export interface Turn {
 export interface Draft {
   id: string;
   title: string; // the angle, written by the model
-  text: string; // their own words, quoted exactly
+  text: string; // their meaning and voice, lightly cleaned of speech debris
   prompts?: string[]; // questions that help shape it into a post (never wording)
   tagId?: string;
   later?: boolean; // an agenda topic they didn't get to
@@ -42,16 +42,17 @@ export interface Session {
   repo?: string; // "owner/name"
   noRepo?: boolean; // they build outside GitHub and tell us about their work instead
   posts?: string[]; // their recent Buffer posts, to see who they are and who they write for
-  pillarTagIds?: string[];
   tags?: { id: string; name: string; color: string }[]; // cached from Buffer
   questions?: Question[]; // the agenda: what the interviewer means to cover
   turns?: Turn[]; // the conversation, kept only until it's saved or reset
   drafts?: Draft[];
   saved?: string[]; // draft ids already sent to Buffer
   voiceStarts?: number[]; // when live voice sessions began, for a per-hour cap
+  typedStarts?: number[]; // typed model calls, for a per-hour cap
+  harvestStarts?: number[]; // harvest calls, for a daily cap
   voice?: VoiceClock; // the live session in progress, for the spend meter
   brief?: string; // repo, their note and recent posts, for the interviewer's context
-  weekNote?: string; // their one-line "what did you work on", used only to aim questions
+  weekNote?: string; // plain-language work description when there is no repo
 }
 
 const SESSION_TTL = 60 * 60 * 24 * 30; // 30 days, matches a refresh token's useful life for us

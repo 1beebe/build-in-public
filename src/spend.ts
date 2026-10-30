@@ -18,10 +18,12 @@ interface Day {
   mindstudio: number;
   voiceMinutes: number;
   interviews: number;
+  typedCalls: number;
+  harvestCalls: number;
 }
 
 const dayKey = (t = Date.now()) => `spend:${new Date(t).toISOString().slice(0, 10)}`;
-const empty = (): Day => ({ openai: 0, mindstudio: 0, voiceMinutes: 0, interviews: 0 });
+const empty = (): Day => ({ openai: 0, mindstudio: 0, voiceMinutes: 0, interviews: 0, typedCalls: 0, harvestCalls: 0 });
 
 async function getDay(env: Env, key: string): Promise<Day> {
   return { ...empty(), ...((await env.SESSIONS.get<Day>(key, "json")) ?? {}) };
@@ -41,7 +43,22 @@ async function add(env: Env, change: Partial<Day>): Promise<void> {
 }
 
 export const countInterview = (env: Env) => add(env, { interviews: 1 });
-export const countModelCall = (env: Env, kind: keyof typeof MODEL_CALL) => add(env, { mindstudio: MODEL_CALL[kind] });
+export const countModelCall = (env: Env, kind: keyof typeof MODEL_CALL) =>
+  add(env, {
+    mindstudio: MODEL_CALL[kind],
+    ...(kind === "deep" ? { harvestCalls: 1 } : kind === "chat" ? { typedCalls: 1 } : {}),
+  });
+
+const DAILY_TYPED_CALLS = 500;
+const DAILY_HARVEST_CALLS = 100;
+
+export async function modelAllowedToday(env: Env, kind: "typed" | "harvest"): Promise<boolean> {
+  const day = await getDay(env, dayKey());
+  const cap = kind === "typed"
+    ? Number(env.DAILY_TYPED_CALLS) || DAILY_TYPED_CALLS
+    : Number(env.DAILY_HARVEST_CALLS) || DAILY_HARVEST_CALLS;
+  return (kind === "typed" ? day.typedCalls : day.harvestCalls) < cap;
+}
 
 // The voice session in progress, kept on the person's session.
 export interface VoiceClock {
@@ -88,7 +105,7 @@ export async function statsPage(env: Env): Promise<string> {
     .filter(([, d]) => d.openai || d.mindstudio || d.interviews)
     .map(
       ([date, d]) =>
-        `<tr><td>${esc(date)}</td><td>${d.interviews}</td><td>${Math.round(d.voiceMinutes)}</td><td>${usd(d.openai)}</td><td>${usd(d.mindstudio)}</td><td><b>${usd(d.openai + d.mindstudio)}</b></td></tr>`,
+        `<tr><td>${esc(date)}</td><td>${d.interviews}</td><td>${d.typedCalls}</td><td>${d.harvestCalls}</td><td>${Math.round(d.voiceMinutes)}</td><td>${usd(d.openai)}</td><td>${usd(d.mindstudio)}</td><td><b>${usd(d.openai + d.mindstudio)}</b></td></tr>`,
     )
     .join("");
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Interviewer spend</title>
@@ -98,5 +115,5 @@ body{background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif;mar
 .wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}th,td{text-align:right;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap}th:first-child,td:first-child{text-align:left}th{font-size:.8rem;color:var(--muted);font-weight:500}</style></head>
 <body><main><h1>What the Interviewer is spending</h1><p>Estimates from list prices, in UTC days. Your OpenAI and MindStudio usage pages have the real bill.</p>
 <div class="big"><div>${usd(mtd)}<span>this month so far</span></div><div>${usd(today.openai + today.mindstudio)}<span>today</span></div><div>${Math.round(today.voiceMinutes)} / ${cap}<span>voice minutes today (then voice pauses)</span></div></div>
-<div class="wrap"><table><thead><tr><th>Day</th><th>Interviews</th><th>Voice min</th><th>OpenAI</th><th>MindStudio</th><th>Total</th></tr></thead><tbody>${rows || `<tr><td colspan="6">Nothing yet.</td></tr>`}</tbody></table></div></main></body></html>`;
+<div class="wrap"><table><thead><tr><th>Day</th><th>Interviews</th><th>Typed</th><th>Harvest</th><th>Voice min</th><th>OpenAI</th><th>MindStudio</th><th>Total</th></tr></thead><tbody>${rows || `<tr><td colspan="8">Nothing yet.</td></tr>`}</tbody></table></div></main></body></html>`;
 }

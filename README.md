@@ -1,21 +1,20 @@
 # The Interviewer
 
-A weekly interview about what you built. Sign in with Buffer, paste a public GitHub repo, and talk for ten minutes with an interviewer who already knows what you shipped and what you've posted lately. When you're done it pulls out the stories worth telling, each one your own words organized into a clear thought with the exact quotes underneath and a few questions to help you shape it, and saves them to Buffer as Ideas tagged by your content pillars. You write the posts. The AI only asks.
+A weekly interview about what you built. Sign in with Buffer, paste a public GitHub repo or describe your week, and talk for ten minutes with an interviewer who already knows what you shipped and what you've posted lately. When you're done it pulls out the stories worth telling, lightly cleans the speech debris while preserving your meaning and voice, adds a few questions to help you shape each one, and saves the ones you choose to Buffer as Ideas. You write the posts. The AI only asks.
 
 Built by Ligaya Beebe for Buffer Commit 2026. Not made by or affiliated with Buffer.
 
 ## How it works
 
 1. **Connect with Buffer.** OAuth 2.0 Authorization Code with PKCE. Buffer is the only sign-in. The PKCE verifier and the `state` value stay on the server, and the state is pinned to the browser by a short-lived cookie.
-2. **Paste a public repo, or skip it.** Read through GitHub's public REST API, so there's no GitHub sign-in. Builders without GitHub (no-code tools, courses, content) tick "No GitHub" and write a sentence about what they're working on instead; the interviewer starts from that and their recent posts.
-3. **Pick pillars.** Up to three of your existing Buffer tags.
-4. **Talk.** One live conversation, not a form. By voice it runs on OpenAI's realtime model over WebRTC; typed, DeepSeek (through MindStudio) answers each turn. Before it starts, Claude Sonnet (through MindStudio) reads the week's commits, pull requests and issues plus up to 20 of your Buffer posts from the last 30 days, and plans an arc: the story of the week, the decisions behind it, who it's for, what's next. A side panel shows the change being discussed, with the diff.
-5. **Harvest.** When you stop, Claude Sonnet reads the whole conversation, finds the bigger story, and proposes one to five Ideas. Each has an angle for a title, your sentences under the question that drew them out (rebuilt from your transcript by sentence number, so the words are always exactly yours), and three short questions to help you develop it. Topics you didn't get to are offered as Ideas to answer later.
-6. **Save.** You edit, untick and pick pillars, then the ones you keep go to Buffer as Ideas with your pillar tag (`aiAssisted: true`, since the AI chose and arranged the words).
+2. **Name the work.** One field accepts either a public GitHub repo or a sentence about what you're working on. GitHub needs no sign-in and private code stays out of reach.
+3. **Talk.** One live conversation, not a form. GPT-Live 1 handles spoken conversations; DeepSeek Flash (through MindStudio) handles typed turns. The app ranks a few useful threads from the week's work and recent posts, and a side panel shows a plain-language work card with technical details tucked away.
+4. **Harvest.** When you stop, Claude Sonnet 5.5 reads the whole conversation, finds the bigger story, and proposes one to five Ideas. Each has an angle for a title, one coherent paragraph that removes fillers, false starts, and repetition without inventing claims, and three short questions to help you develop it.
+5. **Save.** You edit and untick, optionally choose a Buffer tag on each card, then save the ones you keep (`aiAssisted: true`, since the AI chose and arranged the words).
 
 ## Buffer API use
 
-- Scopes: `account:read ideas:read ideas:write posts:read posts:write offline_access`. `posts:write` is for the planned "Start a draft" button, which creates a draft linked to an Idea.
+- Scopes: `account:read ideas:read ideas:write posts:read offline_access`.
 - Every call goes through one client (`src/buffer.ts`) that reads the `RateLimit` headers on each response, stops starting new saves when the 15-minute window is nearly spent, and honors `Retry-After` on a 429 (a short wait is retried once; a long one is shown to the person as a plain message, and nothing is lost).
 - Requests ask only for the fields they use, and related reads are combined into one GraphQL request. Tags are cached in the session, so saving an answer costs one Buffer request.
 - Refresh tokens are single-use, so a rotated token is saved before anything else happens, including when the request then fails.
@@ -41,12 +40,21 @@ npm run dev     # local, needs a .dev.vars file with the secrets below
    - `BUFFER_CLIENT_SECRET`: from step 4.
    - `TOKEN_KEY`: 32 random bytes, base64 (`openssl rand -base64 32`).
    - `GITHUB_TOKEN` (optional): a fine-grained token with no permissions. It raises GitHub's limit for public reads from 60 to 5,000 an hour.
-   - `MINDSTUDIO_API_KEY` (optional): turns on the AI interviewer: Claude Sonnet (through MindStudio) plans the agenda and harvests ideas, DeepSeek answers typed turns fast, voice questions (`textToSpeech`) and spoken answers (`transcribeAudio`), all through MindStudio's step API. `INTERVIEW_MODEL` and `VOICE_MODEL` vars override the model ids.
-   - `OPENAI_API_KEY` (optional): turns on the live voice conversation. The browser connects to OpenAI's realtime model over WebRTC with a two-minute key the Worker mints (`/v1/realtime/client_secrets`), so the real key never reaches the page. `REALTIME_MODEL` and `REALTIME_VOICE` override the defaults (`gpt-realtime-2.1`, `marin`). The default voice is GPT-Live (`gpt-live-1`), OpenAI's full-duplex voice model, which listens while it talks, with a switch on the talk screen back to the classic realtime voice. For GPT-Live the page sends its WebRTC offer to `/api/live` and the Worker opens the session, so no key reaches the browser (`LIVE_MODEL` overrides the id). Each person can start twelve live sessions an hour (pausing and resuming counts as a new one), each capped at 20 minutes.
-   - `ANTHROPIC_API_KEY` (optional): a fallback for questions when MindStudio isn't set. Without either key, the interviewer uses rule-based questions built from the commits.
-   - Spend: the Worker keeps a rough daily estimate of OpenAI and MindStudio spend in KV, from list prices (voice minutes, model calls, interviews started). The owner (the Buffer organization in `OWNER_ORG_ID`) can see it at `/stats`; everyone else gets a 404. Once the whole app has used `DAILY_VOICE_MINUTES` of voice in a UTC day (default 120, about $10), new voice sessions are refused with a "type instead" message, and an OpenAI spend-limit error shows the same message. Hard monthly caps belong in the OpenAI project limits and MindStudio budgets; this is the early warning.
+   - `MINDSTUDIO_API_KEY` (optional): turns on DeepSeek Flash typed follow-ups and Claude Sonnet 5.5 harvesting through MindStudio's step API. The app selects an explicit Flash catalog entry rather than relying on catalog order. `INTERVIEW_MODEL` and `THINKING_MODEL` hard-pin provider model ids.
+   - `OPENAI_API_KEY` (optional): turns on GPT-Live, OpenAI's full-duplex spoken conversation. The page sends its WebRTC offer to `/api/live` and the Worker opens the session, so no key reaches the browser. `LIVE_MODEL` and `REALTIME_VOICE` override the defaults (`gpt-live-1`, `marin`). Each person can start four live sessions an hour, each capped at 20 minutes.
+   - `ANTHROPIC_API_KEY` (optional): a fallback for typed follow-ups and harvesting when MindStudio isn't set.
+   - Spend: the Worker keeps a rough daily estimate of OpenAI and MindStudio spend in KV. The owner (the Buffer organization in `OWNER_ORG_ID`) can see it at `/stats`; everyone else gets a 404. App-wide brakes default to 120 voice minutes, 500 typed calls and 100 harvest calls per UTC day; override them with `DAILY_VOICE_MINUTES`, `DAILY_TYPED_CALLS` and `DAILY_HARVEST_CALLS`. Hard monthly caps still belong in the provider project settings.
 
-Spoken answers are held in KV behind a random link for at most 10 minutes, only so the transcription service can fetch them, and are deleted as soon as the text comes back.
+## Abuse and cost boundaries
+
+- POST bodies are rejected above 64 KB before model work starts.
+- Work notes are capped at 500 characters; typed answers at 1,500 characters.
+- An interview holds at most 32 turns and 24,000 transcript characters. Live transcript sync is clamped to the same limits server-side.
+- Each session gets at most 20 typed model calls and four voice starts per hour, and six harvests per day.
+- Harvest is idempotent: repeating the request returns the existing cards instead of paying for another model call.
+- Model input is capped at 40,000 characters. Typed output is capped at 500 tokens and harvest output at 2,500 tokens.
+- Repository text, recent posts, notes and transcripts are serialized as untrusted JSON and the system prompts explicitly forbid following instructions found inside them.
+- Saving to Buffer caps Idea text at 10,000 characters and shaping prompts at 200 characters each.
 
 ## Later
 

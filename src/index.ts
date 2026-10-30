@@ -14,22 +14,127 @@ import {
   type Tag,
 } from "./buffer";
 import { RepoError, getSource, parseRepo, whatShipped, type Shipped, type Source } from "./github";
-import { planQuestions } from "./interview";
+import { hasModel, planQuestions } from "./interview";
 import { harvest, opening, reply } from "./conversation";
-import { gptLiveSession, openaiKey, voiceSession } from "./realtime";
-import { MindStudioError, speak, transcribe } from "./mindstudio";
+import { gptLiveSession, openaiKey } from "./realtime";
+import { MindStudioError } from "./mindstudio";
 import { appPage, landingPage, privacyPage } from "./pages";
-import { SpendCapError, countInterview, statsPage, tickVoice, voiceAllowedToday } from "./spend";
+import { SpendCapError, countInterview, modelAllowedToday, statsPage, tickVoice, voiceAllowedToday } from "./spend";
 import { cookie, createSession, destroySession, loadSession, readCookie, saveSession, type Session } from "./session";
 
+const SECURITY_HEADERS: Record<string, string> = {
+  "Content-Security-Policy": [
+    "default-src 'self'",
+    "base-uri 'none'",
+    "object-src 'none'",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+    "script-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com data:",
+    "img-src 'self' data:",
+    "connect-src 'self' https://api.github.com https://api.openai.com",
+    "media-src 'self' blob:",
+    "worker-src 'self' blob:",
+    "upgrade-insecure-requests",
+  ].join("; "),
+  "Permissions-Policy": "camera=(), geolocation=(), payment=(), usb=()",
+  "Referrer-Policy": "no-referrer",
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+};
+
+const responseHeaders = (headers?: HeadersInit): Headers => {
+  const out = new Headers(SECURITY_HEADERS);
+  if (headers) new Headers(headers).forEach((value, key) => out.set(key, value));
+  return out;
+};
+
 const html = (body: string, init: ResponseInit = {}) =>
-  new Response(body, { ...init, headers: { "Content-Type": "text/html; charset=utf-8", ...init.headers } });
+  new Response(body, {
+    ...init,
+    headers: responseHeaders({ "Cache-Control": "no-store", "Content-Type": "text/html; charset=utf-8", ...Object.fromEntries(new Headers(init.headers)) }),
+  });
 const json = (data: unknown, status = 200) =>
-  new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json" } });
+  new Response(JSON.stringify(data), {
+    status,
+    headers: responseHeaders({ "Cache-Control": "no-store", "Content-Type": "application/json" }),
+  });
 const redirect = (to: string, headers: Record<string, string> = {}) =>
-  new Response(null, { status: 302, headers: { Location: to, ...headers } });
+  new Response(null, { status: 302, headers: responseHeaders({ "Cache-Control": "no-store", Location: to, ...headers }) });
+const textResponse = (body: string, status: number) =>
+  new Response(body, { status, headers: responseHeaders({ "Cache-Control": "no-store", "Content-Type": "text/plain; charset=utf-8" }) });
 
 class UserError extends Error {}
+class UsageLimitError extends Error {}
+class RequestTooLarge extends Error {}
+
+const MAX_BODY_BYTES = 64_000;
+const MAX_TURN_CHARS = 1_500;
+const MAX_TRANSCRIPT_CHARS = 24_000;
+const MAX_TURNS = 32;
+const TYPED_CALLS_PER_HOUR = 20;
+const VOICE_STARTS_PER_HOUR = 4;
+const HARVESTS_PER_DAY = 6;
+
+function textInput(value: unknown, max: number, tooLong: string): string {
+  const text = String(value ?? "").replace(/\0/g, "").trim();
+  if (text.length > max) throw new UserError(tooLong);
+  return text;
+}
+
+function transcriptSize(turns: Session["turns"] = []): number {
+  return turns.reduce((n, t) => n + t.text.length, 0);
+}
+
+function reserveWindow(list: number[] | undefined, windowMs: number, cap: number, message: string): number[] {
+  const now = Date.now();
+  const live = (list ?? []).filter((t) => now - t < windowMs);
+  if (live.length >= cap) throw new UsageLimitError(message);
+  return [...live, now];
+}
+
+function boundedTurns(value: unknown, agendaSize: number): NonNullable<Session["turns"]> {
+  if (!Array.isArray(value)) return [];
+  const out: NonNullable<Session["turns"]> = [];
+  let chars = 0;
+  for (const raw of (value as Record<string, unknown>[]).slice(0, MAX_TURNS)) {
+    const text = String(raw.text ?? "").replace(/\0/g, "").trim().slice(0, MAX_TURN_CHARS);
+    if (!text) continue;
+    const room = MAX_TRANSCRIPT_CHARS - chars;
+    if (room <= 0) break;
+    const kept = text.slice(0, room);
+    out.push({
+      who: raw.who === "you" ? "you" : "interviewer",
+      text: kept,
+      about: Number.isInteger(raw.about) && (raw.about as number) >= 0 && (raw.about as number) < agendaSize ? (raw.about as number) : undefined,
+    });
+    chars += kept.length;
+  }
+  return out;
+}
+
+async function limitedBody(req: Request): Promise<string> {
+  if (!req.body) return "";
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > MAX_BODY_BYTES) {
+      await reader.cancel();
+      throw new RequestTooLarge();
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  return new TextDecoder().decode(bytes);
+}
 
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
@@ -55,7 +160,7 @@ export default {
       if (req.method === "GET" && url.pathname === "/stats") {
         // The owner's spend meter. Anyone else gets a plain 404.
         const loaded = await loadSession(req, env);
-        if (!env.OWNER_ORG_ID || loaded?.data.organizationId !== env.OWNER_ORG_ID) return new Response("Not found", { status: 404 });
+        if (!env.OWNER_ORG_ID || loaded?.data.organizationId !== env.OWNER_ORG_ID) return textResponse("Not found", 404);
         return html(await statsPage(env), { headers: { "Cache-Control": "no-store" } });
       }
       if (req.method === "GET" && url.pathname === "/connect") return connect(env);
@@ -66,12 +171,11 @@ export default {
       if (req.method === "GET" && url.pathname === "/app") {
         return (await loadSession(req, env)) ? html(appPage()) : redirect("/");
       }
-      if (req.method === "GET" && url.pathname.startsWith("/audio/")) return audio(env, url.pathname.slice(7));
       if (url.pathname.startsWith("/api/")) return api(req, env, url.pathname);
-      return new Response("Not found", { status: 404 });
+      return textResponse("Not found", 404);
     } catch (err) {
       console.error(err);
-      return new Response("Something went wrong.", { status: 500 });
+      return textResponse("Something went wrong.", 500);
     }
   },
 } satisfies ExportedHandler<Env>;
@@ -101,10 +205,10 @@ async function callback(req: Request, env: Env, url: URL): Promise<Response> {
   const session: Session = existing ? { ...existing.data, tokens } : { tokens };
   const { orgs } = await getStart(new BufferClient(env, session));
   if (!orgs.some((o) => o.id === session.organizationId)) {
-    Object.assign(session, { organizationId: undefined, organizationName: undefined, repo: undefined, pillarTagIds: undefined, questions: [], turns: [], drafts: [], saved: [] });
+    Object.assign(session, { organizationId: undefined, organizationName: undefined, repo: undefined, questions: [], turns: [], drafts: [], saved: [] });
   }
   if (orgs.length === 1 && !session.organizationId) Object.assign(session, { organizationId: orgs[0].id, organizationName: orgs[0].name });
-  const headers = new Headers({ Location: "/app" });
+  const headers = responseHeaders({ "Cache-Control": "no-store", Location: "/app" });
   if (existing) await saveSession(env, existing.id, session);
   else headers.append("Set-Cookie", (await createSession(env, session)).setCookie);
   headers.append("Set-Cookie", clear);
@@ -115,12 +219,23 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
   if (req.method === "POST" && req.headers.get("Origin") !== new URL(env.APP_URL).origin) {
     return json({ error: "Requests have to come from the app." }, 403);
   }
+  const length = Number(req.headers.get("Content-Length") ?? 0);
+  if (req.method === "POST" && length > MAX_BODY_BYTES) return json({ error: "That request is too large." }, 413);
   const loaded = await loadSession(req, env);
   if (!loaded) return json({ error: "Not connected" }, 401);
   const { id, data: s } = loaded;
   const client = new BufferClient(env, s);
-  const isAudio = path === "/api/transcribe";
-  const body = req.method === "POST" && !isAudio ? ((await req.json().catch(() => ({}))) as Record<string, unknown>) : {};
+  let body: Record<string, unknown> = {};
+  if (req.method === "POST") {
+    let raw: string;
+    try { raw = await limitedBody(req); }
+    catch (err) { if (err instanceof RequestTooLarge) return json({ error: "That request is too large." }, 413); throw err; }
+    try {
+      body = JSON.parse(raw || "{}") as Record<string, unknown>;
+    } catch {
+      return json({ error: "That request wasn't valid JSON." }, 400);
+    }
+  }
 
   try {
     let result: unknown;
@@ -129,26 +244,24 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         result = await view(env, client, s, true);
         break;
       case "/api/setup": {
-        // No GitHub is fine: they'll tell us what they're working on instead.
-        const noRepo = Boolean(body.noRepo);
-        const repo = noRepo ? undefined : parseRepo(String(body.repo ?? ""));
-        if (!noRepo && !repo) throw new UserError("Paste a GitHub repo link, like github.com/you/project, or pick the no-GitHub option.");
-        const ids = Array.isArray(body.pillarTagIds) ? body.pillarTagIds.map(String).slice(0, 3) : [];
-        if (!ids.length) throw new UserError("Pick at least one pillar.");
+        // One input accepts either a public repo or a plain-language note.
+        const work = textInput(body.work, 500, "Keep that to 500 characters or fewer.");
+        const repo = parseRepo(work) ?? undefined;
+        const noRepo = !repo;
+        if (noRepo && work.length < 15) throw new UserError("Paste a public GitHub repo, or tell me a sentence or two about what you worked on.");
         if (body.organizationId) s.organizationId = String(body.organizationId);
         if (repo) await whatShipped(env, repo, 1); // fails fast with a clear message if the repo isn't public
-        Object.assign(s, { repo, noRepo, pillarTagIds: ids, questions: [], turns: [], drafts: [], saved: [] });
+        Object.assign(s, { repo, noRepo, weekNote: repo ? undefined : work, questions: [], turns: [], drafts: [], saved: [] });
         result = await view(env, client, s, true);
         break;
       }
       case "/api/start": {
         if ((!s.repo && !s.noRepo) || !s.organizationId) throw new UserError("Finish setup first.");
-        s.weekNote = String(body.weekNote ?? "").slice(0, 500);
-        // Without a repo, their note is all the interviewer has to start from.
-        if (!s.repo && s.weekNote.trim().length < 15) throw new UserError("Tell me a sentence or two about what you're working on, so I know where to start.");
+        // Without a repo, the setup note is all the interviewer has to start from.
+        if (!s.repo && (s.weekNote ?? "").trim().length < 15) throw new UserError("Tell me a sentence or two about what you're working on, so I know where to start.");
         const noShip: Shipped = { repo: "", commits: [], pulls: [], issues: [] };
         const [shipped, recent] = await Promise.all([s.repo ? whatShipped(env, s.repo) : noShip, getRecent(client, s.organizationId)]);
-        s.questions = await planQuestions(env, shipped, recent, s.weekNote);
+        s.questions = await planQuestions(shipped, recent, s.weekNote ?? "");
         s.posts = recent.posts.map((p) => p.slice(0, 300));
         s.brief = [
           s.repo
@@ -164,62 +277,57 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         break;
       }
       case "/api/say": {
-        const text = String(body.text ?? "").trim().slice(0, 4000);
+        const text = textInput(body.text, MAX_TURN_CHARS, `Keep each answer to ${MAX_TURN_CHARS.toLocaleString()} characters or fewer.`);
         if (!text) throw new UserError("Say something first.");
         if (!s.questions?.length || !s.turns) throw new UserError("Start an interview first.");
-        if ((s.turns.length ?? 0) > MAX_TURNS) throw new UserError("That's a long interview. Pull your ideas together, then start a new one.");
+        if (s.turns.length >= MAX_TURNS || transcriptSize(s.turns) + text.length > MAX_TRANSCRIPT_CHARS) {
+          throw new UserError("That's a full interview. Find your ideas, then start a new one.");
+        }
+        if (hasModel(env)) {
+          if (!(await modelAllowedToday(env, "typed"))) throw new UsageLimitError("Typed interviews are resting for today. Try again tomorrow.");
+          s.typedStarts = reserveWindow(s.typedStarts, 3600_000, TYPED_CALLS_PER_HOUR, "That's a lot of answers in one hour. Take a short break, then continue.");
+          await saveSession(env, id, s); // reserve before the paid call
+        }
         s.turns.push({ who: "you", text });
         s.turns.push(await reply(env, s.questions, s.turns, s.brief ?? ""));
         result = await view(env, client, s);
         break;
       }
-      case "/api/voice": {
-        if (!openaiKey(env)) throw new UserError("Live voice isn't turned on yet. Type instead.");
-        if (!s.questions?.length) throw new UserError("Start an interview first.");
-        // A few live sessions an hour per person keeps the voice bill sane.
-        const now = Date.now();
-        s.voiceStarts = (s.voiceStarts ?? []).filter((t) => now - t < 3600_000);
-        if (s.voiceStarts.length >= 12) throw new UserError("That's a lot of talking for one hour. Type for now, or come back in a bit.");
-        if (!(await voiceAllowedToday(env))) throw new UserError(VOICE_RESTING);
-        s.voiceStarts.push(now);
-        result = await voiceSession(env, s);
-        s.voice = { kind: "realtime", startedAt: now, counted: 0 };
-        break;
-      }
       case "/api/live": {
-        // The GPT-Live voice option: the page posts its WebRTC offer, gets the answer.
+        // The page posts its WebRTC offer and gets the GPT-Live answer.
         if (!openaiKey(env)) throw new UserError("Live voice isn't turned on yet. Type instead.");
         if (!s.questions?.length) throw new UserError("Start an interview first.");
-        const sdp = String(body.sdp ?? "");
+        const sdp = textInput(body.sdp, 16_000, "The voice connection request was too large. Try again.");
         if (!sdp.startsWith("v=")) throw new UserError("The voice connection didn't start. Try again.");
         const now = Date.now();
-        s.voiceStarts = (s.voiceStarts ?? []).filter((t) => now - t < 3600_000);
-        if (s.voiceStarts.length >= 12) throw new UserError("That's a lot of talking for one hour. Type for now, or come back in a bit.");
+        s.voiceStarts = reserveWindow(s.voiceStarts, 3600_000, VOICE_STARTS_PER_HOUR, "That's a lot of voice sessions in one hour. Type for now, or come back in a bit.");
         if (!(await voiceAllowedToday(env))) throw new UserError(VOICE_RESTING);
-        s.voiceStarts.push(now);
-        result = await gptLiveSession(env, s, sdp.slice(0, 20_000));
+        await saveSession(env, id, s); // reserve before the paid session
+        result = await gptLiveSession(env, s, sdp);
         s.voice = { kind: "gpt-live", startedAt: now, counted: 0 };
         break;
       }
       case "/api/voice-turns": {
         // The live conversation's transcript, sent from the page as it goes.
         if (!s.turns) throw new UserError("Start an interview first.");
-        const turns = Array.isArray(body.turns) ? (body.turns as Record<string, unknown>[]).slice(0, MAX_TURNS) : [];
         const agendaSize = s.questions?.length ?? 0;
-        s.turns = turns
-          .map((t) => ({
-            who: t.who === "you" ? ("you" as const) : ("interviewer" as const),
-            text: String(t.text ?? "").trim().slice(0, 4000),
-            about: Number.isInteger(t.about) && (t.about as number) >= 0 && (t.about as number) < agendaSize ? (t.about as number) : undefined,
-          }))
-          .filter((t) => t.text);
+        s.turns = boundedTurns(body.turns, agendaSize);
         await tickVoice(env, s.voice);
         result = { ok: true };
         break;
       }
       case "/api/harvest": {
         if (!s.turns?.some((t) => t.who === "you")) throw new UserError("Answer at least one question first.");
-        const pillars = (s.tags ?? []).filter((t) => (s.pillarTagIds ?? []).includes(t.id));
+        if (s.drafts?.length) {
+          result = await view(env, client, s); // idempotent: never pay twice for the same transcript
+          break;
+        }
+        if (hasModel(env)) {
+          if (!(await modelAllowedToday(env, "harvest"))) throw new UsageLimitError("Idea harvesting is resting for today. Your interview is saved; try again tomorrow.");
+          s.harvestStarts = reserveWindow(s.harvestStarts, 86400_000, HARVESTS_PER_DAY, "You've harvested several interviews today. Your conversation is saved; try again tomorrow.");
+          await saveSession(env, id, s); // reserve before the paid call
+        }
+        const pillars = s.tags ?? [];
         await tickVoice(env, s.voice);
         s.voice = undefined; // the conversation's over; stop the meter
         s.drafts = await harvest(env, s.questions ?? [], s.turns, pillars, s.posts);
@@ -236,10 +344,10 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           const draft = s.drafts?.find((x) => x.id === d.id);
           if (!draft || s.saved?.includes(draft.id)) continue; // a double click must not create a second Idea
           const title = String(d.title ?? draft.title).trim().slice(0, 200);
-          const words = String(d.text ?? draft.text).trim();
+          const words = textInput(d.text ?? draft.text, 10_000, "Keep each Idea to 10,000 characters or fewer.");
           if (!words) continue;
           // Their words first, then the shaping questions, clearly set apart.
-          const prompts = (Array.isArray(d.prompts) ? d.prompts : draft.prompts ?? []).map((q) => String(q).trim()).filter(Boolean).slice(0, 5);
+          const prompts = (Array.isArray(d.prompts) ? d.prompts : draft.prompts ?? []).map((q) => String(q).trim().slice(0, 200)).filter(Boolean).slice(0, 5);
           const tags = (s.tags ?? []).filter((t) => t.id === d.tagId);
           const day = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
           const text = draft.later
@@ -260,31 +368,6 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           await saveSession(env, id, s);
         }
         result = await view(env, client, s);
-        break;
-      }
-      case "/api/speak": {
-        if (!env.MINDSTUDIO_API_KEY) throw new UserError("Voice isn't turned on yet.");
-        const last = [...(s.turns ?? [])].reverse().find((t) => t.who === "interviewer");
-        if (!last) throw new UserError("Nothing to say yet.");
-        result = { audioUrl: await speak(env, last.text) };
-        break;
-      }
-      case "/api/transcribe": {
-        if (!env.MINDSTUDIO_API_KEY) throw new UserError("Voice isn't turned on yet.");
-        const bytes = await req.arrayBuffer();
-        if (!bytes.byteLength) throw new UserError("That recording came through empty. Try again.");
-        if (bytes.byteLength > 15_000_000) throw new UserError("That recording is too long. Try a shorter answer.");
-        // The recording is held only long enough for MindStudio to fetch it,
-        // behind a random link, then deleted.
-        const key = randomToken(24);
-        const type = (req.headers.get("Content-Type") ?? "audio/webm").split(";")[0];
-        await env.SESSIONS.put(`audio:${key}`, bytes, { expirationTtl: 600, metadata: { type } });
-        try {
-          const terms = [...(s.repo ?? "").split(/[\/_.-]/), ...(s.questions ?? []).flatMap((q) => q.source.replace(/^[^:]+: /, "").split(/\s+/))];
-          result = { text: await transcribe(env, `${env.APP_URL}/audio/${key}`, [...new Set(terms)].filter((t) => t.length > 3)) };
-        } finally {
-          await env.SESSIONS.delete(`audio:${key}`);
-        }
         break;
       }
       case "/api/source": {
@@ -308,6 +391,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
       const mins = Math.max(1, Math.ceil(err.retryAfterSeconds / 60));
       return json({ error: `Buffer needs a short break. Try again in about ${mins} minute${mins > 1 ? "s" : ""}. Nothing was lost.` }, 429);
     }
+    if (err instanceof UsageLimitError) return json({ error: err.message }, 429);
     if (err instanceof UserError || err instanceof RepoError) return json({ error: err.message }, 400);
     if (err instanceof SpendCapError) {
       console.error("OpenAI spend limit reached", err.message);
@@ -349,21 +433,13 @@ async function view(env: Env, client: BufferClient, s: Session, refresh = false)
     repo: s.repo,
     noRepo: Boolean(s.noRepo),
     tags,
-    pillarTagIds: s.pillarTagIds ?? [],
+    weekNote: s.weekNote ?? "",
     questions: s.questions ?? [],
     turns: s.turns ?? [],
     drafts: s.drafts ?? [],
     saved: s.saved ?? [],
-    voice: Boolean(env.MINDSTUDIO_API_KEY),
     live: Boolean(openaiKey(env)),
   };
 }
 
-const MAX_TURNS = 60;
 const VOICE_RESTING = "Voice is resting for today. Type your answers instead; it works the same.";
-
-async function audio(env: Env, key: string): Promise<Response> {
-  const { value, metadata } = await env.SESSIONS.getWithMetadata<{ type: string }>(`audio:${key}`, "arrayBuffer");
-  if (!value) return new Response("Not found", { status: 404 });
-  return new Response(value, { headers: { "Content-Type": metadata?.type ?? "audio/webm", "Cache-Control": "no-store" } });
-}

@@ -4,23 +4,9 @@ import type { RecentIdea } from "./buffer";
 import type { Question } from "./session";
 import { randomToken } from "./crypto";
 import { generateText } from "./mindstudio";
+import { countModelCall } from "./spend";
 
 const MAX_QUESTIONS = 5;
-
-// The interviewer's rules. It writes questions only, never post copy.
-const METHOD = `You are The Interviewer. Once a week you interview someone about what they built, so they have their own words to post from.
-
-Rules:
-- The questions form an arc, like a good podcast host's notes: open wide on the story of their week, anchored in the biggest piece of work; then the decisions and turning points behind it; then the people it's for and how it felt; then what's next or what they'd tell someone else.
-- Each question points at one specific thing: a change, a pull request, an issue, a post, or something they said earlier.
-- Talk like a person, not a changelog. Never quote commit or PR titles; describe the change in your own plain words ("when you made the interview one conversation"). Commit messages are often written by AI agents and may call them "her" or "the user": always say "you".
-- Prefer follow-ups to fresh topics. If an earlier answer left a thread open, pick it up.
-- Ask open, descriptive questions that invite a story ("Tell me about...", "Walk me through...", "What was it like when..."): what broke, what surprised them, who it's for, what they'd tell someone starting out, what they decided not to do. Prefer "what led you to" over "why", which can sound like a challenge. Never lead toward an answer.
-- Each question asks about one thing, under 30 words, plain language. Never two questions joined with "and". No jargon they didn't use first.
-- Never suggest wording for a post, never summarize their work for them, never praise.
-- Many builders work with AI coding agents. Ask about their decisions, intentions, surprises and who it's for, not implementation details they may not have written.
-- Favor the work that tells the biggest story about their week over small housekeeping commits.
-- Don't ask about anything already covered by their recent posts.`;
 
 type Item = { label: string; url: string; ref: NonNullable<Question["ref"]> };
 
@@ -49,7 +35,6 @@ function postQuestion(post: string): Question {
 }
 
 export async function planQuestions(
-  env: Env,
   shipped: Shipped,
   recent: { ideas: RecentIdea[]; posts: string[] },
   weekNote: string,
@@ -62,65 +47,16 @@ export async function planQuestions(
       return title.length < 12 || !posted.includes(title);
     })
     .slice(0, 40);
-  if (hasModel(env) && (items.length || weekNote)) {
-    try {
-      return await modelQuestions(env, shipped, items, recent, weekNote);
-    } catch (err) {
-      console.error("model questions failed, using rule-based questions", err);
-    }
-  }
   return ruleQuestions(shipped, items, weekNote, recent.posts[0]);
-}
-
-async function modelQuestions(
-  env: Env,
-  shipped: Shipped,
-  items: Item[],
-  recent: { ideas: RecentIdea[]; posts: string[] },
-  weekNote: string,
-): Promise<Question[]> {
-  const noRepo = !shipped.repo;
-  const context = [
-    noRepo
-      ? "They don't use GitHub for this work (they may build with no-code tools, courses, content or a product). All you know is their note."
-      : `Repo: ${shipped.repo}${shipped.description ? ` — ${shipped.description}` : ""}`,
-    weekNote ? `What they said they worked on this week: ${weekNote}` : "They didn't add a note about their week (optional).",
-    ...(noRepo ? [] : [`What changed on GitHub in the last 7 days (numbered):`, ...items.map((it, i) => `${i + 1}. ${it.label}`)]),
-    `Earlier interview answers and Ideas in Buffer:`,
-    ...recent.ideas.slice(0, 12).map((i) => `- ${i.title ?? ""}: ${(i.text ?? "").slice(0, 280)}`),
-    `Their recent posts, newest first (don't repeat these topics):`,
-    ...recent.posts.slice(0, 8).map((p, i) => `${i === 0 ? "LATEST" : "-"} ${p.slice(0, 200)}`),
-  ].join("\n");
-
-  const text = await complete(
-    env,
-    METHOD,
-    `${context}\n\nWrite ${MAX_QUESTIONS} questions for this week's interview, best first. Reply with JSON only: [{"question": "...", "about": <number of the item it points at, -1 for their LATEST post, or 0 for their own note or an earlier answer>}]. At most one question may follow up on the LATEST post, asking what happened after it went out; ${noRepo ? "the rest grow from their note. You only know what they told you, so the first question is a warm, open invitation into what they described (\"Tell me about...\"), and the others are threads that fit whatever they say: a decision or turning point, who it's for, what surprised them or was hard, what's next. Don't invent details they didn't give." : "the rest are about the GitHub work."}`,
-    45_000,
-    2000,
-    true,
-  );
-  const parsed = JSON.parse(text.slice(text.indexOf("["), text.lastIndexOf("]") + 1)) as {
-    question: string;
-    about: number;
-  }[];
-  return parsed.slice(0, MAX_QUESTIONS).map((q) => {
-    if (q.about === -1 && recent.posts[0]) return { ...postQuestion(recent.posts[0]), text: q.question.trim() };
-    const item = items[q.about - 1];
-    return {
-      id: randomToken(8),
-      text: q.question.trim(),
-      source: item ? item.label.split(" — ")[0] : weekNote ? "What you said about your week" : "An earlier answer",
-      sourceUrl: item?.url,
-      ref: item?.ref,
-    };
-  });
 }
 
 export const hasModel = (env: Env) => Boolean(env.MINDSTUDIO_API_KEY || env.ANTHROPIC_API_KEY);
 
 // MindStudio (DeepSeek) when it's set up, Claude as a fallback.
 export async function complete(env: Env, system: string, message: string, timeoutMs?: number, maxTokens = 1200, deep = false): Promise<string> {
+  system = system.slice(0, 12_000);
+  message = message.slice(0, 40_000);
+  maxTokens = Math.max(1, Math.min(maxTokens, 2_500));
   if (env.MINDSTUDIO_API_KEY) return generateText(env, system, message, timeoutMs, maxTokens, deep);
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -129,6 +65,7 @@ export async function complete(env: Env, system: string, message: string, timeou
   });
   if (!res.ok) throw new Error(`model ${res.status}`);
   const json = (await res.json()) as { content: { type: string; text?: string }[] };
+  await countModelCall(env, deep ? "deep" : "chat");
   return json.content.find((c) => c.type === "text")?.text ?? "";
 }
 

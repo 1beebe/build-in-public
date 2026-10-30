@@ -144,6 +144,21 @@ const PAGE_STYLE = `
 .steps .min small{font-size:.38em;letter-spacing:-.01em;font-weight:500;margin-left:6px;color:var(--muted)}
 .steps p{max-width:28ch}
 
+/* Under the hood */
+.hood{background:var(--ink-bg);color:#f6f6f3}
+.hood .say{color:#b9c6bd}
+.flow-mini{list-style:none;margin:48px 0 0;padding:0;display:grid;gap:12px}
+@media (min-width:900px){.flow-mini{grid-template-columns:repeat(5,minmax(0,1fr));align-items:stretch}.flow-mini li+li::before{content:"→";position:absolute;left:-18px;top:50%;transform:translateY(-50%);color:#789184}}
+.flow-mini li{position:relative;border:1px solid #31513d;border-radius:16px;padding:18px;display:grid;gap:9px;align-content:start;background:#10271a}
+.flow-mini .k{font:500 .72rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#91aa99}
+.flow-mini b{font-size:1.05rem;line-height:1.2}
+.flow-mini p{font-size:.9rem;color:#b9c6bd}
+.flow-mini .ai{border-color:#ec8a5f;box-shadow:inset 0 0 0 1px #ec8a5f}
+.flow-mini .ai .k{color:#ffad88}
+.hood-links{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-top:32px}
+.hood-links .btn.quiet{color:#f6f6f3;box-shadow:inset 0 0 0 1.5px #789184}
+.hood-links .btn.quiet:hover{background:#183522}
+
 /* Kept */
 .pic{margin:0;border-radius:var(--r-card);overflow:hidden;background:var(--raised)}
 .pic img{display:block;width:100%;height:100%;object-fit:cover}
@@ -229,7 +244,7 @@ ${FONTS}
 
 const NAV = `<header class="wrap nav">
   <a class="wordmark" href="/">${MARK}The Interviewer</a>
-  <nav aria-label="Main"><ul><li><a href="/#sounds">How it sounds</a></li><li><a href="/#keep">What you keep</a></li><li><a href="/#data">Your data</a></li><li><a href="/privacy">Privacy</a></li></ul></nav>
+  <nav aria-label="Main"><ul><li><a href="/#sounds">How it sounds</a></li><li><a href="/#keep">What you keep</a></li><li><a href="/#hood">Under the hood</a></li><li><a href="/#data">Your data</a></li><li><a href="/privacy">Privacy</a></li></ul></nav>
   <a class="btn small" href="/connect">Connect<span class="long">&nbsp;with Buffer</span></a>
 </header>`;
 
@@ -249,7 +264,7 @@ ${NAV}
   <div class="demo rise" style="--i:3" data-ui>
     <form id="try">
       <label for="tryRepo">Try it on any public GitHub repo</label>
-      <input id="tryRepo" name="repo" placeholder="owner/repo" autocomplete="off" spellcheck="false">
+      <input id="tryRepo" name="repo" placeholder="owner/repo" autocomplete="off" spellcheck="false" maxlength="200">
       <button class="btn small" type="submit">Ask me</button>
     </form>
     <div class="stage">
@@ -301,12 +316,11 @@ ${NAV}
   <div class="wrap two flip">
     <div>
       <h2 class="rise" id="keepH">Your stories, saved in your own words.</h2>
-      <p class="say rise" style="--i:1">When you're done, it reads the conversation back and finds the few stories worth telling. For each one, it gathers what you said into a short paragraph, using only your words, and keeps your exact quotes underneath. You check every card before anything is saved. Edit it, drop it, or tag it with one of your themes, then send the ones you like to Buffer.</p>
+      <p class="say rise" style="--i:1">When you're done, it reads the conversation back and finds the few stories worth telling. For each one, it gathers what you meant into a short paragraph in your voice, dropping the ums, false starts, and repetition. You check every card before anything is saved. Edit it, drop it, or add a Buffer tag, then send the ones you like.</p>
     </div>
     <article class="idea rise" style="--i:1" aria-label="An Idea as it lands in Buffer">
       <p class="t">Why I let people in before they sign up</p>
       <div><p class="lbl">The story, in your words</p><p>Half the people who found it would hit the sign-up screen and leave. Why would they give their email to something they hadn't seen work? I wouldn't. So now you try it first and sign up after.</p></div>
-      <div><p class="lbl">What you said in the interview</p><p>"Like half the people who found it would hit the sign-up screen and just leave."</p><p>"I mean, I wouldn't give my email to something I hadn't seen work. Why would they?"</p><p>"So now you just try it first. Sign up after."</p></div>
       <div><p class="lbl">Questions to help you write it</p><ul><li>What did you worry you'd lose by letting people in free?</li><li>Who was the first person to try it this way?</li></ul></div>
       <span class="tag"><i></i>Building</span>
     </article>
@@ -331,10 +345,27 @@ ${NAV}
     </div>
     <ol class="steps">
       <li class="rise"><span class="min num">10<small>sec</small></span><p>Connect your Buffer account. Nothing else to sign up for.</p></li>
-      <li class="rise" style="--i:1"><span class="min num">1<small>min</small></span><p>Paste a public GitHub repo, or skip it and just say what you're working on. Pick up to three Buffer tags as the themes you post about.</p></li>
+      <li class="rise" style="--i:1"><span class="min num">1<small>min</small></span><p>Paste a public GitHub repo, or describe what you're working on in a sentence or two.</p></li>
       <li class="rise" style="--i:2"><span class="min num">8<small>min</small></span><p>Talk about your week, out loud or typed. Stop whenever you like.</p></li>
       <li class="rise" style="--i:3"><span class="min num">1<small>min</small></span><p>Keep the ideas you want. They land in Buffer, ready for you to write.</p></li>
     </ol>
+  </div>
+</section>
+
+<section class="sec hood" id="hood" aria-labelledby="hoodH">
+  <div class="wrap">
+    <div class="two">
+      <h2 class="rise" id="hoodH">A peek under the hood.</h2>
+      <p class="say rise" style="--i:1">The project is built in public, including where AI is—and is not—called. Reading GitHub and Buffer context is ordinary API work. The models enter only for the conversation and the final organization pass.</p>
+    </div>
+    <ol class="flow-mini" aria-label="A simplified technical workflow">
+      <li class="rise"><span class="k">No AI</span><b>Read context</b><p>Public GitHub work and recent Buffer posts.</p></li>
+      <li class="rise" style="--i:1"><span class="k">App logic</span><b>Rank threads</b><p>Deterministic rules choose useful starting points.</p></li>
+      <li class="rise ai" style="--i:2"><span class="k">AI call</span><b>Hold the interview</b><p>GPT-Live 1 for voice; DeepSeek Flash for typed follow-ups.</p></li>
+      <li class="rise ai" style="--i:3"><span class="k">AI call</span><b>Find the Ideas</b><p>Claude Sonnet 5.5 organizes meaning and drops speech debris.</p></li>
+      <li class="rise" style="--i:4"><span class="k">Human decision</span><b>Review and save</b><p>You edit, choose, optionally tag, and write the eventual post.</p></li>
+    </ol>
+    <div class="hood-links rise" style="--i:5"><a class="btn" href="/build-flow">Explore the full workflow</a><a class="btn quiet" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Browse the source on GitHub</a></div>
   </div>
 </section>
 
@@ -344,7 +375,7 @@ ${NAV}
       <h2 class="rise" id="landH">Where your ideas land.</h2>
       <ol class="where rise" style="--i:1">
         <li><p>Open Buffer and click <b>Create</b> in the left sidebar.</p></li>
-        <li><p>You land on <b>Ideas</b>. Your stories are in the <b>Unassigned</b> column, each titled <b>INTERVIEW</b> with its theme. <b>Filter by Tags</b> shows one theme at a time.</p></li>
+        <li><p>You land on <b>Ideas</b>. Your stories are in the <b>Unassigned</b> column, each titled <b>INTERVIEW</b> and carrying the tag you chose.</p></li>
         <li><p>When you're ready to write, open a card and click <b>Create Post</b>.</p></li>
       </ol>
     </div>
@@ -373,8 +404,8 @@ ${NAV}
     <div class="kept">
       <div class="rise"><h3>You sign in with Buffer</h3><p>Buffer asks you to approve access. The Interviewer reads your account, your tags, recent Ideas and up to 20 posts from the last 30 days, so its questions fit who you write for. The only thing it ever writes is the Ideas you choose to save. It never creates, edits or deletes posts.</p></div>
       <div class="rise" style="--i:1"><h3>You share a public repo</h3><p>If you point it at a public GitHub repo, it reads only what anyone can see: the last week of commits, pull requests and issues. There's no GitHub sign-in, so private code stays out of reach.</p></div>
-      <div class="rise" style="--i:2"><h3>You talk it through</h3><p>Claude, by Anthropic, reads your week and your recent posts and plans what to ask. Talk out loud and OpenAI's voice model holds the conversation. Type and DeepSeek asks the follow-ups. When you're done, Claude sorts what you said into ideas. None of them ever sees your Buffer sign-in.</p></div>
-      <div class="rise" style="--i:3"><h3>What it keeps</h3><p>Your Buffer sign-in, repo link, pillars and latest conversation, all encrypted. It expires 30 days after your last visit, and Disconnect deletes it right away. No tracking, no analytics, nothing sold. <a href="/privacy">The full privacy note</a> names every service.</p></div>
+      <div class="rise" style="--i:2"><h3>You talk it through</h3><p>The app ranks a few useful threads from your public work. Talk out loud and GPT-Live 1 holds the conversation. Type and DeepSeek Flash asks the follow-ups. When you're done, Claude Sonnet 5.5 organizes what you meant and drops speech debris. None of them ever sees your Buffer sign-in.</p></div>
+      <div class="rise" style="--i:3"><h3>What it keeps</h3><p>Your Buffer sign-in, repo or week note, and latest conversation, all encrypted. It expires 30 days after your last visit, and Disconnect deletes it right away. No tracking, no analytics, nothing sold. <a href="/privacy">The full privacy note</a> names every service.</p></div>
 </div>
     </div>
   </div>
@@ -384,7 +415,7 @@ ${NAV}
 <footer class="foot">
   <div class="wrap">
     <p class="big" aria-hidden="true">The Interviewer</p>
-    <div class="row"><a class="btn" href="/connect">Connect with Buffer</a><p>Built for Buffer Commit by Ligaya Beebe. Not made by or affiliated with Buffer. <a href="/privacy">Privacy</a></p></div>
+    <div class="row"><a class="btn" href="/connect">Connect with Buffer</a><p>Built in public for Buffer Commit by Ligaya Beebe. <a href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Source on GitHub</a>. Not made by or affiliated with Buffer. <a href="/privacy">Privacy</a></p></div>
   </div>
 </footer>`,
     { style: PAGE_STYLE, script: LANDING_SCRIPT },
@@ -460,22 +491,21 @@ ${NAV}
 <h1>Privacy</h1>
 <p>The Interviewer stores as little as it can, for as short a time as it can.</p>
 <h2>What's stored</h2>
-<p>Your Buffer sign-in tokens, encrypted with AES-GCM, plus the public GitHub repo link, the Buffer tags you picked as pillars, and the current interview: its topics and the conversation, encrypted the same way. Starting a new interview clears the last one. All of it expires 30 days after your last visit. Disconnecting deletes it straight away.</p>
+<p>Your Buffer sign-in tokens, encrypted with AES-GCM, plus the public GitHub repo link or week note and the current interview: its topics and the conversation, encrypted the same way. Starting a new interview clears the last one. All of it expires 30 days after your last visit. Disconnecting deletes it straight away.</p>
 <h2>What isn't</h2>
 <p>Anything after you're done with it. The Ideas you choose go to your own Buffer account. Nothing is sold, shared or used for ads, and there's no tracking or analytics.</p>
 <h2>What's read</h2>
-<p>From Buffer: your organization, tags, recent Ideas and up to 20 posts from the last 30 days, only to aim the questions, understand who you write for, and avoid repeats. From GitHub: public commits, pull requests and issues in the repo you name. That context is sent to MindStudio, which runs the AI model that writes the questions. The example on the home page asks GitHub directly from your browser and sends nothing here.</p>
+<p>From Buffer: your organization, tags, recent Ideas and up to 20 posts from the last 30 days, only to understand who you write for and avoid repeats. From GitHub: public commits, pull requests and issues in the repo you name. The example on the home page asks GitHub directly from your browser and sends nothing here.</p>
 <h2>Which AI does what</h2>
 <p>Each service gets only what its step needs: your week on GitHub, a summary of your recent posts, the questions and your answers. None of them ever sees your Buffer sign-in.</p>
 <ul>
-<li><b>Claude Sonnet</b>, by Anthropic, through MindStudio: plans the interview from your week and your recent posts, and at the end turns the conversation into ideas.</li>
-<li><b>DeepSeek</b>, through MindStudio: asks the next question when you type your answers.</li>
-<li><b>OpenAI GPT-Live</b>, or OpenAI's realtime model if you switch to the classic voice: holds the live spoken conversation.</li>
+<li><b>Claude Sonnet 5.5</b>, by Anthropic, through MindStudio: at the end, organizes the conversation into ideas while preserving meaning and voice.</li>
+<li><b>DeepSeek Flash</b>, through MindStudio: asks the next question when you type your answers.</li>
+<li><b>OpenAI GPT-Live</b>: holds the live spoken conversation.</li>
 <li><b>ElevenLabs Scribe</b>, through MindStudio: turns a recorded answer into text.</li>
-<li><b>OpenAI text to speech</b>, through MindStudio: reads questions aloud if you turn that on.</li>
 </ul>
 <h2>Voice</h2>
-<p>A live voice conversation streams between your browser and OpenAI's voice model. This app only sets up the call, either by passing your browser's connection request to OpenAI or by handing your browser a key that works for two minutes, and keeps the written transcript for the harvest. The live audio isn't stored here. If you answer out loud, the recording is held here for at most 10 minutes behind a random link so MindStudio can transcribe it, then deleted. You see the text and can edit it before anything is saved. Questions read aloud are generated by MindStudio from the question text.</p>
+<p>A live voice conversation streams between your browser and OpenAI's voice model. This app passes your browser's connection request to OpenAI and keeps the written transcript for the harvest. The live audio isn't stored here.</p>
 <h2>Contact</h2>
 <p>Ligaya Beebe, L. Beebe, LLC. Not made by or affiliated with Buffer.</p>
 <p><a href="/">Back to the start</a></p>
@@ -521,13 +551,6 @@ textarea{resize:vertical;min-height:120px;line-height:1.5}
 
 /* The orb: the interviewer's presence */
 .studio{justify-items:start}
-.startgrid{max-width:1120px}
-@media (min-width:1000px){.startgrid{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);align-items:start}}
-.howgoes{display:grid;gap:28px;padding:clamp(4px,1.6vw,20px)}
-.howgoes div{display:grid;gap:8px}
-.howgoes h2{font-size:1.15rem;letter-spacing:-.02em;line-height:1.2}
-.howgoes p{color:var(--muted);font-size:1rem}
-.howgoes .chips{display:flex}.howgoes .chip{cursor:default}
 .studio .orb{width:104px;height:104px}
 .orb{--lvl:0;position:relative;width:88px;height:88px;flex:none}
 .orb i{position:absolute;inset:0;border-radius:50%;background:var(--accent);transform:scale(calc(.78 + var(--lvl) * .5));transition:transform .09s linear}
@@ -569,7 +592,6 @@ textarea{resize:vertical;min-height:120px;line-height:1.5}
 #liveBtn.on .rec{background:var(--accent);border-radius:2px}
 .composer{display:grid;gap:10px}
 .composer textarea{min-height:88px}
-#micBtn[aria-pressed=true]{background:var(--live);color:#fff;box-shadow:none}
 .done-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding-top:18px;border-top:1px solid var(--border)}
 .topics{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:thin}
 .topics:empty{display:none}
@@ -633,35 +655,13 @@ export function appPage(): string {
 <p id="msg" role="alert" hidden></p>
 
 <section id="setup" class="screen" hidden>
-  <header><h1>Set up your interviews</h1><p class="lede">Two things, once. You can change them any time.</p></header>
+  <header><h1>What did you work on this week?</h1><p class="lede">Paste a public GitHub repo, or describe the work in a sentence or two.</p></header>
   <div class="panel">
     <label class="fieldset" id="orgWrap" hidden><span class="lbl">Buffer organization</span><select id="org"></select></label>
-    <label class="fieldset"><span class="lbl">Your public GitHub repo</span><span class="hint">It reads this week's commits, merged pull requests and closed issues. No GitHub sign-in, nothing private.</span><input id="repo" type="text" placeholder="github.com/you/project" autocomplete="off" spellcheck="false"></label>
-    <label class="check"><input id="noRepo" type="checkbox"> No GitHub? Skip it. You'll just tell it what you're working on.</label>
-    <div class="fieldset" role="group" aria-labelledby="pillarsLbl">
-      <span class="lbl" id="pillarsLbl">Content pillars</span>
-      <span class="hint">The themes you post about. Pick up to three of your Buffer tags, and each idea gets one.</span>
-      <div id="tags" class="chips"></div>
-      <p id="noTags" class="hint" hidden>You don't have any tags in Buffer yet. Create one to three in Buffer (for example: what I built, what I learned, who it's for), then reload this page.</p>
-    </div>
-    <div class="row"><button id="saveSetup" class="btn" type="button">Save and continue</button></div>
+    <label class="fieldset"><span class="lbl">A repo or a quick note</span><span class="hint">With a repo, it reads this week's public commits, pull requests and issues. Otherwise it starts from what you write here. 500 characters maximum.</span><textarea id="work" maxlength="500" placeholder="github.com/you/project — or — I rebuilt the onboarding for…"></textarea></label>
+    <div class="row"><button id="saveSetup" class="btn" type="button"><span class="rec"></span>Start the interview</button></div>
+    <p class="busyline" id="setupBusy" aria-live="polite"></p>
   </div>
-</section>
-
-<section id="start" class="screen startgrid" hidden>
-  <div class="panel studio">
-    <div class="orb" data-s="idle" aria-hidden="true"><i></i><i></i><b></b></div>
-    <header style="display:grid;gap:10px"><h1>Ready when you are.</h1><p class="lede" id="repoLine"></p></header>
-    <label class="fieldset" style="width:100%"><span class="lbl" id="noteLbl">Anything on your mind from this week?</span><span class="hint" id="noteHint">Optional. A sentence or two helps aim the first questions.</span>
-      <textarea id="weekNote" style="min-height:96px"></textarea></label>
-    <div class="row"><button id="startBtn" class="btn" type="button"><span class="rec"></span>Start the interview</button><button id="editSetup" class="btn quiet" type="button">Change repo or pillars</button></div>
-    <p class="busyline" id="startBusy" aria-live="polite"></p>
-  </div>
-  <aside class="howgoes" aria-label="How this goes">
-    <div><h2>It has done its reading</h2><p>Before the first question it looks at this week's commits, pull requests and closed issues, and what you've posted lately, so it can skip the obvious.</p></div>
-    <div><h2>It follows you</h2><p>Talk out loud or type. When you get to a change, it opens beside the conversation. Stop whenever you like.</p></div>
-    <div><h2>You keep what you want</h2><p>It finds the stories in what you said and files each under one of your pillars:</p><div class="chips" id="startPillars"></div></div>
-  </aside>
 </section>
 
 <section id="talk" class="screen wide split" hidden>
@@ -673,15 +673,12 @@ export function appPage(): string {
   </div>
   <div id="topics" class="topics" aria-label="Topics from your week"></div>
   <ol id="log" class="log" aria-live="polite"></ol>
-  <div class="live" id="liveBox" hidden><button id="liveBtn" class="btn" type="button"><span class="rec"></span><span class="lt">Start talking</span></button><span id="liveState" class="state" aria-live="polite"></span><button id="voicePick" class="btn small text" type="button"></button></div>
+  <div class="live" id="liveBox" hidden><button id="liveBtn" class="btn" type="button"><span class="rec"></span><span class="lt">Start talking</span></button><span id="liveState" class="state" aria-live="polite"></span></div>
   <div class="composer">
     <label for="say" class="saylbl">Type your answer</label>
-    <textarea id="say" placeholder="Enter sends. Shift+Enter for a new line."></textarea>
+    <textarea id="say" maxlength="1500" placeholder="Enter sends. Shift+Enter for a new line. 1,500 characters maximum."></textarea>
     <div class="row">
       <button id="sendBtn" class="btn small" type="button">Send</button><button id="nextBtn" class="btn small text" type="button" title="Enough on this one. Ask about something else.">Next topic</button>
-      <button id="micBtn" class="btn quiet small" type="button" aria-pressed="false" hidden>Answer out loud</button>
-      <label class="chip" id="speakWrap" hidden><input type="checkbox" id="speakOn">Read questions aloud</label>
-      <span id="micNote" class="small muted"></span>
     </div>
   </div>
   <div class="done-row"><span class="small muted">Stop whenever you like. It finds the stories in what you said.</span><button id="harvestBtn" class="btn quiet" type="button">I'm done. Find my ideas</button></div>
@@ -689,7 +686,7 @@ export function appPage(): string {
 </section>
 
 <section id="review" class="screen wide" hidden>
-  <header><h1>Ideas from your interview</h1><p class="lede">One card per story. Each has a working title, the story pulled together from your own words, the exact quotes it came from, and a few questions to help you write the post. Edit anything, untick what you don't want, then save.</p></header>
+  <header><h1>Ideas from your interview</h1><p class="lede">One card per story. Edit anything, untick what you don't want, and choose an optional Buffer tag before saving.</p></header>
   <div id="drafts" class="drafts"></div>
   <div class="savebar"><span class="count" id="saveCount"></span><div class="row"><button id="backTalk" class="btn quiet small" type="button">Back to the conversation</button><button id="saveAll" class="btn" type="button">Save to Buffer</button></div></div>
 </section>
@@ -711,7 +708,7 @@ export function appPage(): string {
 const APP_SCRIPT = `
 const $ = (id) => document.getElementById(id);
 let state = null, shown = null, busy = false;
-const SCREENS = ["setup","start","talk","review","done"];
+const SCREENS = ["setup","talk","review","done"];
 function show(id){ for (const s of SCREENS) $(s).hidden = s !== id; $("scope").textContent = state && state.repo ? state.repo : ""; }
 function err(m){ $("msg").textContent = m || ""; $("msg").hidden = !m; if (m) $("msg").scrollIntoView({block:"nearest", behavior:"smooth"}); }
 function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -729,7 +726,7 @@ function chip(tag, name, type, checked){
   l.querySelector(".swatch").style.background = tag.color; l.querySelector("span:last-child").textContent = tag.name;
   return l;
 }
-const pillars = () => (state.tags||[]).filter(t => (state.pillarTagIds||[]).includes(t.id));
+const tags = () => state.tags || [];
 
 // The orb: breathes when idle, pulses while thinking, and follows the real
 // level of whichever voice is speaking.
@@ -767,11 +764,7 @@ function renderSetup(){
   const orgs = state.orgs || [];
   $("orgWrap").hidden = orgs.length < 2;
   $("org").innerHTML = ""; for (const o of orgs){ const op = new Option(o.name, o.id); op.selected = o.id === state.organizationId; $("org").add(op); }
-  $("repo").value = state.repo || "";
-  $("noRepo").checked = !!state.noRepo; $("repo").disabled = !!state.noRepo;
-  $("tags").innerHTML = "";
-  for (const t of state.tags || []) $("tags").append(chip(t, "pillar", "checkbox", (state.pillarTagIds||[]).includes(t.id)));
-  $("noTags").hidden = (state.tags || []).length > 0;
+  $("work").value = state.repo || state.weekNote || "";
   show("setup");
 }
 
@@ -797,14 +790,17 @@ async function renderSource(about){
   if (src.when) meta.append(el("span", "", new Date(src.when).toLocaleDateString(undefined, {weekday:"short", month:"short", day:"numeric"})));
   if (src.stats) meta.append(el("span", "plus num", "+" + src.stats.additions), el("span", "minus num", "−" + src.stats.deletions), el("span", "num", src.stats.files + (src.stats.files === 1 ? " file" : " files")));
   if (meta.childNodes.length) box.append(meta);
-  if (src.body) box.append(el("div", "body", src.body));
-  src.files.forEach((f, k) => {
-    const d = el("details", "file"); if (k < 2 && f.patch) d.open = true;
-    const sum = el("summary"); sum.append(el("span", "", f.name)); const n = el("span", "num"); n.append(el("span", "plus", "+" + f.additions), " ", el("span", "minus", "−" + f.deletions)); sum.append(n); d.append(sum);
-    if (f.patch) { const pre = el("pre", "diff"); for (const line of f.patch.split("\\n")) pre.append(el("span", line.startsWith("@@") ? "h" : line[0] === "+" ? "a" : line[0] === "-" ? "d" : "", line || " ")); d.append(pre); }
-    else { const none = el("p", "small muted", f.status === "removed" ? "File removed." : "No preview for this file."); none.style.padding = "0 12px 10px"; d.append(none); }
-    box.append(d);
-  });
+  if (src.body || src.files.length) {
+    const more = el("details", "file"), sum = el("summary"); sum.append(el("span", "", "See the change")); more.append(sum);
+    if (src.body) { const body = el("div", "body", src.body); body.style.padding = "0 12px 12px"; more.append(body); }
+    src.files.forEach((f) => {
+      const d = el("details", "file");
+      const fs = el("summary"); fs.append(el("span", "", f.name)); const n = el("span", "num"); n.append(el("span", "plus", "+" + f.additions), " ", el("span", "minus", "−" + f.deletions)); fs.append(n); d.append(fs);
+      if (f.patch) { const pre = el("pre", "diff"); for (const line of f.patch.split("\\n")) pre.append(el("span", line.startsWith("@@") ? "h" : line[0] === "+" ? "a" : line[0] === "-" ? "d" : "", line || " ")); d.append(pre); }
+      more.append(d);
+    });
+    box.append(more);
+  }
 }
 
 // The conversation
@@ -828,7 +824,6 @@ function renderTalk(){
   drawn = turns.length;
   if (busy) { const li = el("li", "them typing new"), p = el("p"); p.textContent = "Thinking about what you said"; li.append(el("span", "who", "The Interviewer"), p); log.append(li); }
   $("liveBox").hidden = !state.live || !window.RTCPeerConnection;
-  $("micBtn").hidden = $("speakWrap").hidden = !state.voice || !window.MediaRecorder || !$("liveBox").hidden;
   if (!liveOn()) { orbState(busy ? "thinking" : "idle"); if (!$("liveBox").hidden && !$("liveState").textContent) setLive(""); }
   show("talk"); log.scrollTop = log.scrollHeight;
   if (about != null && about !== shown) renderSource(about).then(markTopics); else if (shown == null) renderSource(null);
@@ -838,13 +833,12 @@ function markTopics(){ [...$("topics").children].forEach((b, k) => b.classList.t
 
 async function say(){
   const text = $("say").value.trim(); if (!text || busy) return;
-  if (liveOn() && dc && dc.readyState === "open") {
-    dc.send(JSON.stringify({type:"conversation.item.create", item:{type:"message", role:"user", content:[{type:"input_text", text}]}}));
-    dc.send(JSON.stringify({type:"response.create"})); $("say").value = ""; return;
-  }
+  // Typing is the fallback path. Pause voice first so there is one transcript
+  // writer and one interviewer response at a time.
+  if (liveOn()) await stopLive();
   err(""); busy = true; $("sendBtn").disabled = true;
   state.turns = [...(state.turns||[]), {who:"you", text}]; $("say").value = ""; renderTalk();
-  try { state = await api("/api/say", {text}); busy = false; renderTalk(); speakLatest(); }
+  try { state = await api("/api/say", {text}); busy = false; renderTalk(); }
   catch(e){ busy = false; state.turns.pop(); drawn = state.turns.length; $("say").value = text; renderTalk(); err(e.message); }
   finally { $("sendBtn").disabled = false; $("say").focus(); }
 }
@@ -854,8 +848,7 @@ $("sendBtn").onclick = say;
 const MOVE_ON = "They've said enough on this thread and want to move on. No follow-up: give a short bridge and ask about a different thread now.";
 $("nextBtn").onclick = () => {
   if (liveOn() && dc && dc.readyState === "open") {
-    if (gl) dc.send(JSON.stringify({type:"session.instructions.append", event_id:"next_" + Date.now(), delegation_id:null, content:MOVE_ON}));
-    else { dc.send(JSON.stringify({type:"response.cancel"})); dc.send(JSON.stringify({type:"conversation.item.create", item:{type:"message", role:"system", content:[{type:"input_text", text:MOVE_ON}]}})); dc.send(JSON.stringify({type:"response.create"})); }
+    dc.send(JSON.stringify({type:"session.instructions.append", event_id:"next_" + Date.now(), delegation_id:null, content:MOVE_ON}));
     return;
   }
   if (busy) return;
@@ -863,41 +856,8 @@ $("nextBtn").onclick = () => {
 };
 $("say").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); say(); } });
 
-// Voice: questions read aloud, answers spoken and written down.
-let player = null;
-async function speakLatest(){
-  if (!$("speakOn").checked) return;
-  try { $("voiceState").textContent = "Getting ready to read it aloud…"; const { audioUrl } = await api("/api/speak", {}); if (player) player.pause(); player = new Audio(audioUrl); player.onended = () => { $("voiceState").textContent = ""; orbState("idle"); }; $("voiceState").textContent = "Reading the question aloud"; orbState("speaking"); await player.play(); }
-  catch(e){ $("voiceState").textContent = ""; orbState("idle"); }
-}
-$("speakOn").onchange = () => { if ($("speakOn").checked) speakLatest(); else if (player) player.pause(); };
-let rec = null, chunks = [];
-$("micBtn").onclick = async () => {
-  err("");
-  if (rec && rec.state === "recording") { rec.stop(); return; }
-  if (player) player.pause();
-  let stream; try { stream = await navigator.mediaDevices.getUserMedia({audio:true}); } catch { return err("The browser didn't allow the microphone. You can type instead."); }
-  chunks = []; rec = new MediaRecorder(stream); meter(stream); orbState("listening");
-  rec.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
-  rec.onstop = async () => {
-    stream.getTracks().forEach(t => t.stop()); stopMeters(); orbState("thinking");
-    $("micBtn").setAttribute("aria-pressed", "false"); $("micBtn").textContent = "Answer out loud"; $("micBtn").disabled = true; $("micNote").textContent = "Writing down what you said…";
-    try {
-      const blob = new Blob(chunks, {type: rec.mimeType || "audio/webm"});
-      const res = await fetch("/api/transcribe", {method:"POST", headers:{"Content-Type": blob.type}, body: blob});
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json.error || "Couldn't write that down. Try again or type it.");
-      const a = $("say"); a.value = (a.value.trim() ? a.value.trim() + " " : "") + json.text; a.focus();
-      $("micNote").textContent = "Check it, then send.";
-    } catch(e){ err(e.message); $("micNote").textContent = ""; } finally { $("micBtn").disabled = false; orbState("idle"); }
-  };
-  rec.start(); $("micBtn").setAttribute("aria-pressed", "true"); $("micBtn").textContent = "Stop and write it down"; $("micNote").textContent = "Listening…";
-};
-
-// Live voice: the browser talks to OpenAI's realtime model directly over
-// WebRTC, with a short-lived key from our server. The transcript is synced back
-// so the harvest can read it.
-let pc = null, dc = null, mic = null, liveTurns = null, liveAbout = null, liveTimer = null, syncTimer = null, items = {};
+// GPT-Live voice. The transcript is synced back so the harvest can read it.
+let pc = null, dc = null, mic = null, liveTurns = null, liveAbout = null, liveTimer = null, syncTimer = null;
 const LIVE_LOOK = {"Connecting…":"connecting", "Connected":"thinking", "Listening":"listening", "Thinking":"thinking", "Speaking":"speaking", "Your turn":"listening"};
 const LIVE_SAY = {"Connected":"Connected. It's about to ask.", "Your turn":"Your turn. Just talk."};
 function setLive(s){
@@ -905,10 +865,6 @@ function setLive(s){
   orbState(s ? (LIVE_LOOK[s] || "idle") : "idle");
 }
 function liveOn(){ return pc && pc.connectionState !== "closed"; }
-function ensureItem(id, who){
-  if (!items[id]) { const t = {who, text:"", about: who === "interviewer" ? liveAbout : undefined}; items[id] = t; liveTurns.push(t); }
-  return items[id];
-}
 function drawLive(){ state.turns = liveTurns.filter(t => t.text.trim()).map(t => ({who:t.who, text:t.text, about:t.about})); renderTalk(); }
 function syncLive(now){
   clearTimeout(syncTimer);
@@ -916,73 +872,10 @@ function syncLive(now){
   if (now) return send();
   syncTimer = setTimeout(send, 1500);
 }
-function onLiveEvent(ev){
-  const it = ev.item;
-  switch (ev.type) {
-    case "conversation.item.added": case "conversation.item.created": case "response.output_item.added":
-      if (it && it.type === "message" && (it.role === "user" || it.role === "assistant")) {
-        const t = ensureItem(it.id, it.role === "user" ? "you" : "interviewer");
-        const typed = (it.content || []).find(c => c.type === "input_text"); if (typed) { t.text = typed.text; drawLive(); syncLive(); }
-      }
-      break;
-    case "conversation.item.input_audio_transcription.delta": ensureItem(ev.item_id, "you").text += ev.delta || ""; drawLive(); break;
-    case "conversation.item.input_audio_transcription.completed": ensureItem(ev.item_id, "you").text = ev.transcript || ""; drawLive(); syncLive(); break;
-    case "response.output_audio_transcript.delta": case "response.audio_transcript.delta": ensureItem(ev.item_id, "interviewer").text += ev.delta || ""; setLive("Speaking"); drawLive(); break;
-    case "response.output_audio_transcript.done": case "response.audio_transcript.done": ensureItem(ev.item_id, "interviewer").text = ev.transcript || ""; drawLive(); syncLive(); break;
-    case "input_audio_buffer.speech_started": setLive("Listening"); if (player) player.pause(); break;
-    case "input_audio_buffer.speech_stopped": setLive("Thinking"); break;
-    case "response.done": {
-      // The panel switch rides along with speech. If the model called
-      // show_work and hasn't asked its question yet, it needs a nudge to go on.
-      const out = (ev.response && ev.response.output) || [];
-      const said = out.filter(o => o.type === "message").flatMap(o => o.content || []).map(c => c.transcript || c.text || "").join(" ");
-      if (out.some(o => o.type === "function_call") && !said.includes("?")) {
-        dc.send(JSON.stringify({type:"conversation.item.create", item:{type:"message", role:"system", content:[{type:"input_text", text:"Now ask your question. Don't repeat or announce anything you just said."}]}}));
-        dc.send(JSON.stringify({type:"response.create"}));
-      }
-      else setLive("Your turn");
-      break;
-    }
-    case "response.function_call_arguments.done":
-      if (ev.name === "show_work") {
-        let a = {}; try { a = JSON.parse(ev.arguments || "{}"); } catch {}
-        const k = (a.item | 0) - 1;
-        if (k >= 0 && k < (state.questions || []).length) { liveAbout = k; renderSource(k).then(markTopics); }
-        dc.send(JSON.stringify({type:"conversation.item.create", item:{type:"function_call_output", call_id: ev.call_id, output: JSON.stringify({shown: k >= 0})}}));
-      }
-      break;
-    case "error": console.warn("realtime", ev.error || ev); break;
-  }
-}
 function liveLabel(on){ $("liveBtn").querySelector(".lt").textContent = on ? "Pause" : "Start talking"; $("liveBtn").classList.toggle("on", on); }
-async function startLive(){
-  err(""); $("liveBtn").disabled = true; setLive("Connecting…");
-  try {
-    mic = await navigator.mediaDevices.getUserMedia({audio:true});
-    meter(mic);
-    const { key } = await api("/api/voice", {});
-    items = {}; liveTurns = (state.turns || []).some(t => t.who === "you") ? state.turns.map(t => ({...t})) : []; liveAbout = currentAbout();
-    pc = new RTCPeerConnection();
-    const out = new Audio(); out.autoplay = true;
-    pc.ontrack = (e) => { out.srcObject = e.streams[0]; meter(e.streams[0]); };
-    mic.getTracks().forEach(t => pc.addTrack(t, mic));
-    dc = pc.createDataChannel("oai-events");
-    dc.onmessage = (e) => { try { onLiveEvent(JSON.parse(e.data)); } catch (x) { console.warn(x); } };
-    dc.onopen = () => { dc.send(JSON.stringify({type:"response.create"})); setLive("Connected"); };
-    pc.onconnectionstatechange = () => { if (["failed","disconnected"].includes(pc.connectionState)) { stopLive(); err("The voice connection dropped. Your conversation so far is kept. Start talking again to pick up."); } };
-    const offer = await pc.createOffer(); await pc.setLocalDescription(offer);
-    const r = await fetch("https://api.openai.com/v1/realtime/calls", {method:"POST", body: offer.sdp, headers:{Authorization: "Bearer " + key, "Content-Type": "application/sdp"}});
-    if (!r.ok) throw new Error("The voice service didn't connect (" + r.status + "). Try again, or type.");
-    await pc.setRemoteDescription({type:"answer", sdp: await r.text()});
-    liveLabel(true);
-    liveTimer = setTimeout(() => { stopLive(); err("Paused after 20 minutes. Start talking again to keep going, or find your ideas."); }, 20 * 60 * 1000);
-  } catch (e) { stopLive(); err(e.message === "Permission denied" ? "The browser didn't allow the microphone. You can type instead." : e.message); }
-  finally { $("liveBtn").disabled = false; }
-}
 async function stopLive(){
   clearTimeout(liveTimer);
   if (gl) { clearTimeout(gl.quiet); if (dc && dc.readyState === "open") try { dc.send(JSON.stringify({type:"session.close"})); } catch {} gl = null; }
-  $("voicePick").hidden = false;
   if (dc) try { dc.close(); } catch {}
   if (pc) try { pc.close(); } catch {}
   if (mic) mic.getTracks().forEach(t => t.stop());
@@ -991,20 +884,9 @@ async function stopLive(){
   liveLabel(false); setLive("");
   if (was) await syncLive(true);
 }
-$("liveBtn").onclick = () => liveOn() ? stopLive() : (voiceModel() === "gpt-live" ? startGptLive() : startLive());
+$("liveBtn").onclick = () => liveOn() ? stopLive() : startGptLive();
 
-// A second voice to compare: GPT-Live, OpenAI's full-duplex model, which
-// listens while it talks. The page sends its WebRTC offer to our server, which
-// opens the session, so no key reaches the browser. Transcripts arrive as timed
-// fragments from both sides, grouped here into turns on each change of speaker.
-function voiceModel(){ try { return localStorage.getItem("voiceModel") || "gpt-live"; } catch { return "gpt-live"; } }
-function drawVoicePick(){ $("voicePick").textContent = voiceModel() === "gpt-live" ? "Try the classic voice" : "Using the classic voice. Switch back"; }
-$("voicePick").onclick = () => {
-  if (liveOn()) return;
-  try { localStorage.setItem("voiceModel", voiceModel() === "gpt-live" ? "realtime" : "gpt-live"); } catch {}
-  drawVoicePick();
-};
-drawVoicePick();
+// The page sends its WebRTC offer to the server; no OpenAI key reaches the browser.
 let gl = null;
 function glFragment(who, delta){
   if (!delta) return;
@@ -1035,11 +917,11 @@ function onGptLiveEvent(ev){
   }
 }
 async function startGptLive(){
-  err(""); $("liveBtn").disabled = true; $("voicePick").hidden = true; setLive("Connecting…");
+  err(""); $("liveBtn").disabled = true; setLive("Connecting…");
   try {
     mic = await navigator.mediaDevices.getUserMedia({audio:true});
     meter(mic);
-    items = {}; liveTurns = (state.turns || []).some(t => t.who === "you") ? state.turns.map(t => ({...t})) : []; liveAbout = currentAbout();
+    liveTurns = (state.turns || []).some(t => t.who === "you") ? state.turns.map(t => ({...t})) : []; liveAbout = currentAbout();
     gl = {cur:{}, quiet:null};
     pc = new RTCPeerConnection();
     const out = new Audio(); out.autoplay = true;
@@ -1084,13 +966,16 @@ function renderReview(){
     const top = el("label", "chip pick"); const cb = el("input"); cb.type = "checkbox"; cb.checked = !d.later; top.append(cb, el("span", "", d.later ? "Save to answer later" : "Save this idea")); card.append(top);
     if ((state.saved||[]).includes(d.id)) { cb.checked = false; cb.disabled = true; top.lastChild.textContent = "Saved"; }
     cb.onchange = countPicked;
-    const t = el("input", "title"); t.type = "text"; t.value = d.title; t.setAttribute("aria-label", "Idea title"); card.append(t);
-    const words = el("div"); words.append(el("span", "lbl", d.later ? "A question for later" : "Your words")); const x = el("textarea", "text"); x.value = d.text; x.setAttribute("aria-label", "Idea text, in your words"); words.append(x); card.append(words);
+    const t = el("input", "title"); t.type = "text"; t.maxLength = 200; t.value = d.title; t.setAttribute("aria-label", "Idea title"); card.append(t);
+    const words = el("div"); words.append(el("span", "lbl", d.later ? "A question for later" : "Your idea, cleaned up")); const x = el("textarea", "text"); x.maxLength = 10000; x.value = d.text; x.setAttribute("aria-label", "Idea text, lightly cleaned up"); words.append(x); card.append(words);
     if ((d.prompts||[]).length) {
       const pw = el("div"); pw.append(el("span", "lbl", "Questions to help you write it, one per line"));
-      const pr = el("textarea", "prompts"); pr.value = d.prompts.join("\\n"); pr.setAttribute("aria-label", "Shaping questions, one per line"); pw.append(pr); card.append(pw);
+      const pr = el("textarea", "prompts"); pr.maxLength = 1000; pr.value = d.prompts.join("\\n"); pr.setAttribute("aria-label", "Shaping questions, one per line"); pw.append(pr); card.append(pw);
     }
-    const chips = el("div", "chips"); chips.setAttribute("aria-label", "Pillar"); pillars().forEach((p, k) => chips.append(chip(p, "pl-" + d.id, "radio", d.tagId ? d.tagId === p.id : k === 0))); card.append(chips);
+    if (tags().length) {
+      const tagWrap = el("div"); tagWrap.append(el("span", "lbl", "Buffer tag (optional)"));
+      const chips = el("div", "chips"); chips.setAttribute("aria-label", "Buffer tag"); tags().forEach((p) => chips.append(chip(p, "pl-" + d.id, "radio", d.tagId === p.id))); tagWrap.append(chips); card.append(tagWrap);
+    }
     box.append(card);
   }
   show("review"); countPicked();
@@ -1118,29 +1003,21 @@ function renderDone(){
 }
 
 function route(){
-  if ((!state.repo && !state.noRepo) || !(state.pillarTagIds||[]).length) return renderSetup();
+  if (!state.repo && !state.noRepo) return renderSetup();
   if ((state.drafts||[]).length) return (state.saved||[]).length ? renderDone() : renderReview();
   if ((state.turns||[]).length) return renderTalk();
-  $("repoLine").textContent = state.repo ? "This week in " + state.repo + ". Out loud or typed, about ten minutes." : "Your week, in your words. Out loud or typed, about ten minutes.";
-  $("noteLbl").textContent = state.repo ? "Anything on your mind from this week?" : "What are you working on?";
-  $("noteHint").textContent = state.repo ? "Optional. A sentence or two helps aim the first questions." : "A sentence or two, so it knows where to start. A course, a tool, a side project, anything you're building.";
-  $("startPillars").replaceChildren(...pillars().map(p => { const c = el("span", "chip"), d = el("span", "swatch"); d.style.background = p.color; c.append(d, p.name); return c; }));
-  show("start");
+  renderSetup();
 }
 async function load(){ try { state = await api("/api/state"); route(); } catch(e){ err(e.message); } }
 $("saveSetup").onclick = async () => {
-  err(""); const ids = [...document.querySelectorAll('input[name=pillar]:checked')].map(x => x.value);
-  if (ids.length > 3) return err("Pick up to three pillars.");
-  try { $("saveSetup").disabled = true; state = await api("/api/setup", {organizationId:$("org").value, repo:$("repo").value, noRepo:$("noRepo").checked, pillarTagIds:ids}); route(); }
-  catch(e){ err(e.message); } finally { $("saveSetup").disabled = false; }
-};
-$("editSetup").onclick = renderSetup;
-$("noRepo").onchange = () => { $("repo").disabled = $("noRepo").checked; };
-$("startBtn").onclick = async () => {
-  err(""); $("startBtn").disabled = true; $("editSetup").disabled = true; orbState("thinking");
-  busyLines("startBusy", ["Reading this week's commits and pull requests", "Looking at what you've posted lately", "Planning a few threads to pull on", "Almost ready"]);
-  try { state = await api("/api/start", {weekNote:$("weekNote").value}); shown = null; drawn = 0; renderTalk(); speakLatest(); $("say").focus({preventScroll:true}); }
-  catch(e){ err(e.message); } finally { busyDone("startBusy"); if ($("talk").hidden) orbState("idle"); $("startBtn").disabled = false; $("editSetup").disabled = false; }
+  err(""); $("saveSetup").disabled = true; orbState("thinking");
+  busyLines("setupBusy", ["Reading this week's public work", "Looking at what you've posted lately", "Choosing a few threads to pull on", "Almost ready"]);
+  try {
+    state = await api("/api/setup", {organizationId:$("org").value, work:$("work").value});
+    state = await api("/api/start", {}); shown = null; drawn = 0; renderTalk(); $("say").focus({preventScroll:true});
+  }
+  catch(e){ err(e.message); }
+  finally { busyDone("setupBusy"); if ($("talk").hidden) orbState("idle"); $("saveSetup").disabled = false; }
 };
 $("again").onclick = async () => { try { state = await api("/api/reset", {}); shown = null; drawn = 0; sources.clear(); route(); } catch(e){ err(e.message); } };
 load();

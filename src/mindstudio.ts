@@ -33,56 +33,57 @@ export async function step<T>(env: Env, type: string, input: Record<string, unkn
   throw new MindStudioError(`${type}: timed out`);
 }
 
-// DeepSeek's newest chat model, unless INTERVIEW_MODEL pins one. Looked up
-// once a day so a new DeepSeek release is picked up without a deploy.
+type CatalogModel = { id: string; name: string };
+
+// Prefer the named Flash family deterministically. Catalog order is not a
+// version signal, so never silently switch to whichever DeepSeek appears last.
+export function selectInterviewModel(models: CatalogModel[]): CatalogModel | undefined {
+  const usable = models.filter((m) => {
+    const label = `${m.id} ${m.name}`;
+    return /deepseek/i.test(label) && !/reason|r1|coder|pro/i.test(label);
+  });
+  const exactFlash = usable
+    .filter((m) => /(?:v?4[.\s_-]?1.*flash|flash.*v?4[.\s_-]?1)/i.test(`${m.id} ${m.name}`))
+    .sort((a, b) => a.id.localeCompare(b.id))[0];
+  if (exactFlash) return exactFlash;
+  return usable.filter((m) => /flash/i.test(`${m.id} ${m.name}`)).sort((a, b) => a.id.localeCompare(b.id))[0];
+}
+
+// INTERVIEW_MODEL is the hard pin. Otherwise resolve the catalog's explicit
+// DeepSeek Flash entry once a day and cache its concrete provider id.
 export async function chatModel(env: Env): Promise<string> {
   if (env.INTERVIEW_MODEL) return env.INTERVIEW_MODEL;
-  const cached = await env.SESSIONS.get("ms:model");
+  const cached = await env.SESSIONS.get("ms:model:deepseek-flash-v1");
   if (cached) return cached;
   const res = await fetch(`${BASE}/helpers/models/llm_chat`, { headers: { Authorization: `Bearer ${env.MINDSTUDIO_API_KEY}` } });
   if (!res.ok) throw new MindStudioError(`models ${res.status}`);
-  const { models } = (await res.json()) as { models: { id: string; name: string }[] };
-  const deepseek = models.filter((m) => /deepseek/i.test(`${m.id} ${m.name}`) && !/reason|r1|coder/i.test(`${m.id} ${m.name}`));
-  const pick = deepseek[deepseek.length - 1] ?? models.find((m) => /deepseek/i.test(m.id));
-  if (!pick) throw new MindStudioError("no DeepSeek model available");
-  await env.SESSIONS.put("ms:model", pick.id, { expirationTtl: 86400 });
+  const { models } = (await res.json()) as { models: CatalogModel[] };
+  const pick = selectInterviewModel(models);
+  if (!pick) throw new MindStudioError("DeepSeek Flash is not available");
+  await env.SESSIONS.put("ms:model:deepseek-flash-v1", pick.id, { expirationTtl: 86400 });
   return pick.id;
 }
 
-// The model for the parts that need judgment over the whole week: planning the
-// agenda and turning the conversation into ideas. Live turns stay on DeepSeek
-// for speed.
+// The one pass that needs judgment over the whole conversation: turning it
+// into Ideas. Typed live turns stay on DeepSeek Flash for speed.
 const THINKING_MODEL = "claude-5-5-sonnet";
 
 export async function generateText(env: Env, system: string, message: string, timeoutMs?: number, maxTokens = 1200, deep = false): Promise<string> {
+  system = system.slice(0, 12_000);
+  message = message.slice(0, 40_000);
+  maxTokens = Math.max(1, Math.min(maxTokens, 2_500));
+  const modelOverride: Record<string, unknown> = {
+    model: deep ? env.THINKING_MODEL || THINKING_MODEL : await chatModel(env),
+    maxResponseTokens: maxTokens,
+    preamble: system,
+  };
+  // Current Claude models reject temperature. It remains useful for the short,
+  // conversational DeepSeek turns, where some variation keeps the interview natural.
+  if (!deep) modelOverride.temperature = 0.6;
   const out = await step<{ content: string }>(env, "userMessage", {
     message,
-    modelOverride: { model: deep ? env.THINKING_MODEL || THINKING_MODEL : await chatModel(env), temperature: 0.6, maxResponseTokens: maxTokens, preamble: system },
+    modelOverride,
   }, timeoutMs);
   await countModelCall(env, deep ? "deep" : "chat");
   return out.content;
-}
-
-const VOICE_MODEL = "gpt-realtime-2.1-mini-tts";
-
-export async function speak(env: Env, text: string): Promise<string> {
-  const out = await step<{ audioUrl: string }>(env, "textToSpeech", {
-    text,
-    speechModelOverride: {
-      model: env.VOICE_MODEL || VOICE_MODEL,
-      config: { instructions: "A warm, curious interviewer. Unhurried, plain, friendly. Not a radio host." },
-    },
-  });
-  await countModelCall(env, "speech");
-  return out.audioUrl;
-}
-
-export async function transcribe(env: Env, audioUrl: string, keyterms: string[]): Promise<string> {
-  const out = await step<{ text: string }>(env, "transcribeAudio", {
-    audioUrl,
-    prompt: "A builder answering an interview question about their software project.",
-    transcriptionModelOverride: { model: "elevenlabs-scribe-v2", config: { keyterms: keyterms.slice(0, 50) } },
-  });
-  await countModelCall(env, "speech");
-  return out.text.trim();
 }

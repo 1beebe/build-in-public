@@ -7,18 +7,16 @@ export interface Env {
   TOKEN_KEY: string;
   // Optional. Raises GitHub's public API limit from 60 to 5,000 requests an hour.
   GITHUB_TOKEN?: string;
-  // Optional. Turns on DeepSeek questions and follow-ups, and voice, through MindStudio.
+  // Optional. Turns on DeepSeek Flash follow-ups and Claude Sonnet 5.5 harvesting through MindStudio.
   MINDSTUDIO_API_KEY?: string;
   // Optional overrides for the MindStudio model ids.
   INTERVIEW_MODEL?: string;
   THINKING_MODEL?: string;
-  VOICE_MODEL?: string;
   // Optional. Turns on the live voice conversation (OpenAI's realtime model).
   OPENAI_API_KEY?: string;
   OPEN_AI_KEY?: string; // the same key under the name it was first saved with
-  REALTIME_MODEL?: string;
   REALTIME_VOICE?: string;
-  LIVE_MODEL?: string; // GPT-Live, the full-duplex voice option
+  LIVE_MODEL?: string; // GPT-Live full-duplex voice
   // Optional fallback for questions when MindStudio isn't set up. Without
   // either key the interviewer asks rule-based questions from the commits.
   ANTHROPIC_API_KEY?: string;
@@ -26,4 +24,7 @@ export interface Env {
   OWNER_ORG_ID?: string;
   // App-wide voice minutes a day before voice pauses for everyone. Default 120.
   DAILY_VOICE_MINUTES?: string;
+  // App-wide model-call brakes. Provider project budgets remain the hard caps.
+  DAILY_TYPED_CALLS?: string;
+  DAILY_HARVEST_CALLS?: string;
 }
