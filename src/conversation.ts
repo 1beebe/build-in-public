@@ -92,7 +92,7 @@ An idea is something they could post about: a story, a decision, a lesson, a sur
 
 Leave out non-answers: confusion, "I don't know", requests to the interviewer, filler, and anything that only makes sense next to the question.
 
-Titles name the angle in plain words, under ten words, not a question and not clickbait. For example: "Why one question at a time felt dead".`;
+Titles name the angle in plain words, under ten words, not a question and not clickbait. For example: "The week I stopped polishing and shipped".`;
 
 // Turn the conversation into proposed Ideas: the model picks the angles and
 // which of their sentences carry each one.
