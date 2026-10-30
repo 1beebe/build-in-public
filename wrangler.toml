@@ -12,3 +12,6 @@ BUFFER_CLIENT_ID = "gWeAUTXEWPQCHFuC5MvkLI4HQMUcxb0odcMQOqNr2DB"
 [[kv_namespaces]]
 binding = "SESSIONS"
 id = "44870f3b03c24272a3ecfda1224a1356"
+
+[observability]
+enabled = true

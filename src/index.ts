@@ -16,7 +16,7 @@ import {
 import { RepoError, getSource, parseRepo, whatShipped, type Source } from "./github";
 import { planQuestions } from "./interview";
 import { harvest, opening, reply } from "./conversation";
-import { MindStudioError, speak, transcribe } from "./mindstudio";
+import { MindStudioError, generateText, speak, transcribe } from "./mindstudio";
 import { appPage, landingPage, privacyPage } from "./pages";
 import { cookie, createSession, destroySession, loadSession, readCookie, saveSession, type Session } from "./session";
 
@@ -210,6 +210,15 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const q = s.questions?.find((x) => x.id === new URL(req.url).searchParams.get("q"));
         if (!q?.ref || !s.repo) throw new UserError("Nothing to show for this question.");
         return json(await source(env, s.repo, q.ref)); // read-only: the session doesn't change
+      }
+      case "/api/model-check": {
+        // Temporary: shows why a MindStudio call fails. Error text only, never keys.
+        try {
+          result = { ok: true, reply: await generateText(env, "Reply with one word.", "Say ready.") };
+        } catch (e) {
+          result = { ok: false, error: String((e as Error).message).slice(0, 600) };
+        }
+        break;
       }
       case "/api/reset":
         Object.assign(s, { questions: [], turns: [], drafts: [], saved: [], brief: undefined });
