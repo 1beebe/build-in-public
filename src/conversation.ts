@@ -107,7 +107,9 @@ Leave out non-answers: confusion, "I don't know", requests to the interviewer, f
 
 Titles name the angle in plain words, under ten words, not a question and not clickbait. For example: "The week I stopped polishing and shipped".
 
-For each idea, also write two or three short questions that will help them turn it into a post, specific to this idea: who most needs to hear it, the one thing a reader should take away, what they could show next to it (a screenshot, a before and after, a number), or what they'd tell someone about to try the same. Questions only. Never suggest wording, hooks or openings.`;
+First read the whole conversation and notice the bigger story running through it: what this week says about how they build, who they're building for, or what they're learning. Ideas and questions should connect to that, not just restate events.
+
+For each idea, write two or three questions that help them find the post inside it. A good question pushes past what happened to what it meant, finds the tension (what they expected versus what happened, what they gave up), connects it to the reader's world, or draws out a specific moment, detail or number only they have. Ground every question in something they actually said, and name it. No generic questions that would fit any idea, and don't reuse the same question shape across ideas. Questions only. Never suggest wording, hooks or openings.`;
 
 // Used when the model can't help: still gives them somewhere to start.
 const DEFAULT_PROMPTS = [
@@ -138,6 +140,7 @@ export async function harvest(env: Env, agenda: Question[], turns: Turn[], pilla
         `Their content pillars: ${pillars.map((p) => `${p.name} (id ${p.id})`).join(", ")}\n\nInterview (their sentences are numbered):\n${lines}\n\nReply with JSON only, strongest idea first: [{"title": "...", "sentences": [numbers of their sentences, in order], "pillar": "<pillar id>", "prompts": ["question", "question"]}]. A sentence belongs to at most one idea. Give each idea the pillar its angle fits best, judging by the pillar names: a story about people, feelings or how it was to build fits a different pillar than a technical decision. Don't put everything in one pillar unless it truly all fits there.`,
         60_000,
         4000,
+        true,
       );
       const parsed = parseArray(text) as { title: string; sentences: number[]; pillar?: string; prompts?: string[] }[];
       const used = new Set<number>();

@@ -11,6 +11,7 @@ export interface Env {
   MINDSTUDIO_API_KEY?: string;
   // Optional overrides for the MindStudio model ids.
   INTERVIEW_MODEL?: string;
+  THINKING_MODEL?: string;
   VOICE_MODEL?: string;
   // Optional. Turns on the live voice conversation (OpenAI's realtime model).
   OPENAI_API_KEY?: string;

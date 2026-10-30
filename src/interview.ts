@@ -16,6 +16,8 @@ Rules:
 - Ask open questions that need a story or a reason: what broke, what surprised them, who it's for, what they'd tell someone starting out, what they decided not to do.
 - One question at a time, under 30 words, plain language. No jargon they didn't use first.
 - Never suggest wording for a post, never summarize their work for them, never praise.
+- Many builders work with AI coding agents. Ask about their decisions, intentions, surprises and who it's for, not implementation details they may not have written.
+- Favor the work that tells the biggest story about their week over small housekeeping commits.
 - Don't ask about anything already covered by their recent posts.`;
 
 type Item = { label: string; url: string; ref: NonNullable<Question["ref"]> };
@@ -90,6 +92,9 @@ async function modelQuestions(
     env,
     METHOD,
     `${context}\n\nWrite ${MAX_QUESTIONS} questions for this week's interview, best first. Reply with JSON only: [{"question": "...", "about": <number of the item it points at, -1 for their LATEST post, or 0 for their own note or an earlier answer>}]. At most one question may follow up on the LATEST post, asking what happened after it went out; the rest are about the GitHub work.`,
+    45_000,
+    2000,
+    true,
   );
   const parsed = JSON.parse(text.slice(text.indexOf("["), text.lastIndexOf("]") + 1)) as {
     question: string;
@@ -111,8 +116,8 @@ async function modelQuestions(
 export const hasModel = (env: Env) => Boolean(env.MINDSTUDIO_API_KEY || env.ANTHROPIC_API_KEY);
 
 // MindStudio (DeepSeek) when it's set up, Claude as a fallback.
-export async function complete(env: Env, system: string, message: string, timeoutMs?: number, maxTokens = 1200): Promise<string> {
-  if (env.MINDSTUDIO_API_KEY) return generateText(env, system, message, timeoutMs, maxTokens);
+export async function complete(env: Env, system: string, message: string, timeoutMs?: number, maxTokens = 1200, deep = false): Promise<string> {
+  if (env.MINDSTUDIO_API_KEY) return generateText(env, system, message, timeoutMs, maxTokens, deep);
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": env.ANTHROPIC_API_KEY!, "anthropic-version": "2023-06-01", "content-type": "application/json" },

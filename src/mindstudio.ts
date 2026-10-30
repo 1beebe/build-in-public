@@ -48,10 +48,15 @@ export async function chatModel(env: Env): Promise<string> {
   return pick.id;
 }
 
-export async function generateText(env: Env, system: string, message: string, timeoutMs?: number, maxTokens = 1200): Promise<string> {
+// The model for the parts that need judgment over the whole week: planning the
+// agenda and turning the conversation into ideas. Live turns stay on DeepSeek
+// for speed.
+const THINKING_MODEL = "claude-5-5-sonnet";
+
+export async function generateText(env: Env, system: string, message: string, timeoutMs?: number, maxTokens = 1200, deep = false): Promise<string> {
   const out = await step<{ content: string }>(env, "userMessage", {
     message,
-    modelOverride: { model: await chatModel(env), temperature: 0.6, maxResponseTokens: maxTokens, preamble: system },
+    modelOverride: { model: deep ? env.THINKING_MODEL || THINKING_MODEL : await chatModel(env), temperature: 0.6, maxResponseTokens: maxTokens, preamble: system },
   }, timeoutMs);
   return out.content;
 }
