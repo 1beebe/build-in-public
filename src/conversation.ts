@@ -79,13 +79,21 @@ function withQuestions(picked: Sentence[], turns: Turn[]): string {
   for (const x of picked) {
     if (x.turn !== turn) {
       const asked = turns.slice(0, x.turn).reverse().find((t) => t.who === "interviewer");
-      chunks.push(`${asked ? `Q: ${asked.text}\n\n` : ""}YOUR ANSWER:\n${x.text}`);
+      chunks.push(`${asked ? `Q: ${questionOnly(asked.text)}\n\n` : ""}YOUR ANSWER:\n${x.text}`);
       turn = x.turn;
     } else {
       chunks[chunks.length - 1] += ` ${x.text}`;
     }
   }
   return chunks.join("\n\n");
+}
+
+// The interviewer's question without the quick reaction in front of it
+// ("Huh, two days."), so the saved Idea reads cleanly.
+function questionOnly(text: string): string {
+  const parts = text.match(/[^.!?\n]+[.!?]*/g)?.map((p) => p.trim()).filter(Boolean) ?? [text];
+  while (parts.length > 1 && !parts[0].includes("?") && parts[0].split(/\s+/).length <= 8) parts.shift();
+  return parts.join(" ");
 }
 
 // A JSON array from a model reply. If the reply was cut off mid-array, keep
