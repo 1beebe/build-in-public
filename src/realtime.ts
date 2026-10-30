@@ -26,6 +26,8 @@ export async function voiceSession(env: Env, s: Session): Promise<{ key: string;
     `Context:\n${s.brief ?? ""}`,
     `Threads you might get to (numbered):\n${agendaBrief(agenda)}`,
     sofar ? `The conversation so far (pick up where it left off, don't repeat it):\n${sofar}` : "",
+    // Last, because the realtime model weighs the end of its instructions most.
+    `Every turn: a word or two of reaction at most, then ONE short question about ONE thing. Never join two questions with "and". Never comment on how something sounds ("wild", "great").`,
   ]
     .filter(Boolean)
     .join("\n\n");
