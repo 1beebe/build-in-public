@@ -1,10 +1,12 @@
 const STYLE = `
 :root{
   --bg:#f5f6f2; --surface:#ffffff; --fg:#17191e; --muted:#5b616e; --line:#dfe1da; --accent:#0f6e66; --accent-fg:#ffffff; --soft:#e6f0ee; --warn:#9a4a12;
+  --add:#e3f4e6; --add-fg:#1d6b2c; --del:#fbe7e6; --del-fg:#a1302b; --code:#f0f1ec;
   --display:"Bricolage Grotesque",system-ui,sans-serif; --body:"Atkinson Hyperlegible",system-ui,sans-serif;
 }
 @media (prefers-color-scheme:dark){:root{
-  --bg:#121417; --surface:#1b1e23; --fg:#eceef1; --muted:#a3a9b4; --line:#2e333b; --accent:#4fc1b4; --accent-fg:#0b1513; --soft:#1d2f2d; --warn:#f0a36b; color-scheme:dark}}
+  --bg:#121417; --surface:#1b1e23; --fg:#eceef1; --muted:#a3a9b4; --line:#2e333b; --accent:#4fc1b4; --accent-fg:#0b1513; --soft:#1d2f2d; --warn:#f0a36b;
+  --add:#16301d; --add-fg:#7fd492; --del:#3a1b1a; --del-fg:#f29b94; --code:#16191d; color-scheme:dark}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.55;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -38,6 +40,25 @@ textarea{min-height:150px;resize:vertical}
 .error{color:var(--warn);font-weight:700}
 .sample{font-family:var(--display);font-size:1.25rem;line-height:1.35}
 footer{font-size:.85rem;color:var(--muted)}
+main.wide{max-width:1180px}
+.split{display:grid;gap:20px}
+.split .panel{order:-1}
+@media (min-width:960px){
+  .split{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);align-items:start}
+  .split .panel{order:0;position:sticky;top:20px}
+}
+.src{gap:14px;min-width:0}
+.src h3{font-family:var(--display);font-size:1.2rem;line-height:1.3;margin:0}
+.meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.88rem;color:var(--muted)}
+.plus{color:var(--add-fg)} .minus{color:var(--del-fg)}
+.body{white-space:pre-wrap;overflow-wrap:anywhere;font-size:.95rem;max-height:16em;overflow:auto}
+.file{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.file summary{cursor:pointer;padding:9px 12px;font:600 .86rem/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;display:flex;gap:10px;justify-content:space-between;overflow-wrap:anywhere}
+.diff{margin:0;background:var(--code);font:.8rem/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;overflow-x:auto;padding:6px 0}
+.diff span{display:block;padding:0 12px;white-space:pre}
+.diff .a{background:var(--add);color:var(--add-fg)} .diff .d{background:var(--del);color:var(--del-fg)} .diff .h{color:var(--muted)}
+.small-btn{padding:9px 14px;font-size:.92rem}
+#micBtn[aria-pressed=true]{background:var(--warn);border-color:var(--warn);color:var(--accent-fg)}
 [hidden]{display:none!important}
 `;
 
@@ -128,13 +149,19 @@ export function appPage(): string {
   <div class="row"><button id="startBtn" class="btn" type="button">Interview me</button><button id="editSetup" class="btn quiet" type="button">Change repo or pillars</button></div>
 </section>
 
-<section id="ask" class="card" hidden aria-live="polite">
+<section id="ask" class="split" hidden>
+<aside id="src" class="card src" aria-label="What this question is about"></aside>
+<div class="card panel" aria-live="polite">
   <p class="progress" id="count"></p>
   <p class="sample" id="question"></p>
+  <div class="row" id="voiceRow" hidden><button id="hearBtn" class="btn quiet small-btn" type="button">▶ Hear the question</button></div>
   <p class="source" id="source"></p>
-  <label>Your answer<textarea id="answer" placeholder="Talk it through. It's saved exactly as you write it."></textarea></label>
+  <label for="answer">Your answer</label>
+  <textarea id="answer" placeholder="Talk it through. It's saved exactly as you write it."></textarea>
+  <div class="row" id="micRow" hidden><button id="micBtn" class="btn quiet small-btn" type="button" aria-pressed="false">● Answer out loud</button><span id="micNote" class="small muted"></span></div>
   <div><span style="font-weight:700;font-size:.95rem">Pillar</span><div id="pillars" class="chips" style="margin-top:8px"></div></div>
   <div class="row"><button id="saveBtn" class="btn" type="button">Save to Buffer</button><button id="skipBtn" class="btn quiet" type="button">Save question for later</button></div>
+</div>
 </section>
 
 <section id="done" class="card" hidden>
@@ -149,7 +176,34 @@ export function appPage(): string {
 const APP_SCRIPT = `
 const $ = (id) => document.getElementById(id);
 let state = null, i = 0;
-function show(id){ for (const s of ["setup","start","ask","done"]) $(s).hidden = s !== id; }
+function show(id){ for (const s of ["setup","start","ask","done"]) $(s).hidden = s !== id; document.querySelector("main").classList.toggle("wide", id === "ask"); }
+function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+const sources = new Map();
+const KIND = {pull:"Merged pull request", commit:"Commit", issue:"Closed issue", post:"Buffer post"};
+async function renderSource(q){
+  const box = $("src"); box.innerHTML = "";
+  if (!q.ref) { box.hidden = true; return; }
+  box.hidden = false; box.append(el("p", "progress", KIND[q.ref.kind]), el("p", "muted small", "Reading it…"));
+  let src = sources.get(q.id);
+  if (!src) { try { src = await api("/api/source?q=" + encodeURIComponent(q.id)); sources.set(q.id, src); } catch(e) { box.lastChild.textContent = e.message; return; } }
+  if (state.questions[i] !== q) return; // they moved on while it loaded
+  box.innerHTML = "";
+  box.append(el("p", "progress", KIND[src.kind]));
+  const h = el("h3"); if (src.url) { const a = el("a", "", src.title); a.href = src.url; a.target = "_blank"; a.rel = "noopener"; h.append(a); } else h.textContent = src.title; box.append(h);
+  const meta = el("div", "meta");
+  if (src.who) meta.append(el("span", "", src.who));
+  if (src.when) meta.append(el("span", "", new Date(src.when).toLocaleDateString(undefined, {weekday:"short", month:"short", day:"numeric"})));
+  if (src.stats) { meta.append(el("span", "plus", "+" + src.stats.additions), el("span", "minus", "−" + src.stats.deletions), el("span", "", src.stats.files + (src.stats.files === 1 ? " file" : " files"))); }
+  if (meta.childNodes.length) box.append(meta);
+  if (src.body) box.append(el("div", "body", src.body));
+  src.files.forEach((f, k) => {
+    const d = el("details", "file"); if (k < 2 && f.patch) d.open = true;
+    const sum = el("summary"); sum.append(el("span", "", f.name)); const n = el("span"); n.append(el("span", "plus", "+" + f.additions), " ", el("span", "minus", "−" + f.deletions)); sum.append(n); d.append(sum);
+    if (f.patch) { const pre = el("pre", "diff"); for (const line of f.patch.split("\\n")) pre.append(el("span", line.startsWith("@@") ? "h" : line[0] === "+" ? "a" : line[0] === "-" ? "d" : "", line || " ")); d.append(pre); }
+    else { const none = el("p", "small muted", f.status === "removed" ? "File removed." : "No preview for this file."); none.style.padding = "0 12px 10px"; d.append(none); }
+    box.append(d);
+  });
+}
 function err(m){ $("msg").textContent = m || ""; $("msg").hidden = !m; }
 async function api(path, body){
   const res = await fetch(path, body ? {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)} : {});
@@ -181,7 +235,8 @@ function renderQuestion(){
   while (i < qs.length && done.has(qs[i].id)) i++;
   if (i >= qs.length) return renderDone();
   const q = qs[i];
-  $("count").textContent = "Question " + (i+1) + " of " + qs.length;
+  $("count").textContent = (q.followUpOf ? "Follow-up · " : "") + "Question " + (i+1) + " of " + qs.length;
+  $("voiceRow").hidden = $("micRow").hidden = !state.voice || !window.MediaRecorder; $("micNote").textContent = "";
   $("question").textContent = q.text;
   $("source").innerHTML = ""; const s = q.sourceUrl ? Object.assign(document.createElement("a"), {href:q.sourceUrl, target:"_blank", rel:"noopener"}) : document.createElement("span");
   s.textContent = q.source; $("source").append(s);
@@ -189,7 +244,7 @@ function renderQuestion(){
   $("pillars").innerHTML = "";
   const pillars = (state.tags||[]).filter(t => (state.pillarTagIds||[]).includes(t.id));
   pillars.forEach((t, k) => $("pillars").append(chip(t, "p", "radio", k === 0)));
-  show("ask"); $("answer").focus();
+  show("ask"); renderSource(q); $("answer").focus({preventScroll:true});
 }
 function renderDone(){
   const a = (state.answered||[]).length, s = (state.skipped||[]).length;
@@ -225,6 +280,34 @@ $("skipBtn").onclick = async () => {
   err(""); $("skipBtn").disabled = true;
   try { state = await api("/api/skip", {questionId: state.questions[i].id, tagId: pickedPillar()}); i++; renderQuestion(); }
   catch(e){ err(e.message); } finally { $("skipBtn").disabled = false; }
+};
+let player = null;
+$("hearBtn").onclick = async () => {
+  err(""); const q = state.questions[i]; $("hearBtn").disabled = true; $("hearBtn").textContent = "Getting the voice…";
+  try { const { audioUrl } = await api("/api/speak", {questionId: q.id}); q.audioUrl = audioUrl; if (player) player.pause(); player = new Audio(audioUrl); await player.play(); }
+  catch(e){ err(e.message); } finally { $("hearBtn").disabled = false; $("hearBtn").textContent = "▶ Hear the question"; }
+};
+let rec = null, chunks = [];
+$("micBtn").onclick = async () => {
+  err("");
+  if (rec && rec.state === "recording") { rec.stop(); return; }
+  let stream; try { stream = await navigator.mediaDevices.getUserMedia({audio:true}); } catch { return err("The browser didn't allow the microphone. You can type instead."); }
+  const q = state.questions[i]; chunks = [];
+  rec = new MediaRecorder(stream);
+  rec.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+  rec.onstop = async () => {
+    stream.getTracks().forEach(t => t.stop());
+    $("micBtn").setAttribute("aria-pressed", "false"); $("micBtn").textContent = "● Answer out loud"; $("micBtn").disabled = true; $("micNote").textContent = "Writing down what you said…";
+    try {
+      const blob = new Blob(chunks, {type: rec.mimeType || "audio/webm"});
+      const res = await fetch("/api/transcribe?q=" + encodeURIComponent(q.id), {method:"POST", headers:{"Content-Type": blob.type}, body: blob});
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || "Couldn't write that down. Try again or type it.");
+      if (state.questions[i] === q) { const a = $("answer"); a.value = (a.value.trim() ? a.value.trim() + "\\n\\n" : "") + json.text; a.focus(); }
+      $("micNote").textContent = "Check it over, then save. It's saved exactly as it reads here.";
+    } catch(e){ err(e.message); $("micNote").textContent = ""; } finally { $("micBtn").disabled = false; }
+  };
+  rec.start(); $("micBtn").setAttribute("aria-pressed", "true"); $("micBtn").textContent = "■ Stop"; $("micNote").textContent = "Listening…";
 };
 $("again").onclick = async () => { try { state = await api("/api/reset", {}); route(); } catch(e){ err(e.message); } };
 load();

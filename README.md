@@ -9,7 +9,7 @@ Built by Ligaya Beebe for Buffer Commit 2026. Not made by or affiliated with Buf
 1. **Connect with Buffer.** OAuth 2.0 Authorization Code with PKCE. Buffer is the only sign-in. The PKCE verifier and the `state` value stay on the server, and the state is pinned to the browser by a short-lived cookie.
 2. **Paste a public repo.** Read through GitHub's public REST API, so there's no GitHub sign-in.
 3. **Pick pillars.** Up to three of your existing Buffer tags.
-4. **Interview.** Questions point at one real piece of work each, and follow up on earlier answers saved in Buffer.
+4. **Interview.** Questions point at one real piece of work each, shown beside the question: the pull request, commit or issue with its diff, or your latest Buffer post. After a good answer the interviewer may ask one follow-up. You can listen to each question and answer out loud; the recording is transcribed, you check the text, and only then is it saved.
 5. **Save.** Each answer becomes a Buffer Idea: the question as its title, your answer as its text (exactly as written), your chosen pillar tag, and `aiAssisted: false`. A question you skip is saved as an Idea too, marked `aiAssisted: true`, so you can answer it later.
 
 ## Buffer API use
@@ -40,7 +40,10 @@ npm run dev     # local, needs a .dev.vars file with the secrets below
    - `BUFFER_CLIENT_SECRET`: from step 4.
    - `TOKEN_KEY`: 32 random bytes, base64 (`openssl rand -base64 32`).
    - `GITHUB_TOKEN` (optional): a fine-grained token with no permissions. It raises GitHub's limit for public reads from 60 to 5,000 an hour.
-   - `ANTHROPIC_API_KEY` (optional): without it, the interviewer uses rule-based questions built from the commits.
+   - `MINDSTUDIO_API_KEY` (optional): turns on DeepSeek questions and follow-ups, voice questions (`textToSpeech`) and spoken answers (`transcribeAudio`), all through MindStudio's step API. `INTERVIEW_MODEL` and `VOICE_MODEL` vars override the model ids.
+   - `ANTHROPIC_API_KEY` (optional): a fallback for questions when MindStudio isn't set. Without either key, the interviewer uses rule-based questions built from the commits.
+
+Spoken answers are held in KV behind a random link for at most 10 minutes, only so the transcription service can fetch them, and are deleted as soon as the text comes back.
 
 ## Later
 

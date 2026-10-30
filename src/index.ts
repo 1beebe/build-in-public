@@ -13,8 +13,9 @@ import {
   type Org,
   type Tag,
 } from "./buffer";
-import { RepoError, parseRepo, whatShipped } from "./github";
-import { planQuestions } from "./interview";
+import { RepoError, getSource, parseRepo, whatShipped, type Source } from "./github";
+import { followUp, planQuestions } from "./interview";
+import { MindStudioError, speak, transcribe } from "./mindstudio";
 import { appPage, landingPage, privacyPage } from "./pages";
 import { cookie, createSession, destroySession, loadSession, readCookie, saveSession, type Session } from "./session";
 
@@ -54,6 +55,7 @@ export default {
       if (req.method === "GET" && url.pathname === "/app") {
         return (await loadSession(req, env)) ? html(appPage()) : redirect("/");
       }
+      if (req.method === "GET" && url.pathname.startsWith("/audio/")) return audio(env, url.pathname.slice(7));
       if (url.pathname.startsWith("/api/")) return api(req, env, url.pathname);
       return new Response("Not found", { status: 404 });
     } catch (err) {
@@ -101,13 +103,14 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
   if (!loaded) return json({ error: "Not connected" }, 401);
   const { id, data: s } = loaded;
   const client = new BufferClient(env, s);
-  const body = req.method === "POST" ? ((await req.json().catch(() => ({}))) as Record<string, unknown>) : {};
+  const isAudio = path === "/api/transcribe";
+  const body = req.method === "POST" && !isAudio ? ((await req.json().catch(() => ({}))) as Record<string, unknown>) : {};
 
   try {
     let result: unknown;
     switch (path) {
       case "/api/state":
-        result = await view(client, s, true);
+        result = await view(env, client, s, true);
         break;
       case "/api/setup": {
         const repo = parseRepo(String(body.repo ?? ""));
@@ -117,7 +120,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         if (body.organizationId) s.organizationId = String(body.organizationId);
         await whatShipped(env, repo, 1); // fails fast with a clear message if the repo isn't public
         Object.assign(s, { repo, pillarTagIds: ids, questions: [], answered: [], skipped: [] });
-        result = await view(client, s, true);
+        result = await view(env, client, s, true);
         break;
       }
       case "/api/start": {
@@ -127,7 +130,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         s.questions = await planQuestions(env, shipped, recent, s.weekNote);
         s.answered = [];
         s.skipped = [];
-        result = await view(client, s);
+        result = await view(env, client, s);
         break;
       }
       case "/api/answer":
@@ -135,7 +138,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const q = s.questions?.find((x) => x.id === body.questionId);
         if (!q) throw new UserError("That question is no longer open. Reload the page.");
         if ([...(s.answered ?? []), ...(s.skipped ?? [])].includes(q.id)) {
-          result = await view(client, s); // already saved: a double click must not create a second Idea
+          result = await view(env, client, s); // already saved: a double click must not create a second Idea
           break;
         }
         const answer = path === "/api/answer" ? String(body.answer ?? "").trim() : "";
@@ -151,12 +154,51 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           aiAssisted: !answer,
         });
         (answer ? (s.answered ??= []) : (s.skipped ??= [])).push(q.id);
-        result = await view(client, s);
+        // One follow-up per original question, and the interview stays short.
+        if (answer && !q.followUpOf && (s.questions?.length ?? 0) < MAX_INTERVIEW) {
+          const next = await followUp(env, q, answer);
+          if (next) s.questions!.splice(s.questions!.indexOf(q) + 1, 0, next);
+        }
+        result = await view(env, client, s);
         break;
+      }
+      case "/api/speak": {
+        if (!env.MINDSTUDIO_API_KEY) throw new UserError("Voice isn't turned on yet.");
+        const q = s.questions?.find((x) => x.id === body.questionId);
+        if (!q) throw new UserError("That question is no longer open. Reload the page.");
+        q.audioUrl ??= await speak(env, q.text);
+        result = { audioUrl: q.audioUrl };
+        break;
+      }
+      case "/api/transcribe": {
+        if (!env.MINDSTUDIO_API_KEY) throw new UserError("Voice isn't turned on yet.");
+        const q = s.questions?.find((x) => x.id === new URL(req.url).searchParams.get("q"));
+        if (!q) throw new UserError("That question is no longer open. Reload the page.");
+        const bytes = await req.arrayBuffer();
+        if (!bytes.byteLength) throw new UserError("That recording came through empty. Try again.");
+        if (bytes.byteLength > 15_000_000) throw new UserError("That recording is too long. Try a shorter answer.");
+        // The recording is held only long enough for MindStudio to fetch it,
+        // behind a random link, then deleted.
+        const key = randomToken(24);
+        const type = (req.headers.get("Content-Type") ?? "audio/webm").split(";")[0];
+        await env.SESSIONS.put(`audio:${key}`, bytes, { expirationTtl: 600, metadata: { type } });
+        try {
+          const terms = [...new Set([...(s.repo ?? "").split(/[\/_.-]/), ...q.source.replace(/^[^:]+: /, "").split(/\s+/)])]
+            .filter((t) => t.length > 3);
+          result = { text: await transcribe(env, `${env.APP_URL}/audio/${key}`, terms) };
+        } finally {
+          await env.SESSIONS.delete(`audio:${key}`);
+        }
+        break;
+      }
+      case "/api/source": {
+        const q = s.questions?.find((x) => x.id === new URL(req.url).searchParams.get("q"));
+        if (!q?.ref || !s.repo) throw new UserError("Nothing to show for this question.");
+        return json(await source(env, s.repo, q.ref)); // read-only: the session doesn't change
       }
       case "/api/reset":
         Object.assign(s, { questions: [], answered: [], skipped: [] });
-        result = await view(client, s);
+        result = await view(env, client, s);
         break;
       default:
         return json({ error: "Not found" }, 404);
@@ -171,15 +213,31 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
       return json({ error: `Buffer needs a short break. Try again in about ${mins} minute${mins > 1 ? "s" : ""}. Nothing was lost.` }, 429);
     }
     if (err instanceof UserError || err instanceof RepoError) return json({ error: err.message }, 400);
+    if (err instanceof MindStudioError) {
+      console.error(err);
+      return json({ error: "The voice service didn't answer. Try again, or type your answer." }, 502);
+    }
     console.error(err);
     return json({ error: "Something went wrong talking to Buffer. Try again." }, 502);
   }
 }
 
+// Public GitHub data, cached for an hour so flipping between questions doesn't
+// spend GitHub's 60-an-hour limit for unauthenticated reads.
+async function source(env: Env, repo: string, ref: NonNullable<Session["questions"]>[number]["ref"] & {}): Promise<Source> {
+  if (ref.kind === "post") return { kind: "post", title: "Your latest Buffer post", body: ref.key, files: [] };
+  const cacheKey = `src:${repo}:${ref.kind}:${ref.key}`;
+  const cached = await env.SESSIONS.get<Source>(cacheKey, "json");
+  if (cached) return cached;
+  const fresh = await getSource(env, repo, ref.kind, ref.key);
+  await env.SESSIONS.put(cacheKey, JSON.stringify(fresh), { expirationTtl: 3600 });
+  return fresh;
+}
+
 // What the page needs to draw itself. Tags are re-read from Buffer when the page
 // loads or setup changes, so a tag renamed in Buffer shows up; answering a
 // question reuses them, which keeps each saved answer to one Buffer request.
-async function view(client: BufferClient, s: Session, refresh = false) {
+async function view(env: Env, client: BufferClient, s: Session, refresh = false) {
   let orgs: Org[] = [];
   if (refresh && (!s.organizationId || !s.repo)) orgs = (await getStart(client)).orgs;
   if (!s.organizationId && orgs.length) s.organizationId = orgs[0].id;
@@ -194,5 +252,14 @@ async function view(client: BufferClient, s: Session, refresh = false) {
     questions: s.questions ?? [],
     answered: s.answered ?? [],
     skipped: s.skipped ?? [],
+    voice: Boolean(env.MINDSTUDIO_API_KEY),
   };
+}
+
+const MAX_INTERVIEW = 8;
+
+async function audio(env: Env, key: string): Promise<Response> {
+  const { value, metadata } = await env.SESSIONS.getWithMetadata<{ type: string }>(`audio:${key}`, "arrayBuffer");
+  if (!value) return new Response("Not found", { status: 404 });
+  return new Response(value, { headers: { "Content-Type": metadata?.type ?? "audio/webm", "Cache-Control": "no-store" } });
 }

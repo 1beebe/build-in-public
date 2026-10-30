@@ -13,6 +13,11 @@ export interface Question {
   // What the question points at, shown under it so the person sees why it was asked.
   source: string;
   sourceUrl?: string;
+  // What the side panel shows: a pull request number, commit sha or issue
+  // number in the repo, or the text of a Buffer post.
+  ref?: { kind: "pull" | "commit" | "issue" | "post"; key: string };
+  followUpOf?: string; // the question whose answer prompted this one
+  audioUrl?: string; // the question read aloud, made on first listen
 }
 
 export interface Session {

@@ -7,6 +7,12 @@ export interface Env {
   TOKEN_KEY: string;
   // Optional. Raises GitHub's public API limit from 60 to 5,000 requests an hour.
   GITHUB_TOKEN?: string;
-  // Optional. Without it the interviewer asks rule-based questions from the commits.
+  // Optional. Turns on DeepSeek questions and follow-ups, and voice, through MindStudio.
+  MINDSTUDIO_API_KEY?: string;
+  // Optional overrides for the MindStudio model ids.
+  INTERVIEW_MODEL?: string;
+  VOICE_MODEL?: string;
+  // Optional fallback for questions when MindStudio isn't set up. Without
+  // either key the interviewer asks rule-based questions from the commits.
   ANTHROPIC_API_KEY?: string;
 }
