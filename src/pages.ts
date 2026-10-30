@@ -72,6 +72,7 @@ button.chip{font:inherit;font-size:.88rem;background:transparent;color:var(--fg)
 @media (min-width:960px){.drafts{grid-template-columns:1fr 1fr}}
 .draft .title{font:600 1.05rem/1.35 var(--display)}
 .draft .text{min-height:120px}
+.draft .prompts{min-height:84px;font-size:.92rem;color:var(--muted)}
 .draft.later{opacity:.85;border-style:dashed}
 .pick{align-self:flex-start}
 .live{padding:12px;border-radius:12px;background:var(--soft)}
@@ -444,6 +445,10 @@ function renderReview(){
     if ((state.saved||[]).includes(d.id)) { cb.checked = false; cb.disabled = true; top.lastChild.textContent = "Saved"; }
     const t = el("input", "title"); t.type = "text"; t.value = d.title; t.setAttribute("aria-label", "Idea title"); card.append(t);
     const x = el("textarea", "text"); x.value = d.text; x.setAttribute("aria-label", "Idea text, in your words"); card.append(x);
+    if ((d.prompts||[]).length) {
+      card.append(el("p", "small muted", "Questions to shape it into a post (saved under your words, one per line):"));
+      const pr = el("textarea", "prompts"); pr.value = d.prompts.join("\\n"); pr.setAttribute("aria-label", "Shaping questions, one per line"); card.append(pr);
+    }
     const chips = el("div", "chips"); pillars().forEach((p, k) => chips.append(chip(p, "pl-" + d.id, "radio", d.tagId ? d.tagId === p.id : k === 0))); card.append(chips);
     box.append(card);
   }
@@ -454,6 +459,7 @@ $("saveAll").onclick = async () => {
   err("");
   const drafts = [...document.querySelectorAll(".draft")].filter(c => c.querySelector(".pick input").checked).map(c => ({
     id: c.dataset.id, title: c.querySelector(".title").value, text: c.querySelector(".text").value,
+    prompts: c.querySelector(".prompts") ? c.querySelector(".prompts").value.split("\\n").map(x => x.trim()).filter(Boolean) : [],
     tagId: (c.querySelector('.chips input:checked') || {}).value,
   }));
   if (!drafts.length) return err("Tick at least one idea to save.");

@@ -92,7 +92,16 @@ An idea is something they could post about: a story, a decision, a lesson, a sur
 
 Leave out non-answers: confusion, "I don't know", requests to the interviewer, filler, and anything that only makes sense next to the question.
 
-Titles name the angle in plain words, under ten words, not a question and not clickbait. For example: "The week I stopped polishing and shipped".`;
+Titles name the angle in plain words, under ten words, not a question and not clickbait. For example: "The week I stopped polishing and shipped".
+
+For each idea, also write two or three short questions that will help them turn it into a post, specific to this idea: who most needs to hear it, the one thing a reader should take away, what they could show next to it (a screenshot, a before and after, a number), or what they'd tell someone about to try the same. Questions only. Never suggest wording, hooks or openings.`;
+
+// Used when the model can't help: still gives them somewhere to start.
+const DEFAULT_PROMPTS = [
+  "Who most needs to hear this, and what are they stuck on?",
+  "If a reader remembers one thing from this, what should it be?",
+  "What could you show next to it: a screenshot, a before and after, a number?",
+];
 
 // Turn the conversation into proposed Ideas: the model picks the angles and
 // which of their sentences carry each one.
@@ -113,10 +122,10 @@ export async function harvest(env: Env, agenda: Question[], turns: Turn[], pilla
       const text = await complete(
         env,
         HARVEST,
-        `Their content pillars: ${pillars.map((p) => `${p.name} (id ${p.id})`).join(", ")}\n\nInterview (their sentences are numbered):\n${lines}\n\nReply with JSON only, strongest idea first: [{"title": "...", "sentences": [numbers of their sentences, in order], "pillar": "<pillar id>"}]. A sentence belongs to at most one idea. Give each idea the pillar its angle fits best, judging by the pillar names: a story about people, feelings or how it was to build fits a different pillar than a technical decision. Don't put everything in one pillar unless it truly all fits there.`,
+        `Their content pillars: ${pillars.map((p) => `${p.name} (id ${p.id})`).join(", ")}\n\nInterview (their sentences are numbered):\n${lines}\n\nReply with JSON only, strongest idea first: [{"title": "...", "sentences": [numbers of their sentences, in order], "pillar": "<pillar id>", "prompts": ["question", "question"]}]. A sentence belongs to at most one idea. Give each idea the pillar its angle fits best, judging by the pillar names: a story about people, feelings or how it was to build fits a different pillar than a technical decision. Don't put everything in one pillar unless it truly all fits there.`,
         60_000,
       );
-      const parsed = JSON.parse(text.slice(text.indexOf("["), text.lastIndexOf("]") + 1)) as { title: string; sentences: number[]; pillar?: string }[];
+      const parsed = JSON.parse(text.slice(text.indexOf("["), text.lastIndexOf("]") + 1)) as { title: string; sentences: number[]; pillar?: string; prompts?: string[] }[];
       const used = new Set<number>();
       for (const d of parsed.slice(0, 5)) {
         const ids = [...new Set((d.sentences ?? []).map(Number))].filter((n) => !used.has(n)).sort((x, y) => x - y);
@@ -124,7 +133,14 @@ export async function harvest(env: Env, agenda: Question[], turns: Turn[], pilla
         const title = String(d.title ?? "").trim().replace(/^["']|["']$/g, "").slice(0, 120);
         if (!title || !picked.length) continue;
         ids.forEach((n) => used.add(n));
-        drafts.push({ id: randomToken(6), title, text: joinSentences(picked), tagId: pillarIds.has(d.pillar ?? "") ? d.pillar : pillars[0]?.id });
+        const prompts = (d.prompts ?? []).map((q) => String(q).trim()).filter((q) => q.endsWith("?") && q.length < 200).slice(0, 3);
+        drafts.push({
+          id: randomToken(6),
+          title,
+          text: joinSentences(picked),
+          prompts: prompts.length ? prompts : DEFAULT_PROMPTS,
+          tagId: pillarIds.has(d.pillar ?? "") ? d.pillar : pillars[0]?.id,
+        });
       }
     } catch (err) {
       console.error("harvest failed, grouping by topic", err);
@@ -152,6 +168,7 @@ export async function harvest(env: Env, agenda: Question[], turns: Turn[], pilla
       id: randomToken(6),
       title: g.title.replace(/^(Merged PR|Closed issue|Commit): /, "").slice(0, 120),
       text: joinSentences(g.parts),
+      prompts: DEFAULT_PROMPTS,
       tagId: pillars[0]?.id,
     }));
   }

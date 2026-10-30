@@ -193,8 +193,11 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           const draft = s.drafts?.find((x) => x.id === d.id);
           if (!draft || s.saved?.includes(draft.id)) continue; // a double click must not create a second Idea
           const title = String(d.title ?? draft.title).trim().slice(0, 200);
-          const text = String(d.text ?? draft.text).trim();
-          if (!text) continue;
+          const words = String(d.text ?? draft.text).trim();
+          if (!words) continue;
+          // Their words first, then the shaping questions, clearly set apart.
+          const prompts = (Array.isArray(d.prompts) ? d.prompts : draft.prompts ?? []).map((q) => String(q).trim()).filter(Boolean).slice(0, 5);
+          const text = prompts.length ? `${words}\n\n—\nTo shape this into a post:\n${prompts.map((q) => `• ${q}`).join("\n")}` : words;
           if (client.nearLimit) throw new RateLimited(60);
           await createIdea(client, s.organizationId!, {
             title,

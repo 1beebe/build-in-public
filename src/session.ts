@@ -29,6 +29,7 @@ export interface Draft {
   id: string;
   title: string; // the angle, written by the model
   text: string; // their own words, quoted exactly
+  prompts?: string[]; // questions that help shape it into a post (never wording)
   tagId?: string;
   later?: boolean; // an agenda topic they didn't get to
 }
