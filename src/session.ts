@@ -39,6 +39,7 @@ export interface Session {
   organizationId?: string;
   organizationName?: string;
   repo?: string; // "owner/name"
+  profile?: string; // who they are and who they post for, in their words (optional)
   pillarTagIds?: string[];
   tags?: { id: string; name: string; color: string }[]; // cached from Buffer
   questions?: Question[]; // the agenda: what the interviewer means to cover

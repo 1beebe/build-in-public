@@ -78,12 +78,21 @@ function sentences(turns: Turn[]): Sentence[] {
   return out;
 }
 
-function joinSentences(picked: Sentence[]): string {
-  let text = "";
-  picked.forEach((x, i) => {
-    text += i === 0 ? x.text : (x.turn === picked[i - 1].turn ? " " : "\n\n") + x.text;
-  });
-  return text;
+// Their sentences grouped by answer, each under the question that drew it
+// out, so the Idea still makes sense when they find it weeks later.
+function withQuestions(picked: Sentence[], turns: Turn[]): string {
+  const chunks: string[] = [];
+  let turn = -1;
+  for (const x of picked) {
+    if (x.turn !== turn) {
+      const asked = turns.slice(0, x.turn).reverse().find((t) => t.who === "interviewer");
+      chunks.push(`${asked ? `Q: ${asked.text}\n\n` : ""}YOUR ANSWER:\n${x.text}`);
+      turn = x.turn;
+    } else {
+      chunks[chunks.length - 1] += ` ${x.text}`;
+    }
+  }
+  return chunks.join("\n\n");
 }
 
 // A JSON array from a model reply. If the reply was cut off mid-array, keep
@@ -109,7 +118,18 @@ Titles name the angle in plain words, under ten words, not a question and not cl
 
 First read the whole conversation and notice the bigger story running through it: what this week says about how they build, who they're building for, or what they're learning. Ideas and questions should connect to that, not just restate events.
 
-For each idea, write two or three questions that help them find the post inside it. A good question pushes past what happened to what it meant, finds the tension (what they expected versus what happened, what they gave up), connects it to the reader's world, or draws out a specific moment, detail or number only they have. Ground every question in something they actually said, and name it. No generic questions that would fit any idea, and don't reuse the same question shape across ideas. Questions only. Never suggest wording, hooks or openings.`;
+For each idea, write three questions to develop it, the way a sharp editor who knows them would. Each one:
+- is short, under 15 words;
+- grabs a specific detail they said (a person, a moment, a feeling, a number) and names it;
+- does a different job: find the scene, name the tension or choice, pick up an unfinished thread, or turn it toward the reader they write for.
+Never generic, never the same shape twice, questions only, never wording, hooks or openings.
+
+The style to match (from a different interview; never copy these):
+- "What does one line in the log look like, and what would that video's line have said?"
+- "Proud and worried: which one wins most weeks?"
+- "Did you ever go back and answer that person? What would you say now?"
+- "Is being the bottleneck a problem to fix, or the point of having a human in the loop?"
+- "What's the simplest version a non-technical reader could copy tomorrow?"`;
 
 // Used when the model can't help: still gives them somewhere to start.
 const DEFAULT_PROMPTS = [
@@ -120,7 +140,7 @@ const DEFAULT_PROMPTS = [
 
 // Turn the conversation into proposed Ideas: the model picks the angles and
 // which of their sentences carry each one.
-export async function harvest(env: Env, agenda: Question[], turns: Turn[], pillars: Tag[]): Promise<Draft[]> {
+export async function harvest(env: Env, agenda: Question[], turns: Turn[], pillars: Tag[], profile = ""): Promise<Draft[]> {
   const all = sentences(turns);
   const pillarIds = new Set(pillars.map((p) => p.id));
   let drafts: Draft[] = [];
@@ -137,7 +157,7 @@ export async function harvest(env: Env, agenda: Question[], turns: Turn[], pilla
       const text = await complete(
         env,
         HARVEST,
-        `Their content pillars: ${pillars.map((p) => `${p.name} (id ${p.id})`).join(", ")}\n\nInterview (their sentences are numbered):\n${lines}\n\nReply with JSON only, strongest idea first: [{"title": "...", "sentences": [numbers of their sentences, in order], "pillar": "<pillar id>", "prompts": ["question", "question"]}]. A sentence belongs to at most one idea. Give each idea the pillar its angle fits best, judging by the pillar names: a story about people, feelings or how it was to build fits a different pillar than a technical decision. Don't put everything in one pillar unless it truly all fits there.`,
+        `${profile ? `Who they are and who they post for, in their words: ${profile}\n\n` : ""}Their content pillars: ${pillars.map((p) => `${p.name} (id ${p.id})`).join(", ")}\n\nInterview (their sentences are numbered):\n${lines}\n\nReply with JSON only, strongest idea first: [{"title": "...", "sentences": [numbers of their sentences, in order], "pillar": "<pillar id>", "prompts": ["question", "question"]}]. A sentence belongs to at most one idea. Give each idea the pillar its angle fits best, judging by the pillar names: a story about people, feelings or how it was to build fits a different pillar than a technical decision. Don't put everything in one pillar unless it truly all fits there.`,
         60_000,
         4000,
         true,
@@ -154,7 +174,7 @@ export async function harvest(env: Env, agenda: Question[], turns: Turn[], pilla
         drafts.push({
           id: randomToken(6),
           title,
-          text: joinSentences(picked),
+          text: withQuestions(picked, turns),
           prompts: prompts.length ? prompts : DEFAULT_PROMPTS,
           tagId: pillarIds.has(d.pillar ?? "") ? d.pillar : pillars[0]?.id,
         });
@@ -184,7 +204,7 @@ export async function harvest(env: Env, agenda: Question[], turns: Turn[], pilla
     drafts = [...byTopic.values()].map((g) => ({
       id: randomToken(6),
       title: g.title.replace(/^(Merged PR|Closed issue|Commit): /, "").slice(0, 120),
-      text: joinSentences(g.parts),
+      text: withQuestions(g.parts, turns),
       prompts: DEFAULT_PROMPTS,
       tagId: pillars[0]?.id,
     }));

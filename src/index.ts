@@ -120,6 +120,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const ids = Array.isArray(body.pillarTagIds) ? body.pillarTagIds.map(String).slice(0, 3) : [];
         if (!ids.length) throw new UserError("Pick at least one pillar.");
         if (body.organizationId) s.organizationId = String(body.organizationId);
+        s.profile = String(body.profile ?? "").trim().slice(0, 600) || undefined;
         await whatShipped(env, repo, 1); // fails fast with a clear message if the repo isn't public
         Object.assign(s, { repo, pillarTagIds: ids, questions: [], turns: [], drafts: [], saved: [] });
         result = await view(env, client, s, true);
@@ -131,6 +132,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const [shipped, recent] = await Promise.all([whatShipped(env, s.repo), getRecent(client, s.organizationId)]);
         s.questions = await planQuestions(env, shipped, recent, s.weekNote);
         s.brief = [
+          s.profile ? `Who they are and who they post for, in their words: ${s.profile}` : "",
           `Repo: ${shipped.repo}${shipped.description ? ` — ${shipped.description}` : ""}`,
           `What they said they worked on this week: ${s.weekNote || "(nothing)"}`,
           `Their recent posts, newest first (don't steer back to these):`,
@@ -179,7 +181,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
       case "/api/harvest": {
         if (!s.turns?.some((t) => t.who === "you")) throw new UserError("Answer at least one question first.");
         const pillars = (s.tags ?? []).filter((t) => (s.pillarTagIds ?? []).includes(t.id));
-        s.drafts = await harvest(env, s.questions ?? [], s.turns, pillars);
+        s.drafts = await harvest(env, s.questions ?? [], s.turns, pillars, s.profile);
         s.saved = [];
         result = await view(env, client, s);
         break;
@@ -197,12 +199,20 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           if (!words) continue;
           // Their words first, then the shaping questions, clearly set apart.
           const prompts = (Array.isArray(d.prompts) ? d.prompts : draft.prompts ?? []).map((q) => String(q).trim()).filter(Boolean).slice(0, 5);
-          const text = prompts.length ? `${words}\n\n—\nTo shape this into a post:\n${prompts.map((q) => `• ${q}`).join("\n")}` : words;
+          const tags = (s.tags ?? []).filter((t) => t.id === d.tagId);
+          const day = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
+          const text = draft.later
+            ? words
+            : [
+                `INTERVIEW ${day} | your words, verbatim | not for publishing as-is`,
+                words,
+                prompts.length ? `PROMPTS TO DEVELOP IT (questions, not wording)\n${prompts.map((q) => `- ${q}`).join("\n")}` : "",
+              ].filter(Boolean).join("\n\n");
           if (client.nearLimit) throw new RateLimited(60);
           await createIdea(client, s.organizationId!, {
-            title,
+            title: draft.later || /^INTERVIEW \|/.test(title) ? title : `INTERVIEW | ${tags[0]?.name ? `${tags[0].name} | ` : ""}${title}`,
             text,
-            tags: (s.tags ?? []).filter((t) => t.id === d.tagId),
+            tags,
             aiAssisted: Boolean(draft.later), // their own words otherwise; the AI only named the angle
           });
           (s.saved ??= []).push(draft.id);
@@ -294,6 +304,7 @@ async function view(env: Env, client: BufferClient, s: Session, refresh = false)
     repo: s.repo,
     tags,
     pillarTagIds: s.pillarTagIds ?? [],
+    profile: s.profile ?? "",
     questions: s.questions ?? [],
     turns: s.turns ?? [],
     drafts: s.drafts ?? [],

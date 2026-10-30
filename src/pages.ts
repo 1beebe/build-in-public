@@ -160,6 +160,8 @@ export function appPage(): string {
     <div id="tags" class="chips"></div>
     <p id="noTags" class="small muted" hidden>You don't have any tags in Buffer yet. Create one to three in Buffer (for example: what I built, what I learned, who it's for), then reload this page.</p>
   </div>
+  <label>Who are you, and who do you post for? <span class="muted small" style="font-weight:400">Optional, a sentence or two. It helps the interviewer see the bigger story.</span>
+    <textarea id="profile" style="min-height:80px" placeholder="For example: I teach non-technical teams to use AI, and I post for people who feel behind."></textarea></label>
   <div class="row"><button id="saveSetup" class="btn" type="button">Save</button></div>
 </section>
 
@@ -192,7 +194,7 @@ export function appPage(): string {
 <section id="review" style="display:flex;flex-direction:column;gap:18px" hidden>
   <div style="display:flex;flex-direction:column;gap:8px">
     <h2>Ideas from your interview</h2>
-    <p class="muted">Each title names an angle. The text is your own words from the conversation, exactly as you said them. Edit anything, untick what you don't want, then save.</p>
+    <p class="muted">Each title names an angle. Below it are your own words, exactly as you said them, under the question that drew them out, then questions to help you develop it into a post. Edit anything, untick what you don't want, then save.</p>
   </div>
   <div id="drafts" class="drafts"></div>
   <div class="row"><button id="saveAll" class="btn" type="button">Save to Buffer</button><button id="backTalk" class="btn quiet" type="button">Back to the conversation</button></div>
@@ -235,7 +237,7 @@ function renderSetup(){
   const orgs = state.orgs || [];
   $("orgWrap").hidden = orgs.length < 2;
   $("org").innerHTML = ""; for (const o of orgs){ const op = new Option(o.name, o.id); op.selected = o.id === state.organizationId; $("org").add(op); }
-  $("repo").value = state.repo || "";
+  $("repo").value = state.repo || ""; $("profile").value = state.profile || "";
   $("tags").innerHTML = "";
   for (const t of state.tags || []) $("tags").append(chip(t, "pillar", "checkbox", (state.pillarTagIds||[]).includes(t.id)));
   $("noTags").hidden = (state.tags || []).length > 0;
@@ -446,7 +448,7 @@ function renderReview(){
     const t = el("input", "title"); t.type = "text"; t.value = d.title; t.setAttribute("aria-label", "Idea title"); card.append(t);
     const x = el("textarea", "text"); x.value = d.text; x.setAttribute("aria-label", "Idea text, in your words"); card.append(x);
     if ((d.prompts||[]).length) {
-      card.append(el("p", "small muted", "Questions to shape it into a post (saved under your words, one per line):"));
+      card.append(el("p", "small muted", "Prompts to develop it (one per line):"));
       const pr = el("textarea", "prompts"); pr.value = d.prompts.join("\\n"); pr.setAttribute("aria-label", "Shaping questions, one per line"); card.append(pr);
     }
     const chips = el("div", "chips"); pillars().forEach((p, k) => chips.append(chip(p, "pl-" + d.id, "radio", d.tagId ? d.tagId === p.id : k === 0))); card.append(chips);
@@ -484,7 +486,7 @@ async function load(){ try { state = await api("/api/state"); route(); } catch(e
 $("saveSetup").onclick = async () => {
   err(""); const ids = [...document.querySelectorAll('input[name=pillar]:checked')].map(x => x.value);
   if (ids.length > 3) return err("Pick up to three pillars.");
-  try { $("saveSetup").disabled = true; state = await api("/api/setup", {organizationId:$("org").value, repo:$("repo").value, pillarTagIds:ids}); route(); }
+  try { $("saveSetup").disabled = true; state = await api("/api/setup", {organizationId:$("org").value, repo:$("repo").value, pillarTagIds:ids, profile:$("profile").value}); route(); }
   catch(e){ err(e.message); } finally { $("saveSetup").disabled = false; }
 };
 $("editSetup").onclick = renderSetup;
