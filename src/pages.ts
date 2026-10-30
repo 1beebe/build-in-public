@@ -379,10 +379,11 @@ function onLiveEvent(ev){
     case "input_audio_buffer.speech_started": setLive("Listening"); if (player) player.pause(); break;
     case "input_audio_buffer.speech_stopped": setLive("Thinking"); break;
     case "response.done": {
-      // The panel switch rides along with speech. Only if the model called
-      // show_work and said nothing does it need a nudge to go on.
+      // The panel switch rides along with speech. If the model called
+      // show_work and hasn't asked its question yet, it needs a nudge to go on.
       const out = (ev.response && ev.response.output) || [];
-      if (out.some(o => o.type === "function_call") && !out.some(o => o.type === "message")) dc.send(JSON.stringify({type:"response.create"}));
+      const said = out.filter(o => o.type === "message").flatMap(o => o.content || []).map(c => c.transcript || c.text || "").join(" ");
+      if (out.some(o => o.type === "function_call") && !said.includes("?")) dc.send(JSON.stringify({type:"response.create"}));
       else setLive("Your turn");
       break;
     }
