@@ -34,7 +34,7 @@ export async function step<T>(env: Env, type: string, input: Record<string, unkn
 
 // DeepSeek's newest chat model, unless INTERVIEW_MODEL pins one. Looked up
 // once a day so a new DeepSeek release is picked up without a deploy.
-async function chatModel(env: Env): Promise<string> {
+export async function chatModel(env: Env): Promise<string> {
   if (env.INTERVIEW_MODEL) return env.INTERVIEW_MODEL;
   const cached = await env.SESSIONS.get("ms:model");
   if (cached) return cached;
