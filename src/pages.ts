@@ -78,11 +78,11 @@ a:hover{text-decoration-thickness:2px}
 
 const PAGE_STYLE = `
 /* Landing */
-.hero{display:grid;gap:clamp(36px,5vw,72px);padding-block:clamp(28px,6vw,88px) clamp(80px,9vw,140px);align-items:center}
+.hero{display:grid;gap:clamp(36px,5vw,72px);padding-block:clamp(28px,5vw,64px) clamp(80px,9vw,140px);align-items:center}
 @media (min-width:1000px){.hero{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}}
 .hero h1{font-size:clamp(2.6rem,1.4rem + 4.4vw,4.75rem)}
 .hero .lead{margin-top:32px;font-size:clamp(1.15rem,1.05rem + .45vw,1.4rem);line-height:1.45;max-width:34ch}
-.hero .act{margin-top:36px;display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px}
+.hero .act{margin-top:24px;display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px}
 .alert{margin-top:24px;padding:14px 18px;border-radius:14px;background:var(--raised);color:var(--warn);font-weight:500}
 
 /* The live fragment: a working piece of the interview */
@@ -235,7 +235,7 @@ ${NAV}
 <section class="wrap hero">
   <div>
     <h1 class="rise">If you can talk about it, you can write about it.</h1>
-    <p class="lead rise" style="--i:1">The Interviewer looks at what you worked on this week and asks you about it, out loud or typed. It helps tease out the ideas worth developing, then saves them to Buffer in your own words—ready for you to turn into posts.</p>
+    <p class="lead rise" style="--i:1">Talk through this week's work, out loud or typed. The Interviewer teases out the ideas worth developing and saves them to Buffer in your words.</p>
     ${error ? `<p class="alert" role="alert">${escapeHtml(error)}</p>` : ""}
     <div class="act rise" style="--i:2"><a class="btn" href="/connect">Connect with Buffer</a><span class="small muted">Signs in with Buffer, the social media planner. New to it? <a href="https://buffer.com" target="_blank" rel="noopener">The free plan</a> works.</span></div>
   </div>
@@ -264,21 +264,11 @@ ${NAV}
 
 <figure class="band" aria-hidden="true"><img src="/img/desk.webp" alt="" width="1600" height="1067" loading="lazy" decoding="async"></figure>
 
-<section class="sec" aria-labelledby="startH">
-  <div class="wrap two">
-    <h2 class="rise" id="startH">You know you should share it. You just don't know what to say.</h2>
-    <div>
-      <p class="say rise" style="--i:1">Build in public is everywhere as advice and almost nowhere as instructions. Friday comes, you open a blank post, the week's work feels too small or too technical to talk about, and nothing gets written.</p>
-      <p class="say rise" style="--i:2">The ideas are already there, in what you decided, what broke, and who you built it for. They just need someone to ask. Ten minutes of good questions about your real work, and you walk away with a few threads you can develop into posts for the channels where you build in public.</p>
-    </div>
-  </div>
-</section>
-
 <section class="sec" id="sounds" style="background:var(--raised)">
   <div class="wrap two">
     <div>
       <h2 class="rise" id="soundsH">It follows what you say.</h2>
-      <p class="say rise" style="--i:1">It reads your week before you start, so it can skip the obvious and ask what led you there. When you get to a change, the change itself opens beside the conversation. When something you say is more interesting than its plan, it follows you.</p>
+      <p class="say rise" style="--i:1">It reads your week first, asks what led you there, and follows the interesting parts of your answer.</p>
       <figure class="pic rise" style="--i:2"><img src="/img/cafe.webp" alt="Two people talking across a small cafe table, one laughing mid-story" width="960" height="1190" loading="lazy" decoding="async"></figure>
     </div>
     <ol class="talk" aria-label="An example conversation">
@@ -294,7 +284,7 @@ ${NAV}
   <div class="wrap two flip">
     <div>
       <h2 class="rise" id="keepH">Your stories, saved in your own words.</h2>
-      <p class="say rise" style="--i:1">When you're done, it reads the conversation back and finds the few stories worth telling. For each one, it gathers what you meant into a short paragraph in your voice, dropping the ums, false starts, and repetition. It also suggests a few specific questions you can answer if you want to flesh the idea out further. You check every card before anything is saved. Edit it, drop it, or add a Buffer tag, then send the ones you like.</p>
+      <p class="say rise" style="--i:1">It turns the conversation into a few editable Ideas, dropping ums and repetition but keeping your meaning. Each includes optional questions to help you take it further. Nothing is saved until you choose it.</p>
     </div>
     <article class="idea rise" style="--i:1" aria-label="An Idea as it lands in Buffer">
       <p class="t">Why I let people in before they sign up</p>
@@ -308,25 +298,7 @@ ${NAV}
 <section class="sec ink" aria-labelledby="whyH">
   <div class="wrap two">
     <h2 class="rise" id="whyH">It won't write your posts. On purpose.</h2>
-    <div>
-      <p class="say rise" style="--i:1">Writing is thinking. Talking is thinking, too. When you put your week into your own sentences, you find out what you actually learned, what you'd do again, and what you believe about the thing you're building. Hand that work to a model and you skip the part that makes it yours.</p>
-      <p class="say rise" style="--i:2">The Interviewer is a scaffold, not a ghostwriter. It asks, listens, and helps you notice the ideas inside what you said. It won't manufacture a finished post or add more AI slop to the feed. You do the writing and thinking; it helps you find a stronger place to start.</p>
-    </div>
-  </div>
-</section>
-
-<section class="sec">
-  <div class="wrap">
-    <div class="stephead">
-      <h2 class="rise">Ten minutes, start to Buffer.</h2>
-      <figure class="pic rise" style="--i:1"><img src="/img/pad.webp" alt="A yellow legal pad of handwritten notes and a pen beside a keyboard" width="1200" height="897" loading="lazy" decoding="async"></figure>
-    </div>
-    <ol class="steps">
-      <li class="rise"><span class="min num">10<small>sec</small></span><p>Connect your Buffer account. Nothing else to sign up for.</p></li>
-      <li class="rise" style="--i:1"><span class="min num">1<small>min</small></span><p>Paste a public GitHub repo, or describe what you're working on in a sentence or two.</p></li>
-      <li class="rise" style="--i:2"><span class="min num">8<small>min</small></span><p>Talk about your week, out loud or typed. Stop whenever you like.</p></li>
-      <li class="rise" style="--i:3"><span class="min num">1<small>min</small></span><p>Keep the ideas you want. They land in Buffer, ready for you to write.</p></li>
-    </ol>
+    <p class="say rise" style="--i:1">Writing and talking are thinking. The Interviewer is a scaffold, not a ghostwriter: it helps you find a stronger place to start, then leaves the writing—and your voice—to you.</p>
   </div>
 </section>
 
@@ -334,7 +306,7 @@ ${NAV}
   <div class="wrap">
     <div class="two">
       <h2 class="rise" id="hoodH">A peek under the hood.</h2>
-      <p class="say rise" style="--i:1">The project is built in public, including where AI is—and is not—called. Reading GitHub and Buffer context is ordinary API work. The models enter only for the conversation and the final organization pass.</p>
+      <p class="say rise" style="--i:1">See exactly where AI is—and is not—used. The models only hold the conversation and organize your Ideas.</p>
     </div>
     <ol class="flow-mini" aria-label="A simplified technical workflow">
       <li class="rise"><span class="k">No AI</span><b>Read context</b><p>Public GitHub work and recent Buffer posts.</p></li>
@@ -353,13 +325,13 @@ ${NAV}
       <h2 class="rise" id="landH">Where your ideas land.</h2>
       <ol class="where rise" style="--i:1">
         <li><p>Open Buffer and click <b>Create</b> in the left sidebar.</p></li>
-        <li><p>You land on <b>Ideas</b>. Your stories are in the <b>Unassigned</b> column, each titled <b>INTERVIEW</b> and carrying the tag you chose.</p></li>
+        <li><p>Your cards appear under <b>Ideas → Unassigned</b>, with any tag you chose.</p></li>
         <li><p>When you're ready to write, open a card and click <b>Create Post</b>.</p></li>
       </ol>
     </div>
     <figure class="buffer-shot rise" style="--i:2">
       <a href="https://publish.buffer.com/create" target="_blank" rel="noopener"><img src="https://buffer.com/cdn-cgi/image/width=1920,quality=75,format=auto/img/feature-pages/create/create-hero.webp" alt="Buffer's Create board showing Ideas organized into Unassigned, Review, and Done columns" width="832" height="612" loading="lazy" decoding="async"></a>
-      <figcaption>Buffer’s actual Create board. Ideas first appear in Unassigned, ready to organize or turn into a post. <a href="https://support.buffer.com/articles/creating-ideas-in-buffer-7gu7n0Hyyq" target="_blank" rel="noopener">See Buffer’s guide</a>.</figcaption>
+      <figcaption>Buffer’s Create board. <a href="https://support.buffer.com/articles/creating-ideas-in-buffer-7gu7n0Hyyq" target="_blank" rel="noopener">See Buffer’s guide</a>.</figcaption>
     </figure>
   </div>
 </section>
@@ -370,10 +342,10 @@ ${NAV}
     <div class="keptwrap">
     <figure class="pic rise"><img src="/img/couch.webp" alt="Someone on a couch at night with a laptop, talking and smiling" width="960" height="1190" loading="lazy" decoding="async"></figure>
     <div class="kept">
-      <div class="rise"><h3>You sign in with Buffer</h3><p>Buffer asks you to approve access. The Interviewer reads your account, your tags, recent Ideas and up to 20 posts from the last 30 days, so its questions fit who you write for. The only thing it ever writes is the Ideas you choose to save. It never creates, edits or deletes posts.</p></div>
-      <div class="rise" style="--i:1"><h3>You share a public repo</h3><p>If you point it at a public GitHub repo, it reads only what anyone can see: the last week of commits, pull requests and issues. There's no GitHub sign-in, so private code stays out of reach.</p></div>
-      <div class="rise" style="--i:2"><h3>You talk it through</h3><p>The app ranks a few useful threads from your public work. Talk out loud and GPT-Live 1 holds the conversation. Type and DeepSeek Flash asks the follow-ups. When you're done, Claude Sonnet 5.5 organizes what you meant and drops speech debris. None of them ever sees your Buffer sign-in.</p></div>
-      <div class="rise" style="--i:3"><h3>What it keeps</h3><p>Your Buffer sign-in, repo or week note, and latest conversation, all encrypted. It expires 30 days after your last visit, and Disconnect deletes it right away. No tracking, no analytics, nothing sold. <a href="/privacy">The full privacy note</a> names every service.</p></div>
+      <div class="rise"><h3>Buffer</h3><p>It reads your tags and recent work so its questions fit. It only writes the Ideas you approve—never posts.</p></div>
+      <div class="rise" style="--i:1"><h3>GitHub</h3><p>It reads one week of public commits, pull requests, and issues. There is no GitHub sign-in or access to private code.</p></div>
+      <div class="rise" style="--i:2"><h3>Your interview</h3><p>Your current conversation and sign-in are encrypted, expire after 30 days of inactivity, and disappear when you disconnect.</p></div>
+      <div class="rise" style="--i:3"><h3>Your privacy</h3><p>No tracking, analytics, or data sales. <a href="/privacy">The full privacy note</a> names every service.</p></div>
 </div>
     </div>
   </div>
