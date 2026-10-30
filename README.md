@@ -1,6 +1,6 @@
 # The Interviewer
 
-A weekly interview about what you built. Sign in with Buffer, paste a public GitHub repo, and talk for ten minutes with an interviewer who already knows what you shipped and what you've posted lately. When you're done it pulls out the stories worth telling, in your exact words, each with a few questions to help you shape it, and saves them to Buffer as Ideas tagged by your content pillars. You write the posts. The AI only asks.
+A weekly interview about what you built. Sign in with Buffer, paste a public GitHub repo, and talk for ten minutes with an interviewer who already knows what you shipped and what you've posted lately. When you're done it pulls out the stories worth telling, each one your own words organized into a clear thought with the exact quotes underneath and a few questions to help you shape it, and saves them to Buffer as Ideas tagged by your content pillars. You write the posts. The AI only asks.
 
 Built by Ligaya Beebe for Buffer Commit 2026. Not made by or affiliated with Buffer.
 
@@ -11,7 +11,7 @@ Built by Ligaya Beebe for Buffer Commit 2026. Not made by or affiliated with Buf
 3. **Pick pillars.** Up to three of your existing Buffer tags.
 4. **Talk.** One live conversation, not a form. By voice it runs on OpenAI's realtime model over WebRTC; typed, DeepSeek (through MindStudio) answers each turn. Before it starts, Claude Sonnet (through MindStudio) reads the week's commits, pull requests and issues plus up to 20 of your Buffer posts from the last 30 days, and plans an arc: the story of the week, the decisions behind it, who it's for, what's next. A side panel shows the change being discussed, with the diff.
 5. **Harvest.** When you stop, Claude Sonnet reads the whole conversation, finds the bigger story, and proposes one to five Ideas. Each has an angle for a title, your sentences under the question that drew them out (rebuilt from your transcript by sentence number, so the words are always exactly yours), and three short questions to help you develop it. Topics you didn't get to are offered as Ideas to answer later.
-6. **Save.** You edit, untick and pick pillars, then the ones you keep go to Buffer as Ideas with your pillar tag (`aiAssisted: false` for your own words, `true` for saved-for-later questions).
+6. **Save.** You edit, untick and pick pillars, then the ones you keep go to Buffer as Ideas with your pillar tag (`aiAssisted: true`, since the AI chose and arranged the words).
 
 ## Buffer API use
 

@@ -223,7 +223,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           const text = draft.later
             ? words
             : [
-                `INTERVIEW ${day} | your words, verbatim | not for publishing as-is`,
+                `INTERVIEW ${day} | your words, organized | not for publishing as-is`,
                 words,
                 prompts.length ? `PROMPTS TO DEVELOP IT (questions, not wording)\n${prompts.map((q) => `- ${q}`).join("\n")}` : "",
               ].filter(Boolean).join("\n\n");
@@ -232,7 +232,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
             title: draft.later || /^INTERVIEW \|/.test(title) ? title : `INTERVIEW | ${tags[0]?.name ? `${tags[0].name} | ` : ""}${title}`,
             text,
             tags,
-            aiAssisted: Boolean(draft.later), // their own words otherwise; the AI only named the angle
+            aiAssisted: true, // their words, but the AI chose and arranged them
           });
           (s.saved ??= []).push(draft.id);
           await saveSession(env, id, s);

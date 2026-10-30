@@ -210,7 +210,7 @@ ${NAV}
 <section class="wrap hero">
   <div>
     <h1 class="rise">Talk about what you shipped.</h1>
-    <p class="lead rise" style="--i:1">Everyone says build in public. Hardly anyone tells you where to start. The Interviewer reads your public GitHub repo, asks about your week out loud or typed, and saves the stories worth telling to Buffer as Ideas, in your exact words.</p>
+    <p class="lead rise" style="--i:1">Everyone says build in public. Hardly anyone tells you where to start. The Interviewer reads your public GitHub repo, asks about your week out loud or typed, and saves the stories worth telling to Buffer as Ideas, in your own words.</p>
     ${error ? `<p class="alert" role="alert">${escapeHtml(error)}</p>` : ""}
     <div class="act rise" style="--i:2"><a class="btn" href="/connect">Connect with Buffer</a><span class="small muted">Buffer is the only sign-in.</span></div>
   </div>
@@ -608,7 +608,7 @@ export function appPage(): string {
     <label for="say" class="sr">Your answer</label>
     <textarea id="say" placeholder="Type your answer. Enter sends, Shift+Enter for a new line."></textarea>
     <div class="row">
-      <button id="sendBtn" class="btn small" type="button">Send</button>
+      <button id="sendBtn" class="btn small" type="button">Send</button><button id="nextBtn" class="btn small text" type="button" title="Enough on this one. Ask about something else.">Next topic</button>
       <button id="micBtn" class="btn quiet small" type="button" aria-pressed="false" hidden>Answer out loud</button>
       <label class="chip" id="speakWrap" hidden><input type="checkbox" id="speakOn">Read questions aloud</label>
       <span id="micNote" class="small muted"></span>
@@ -619,7 +619,7 @@ export function appPage(): string {
 </section>
 
 <section id="review" class="screen wide" hidden>
-  <header><h1>Ideas from your interview</h1><p class="lede">Each title names an angle. Under it are your own words, exactly as you said them, and a few questions to help you shape a post. Edit anything, untick what you don't want, then save.</p></header>
+  <header><h1>Ideas from your interview</h1><p class="lede">Each title names an angle. Under it is your thought pulled together from your own words, what you actually said, and a few questions to help you shape a post. Edit anything, untick what you don't want, then save.</p></header>
   <div id="drafts" class="drafts"></div>
   <div class="savebar"><span class="count" id="saveCount"></span><div class="row"><button id="backTalk" class="btn quiet small" type="button">Back to the conversation</button><button id="saveAll" class="btn" type="button">Save to Buffer</button></div></div>
 </section>
@@ -777,6 +777,18 @@ async function say(){
   finally { $("sendBtn").disabled = false; $("say").focus(); }
 }
 $("sendBtn").onclick = say;
+// "That's enough on this one": the interviewer moves to a different thread.
+// Saying "next" out loud works too.
+const MOVE_ON = "They've said enough on this thread and want to move on. No follow-up: give a short bridge and ask about a different thread now.";
+$("nextBtn").onclick = () => {
+  if (liveOn() && dc && dc.readyState === "open") {
+    if (gl) dc.send(JSON.stringify({type:"session.instructions.append", event_id:"next_" + Date.now(), delegation_id:null, content:MOVE_ON}));
+    else { dc.send(JSON.stringify({type:"response.cancel"})); dc.send(JSON.stringify({type:"conversation.item.create", item:{type:"message", role:"system", content:[{type:"input_text", text:MOVE_ON}]}})); dc.send(JSON.stringify({type:"response.create"})); }
+    return;
+  }
+  if (busy) return;
+  $("say").value = "That's enough on that one. Let's move on to something else."; say();
+};
 $("say").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); say(); } });
 
 // Voice: questions read aloud, answers spoken and written down.
@@ -981,7 +993,7 @@ $("harvestBtn").onclick = async () => {
   err(""); $("harvestBtn").disabled = true; $("harvestBtn").textContent = "Reading the conversation…";
   try {
     if (liveTurns) await stopLive();
-    orbState("thinking"); busyLines("voiceState", ["Reading the conversation back", "Finding the stories worth telling", "Keeping your exact words", "Writing a few questions for each one"]);
+    orbState("thinking"); busyLines("voiceState", ["Reading the conversation back", "Finding the stories worth telling", "Pulling your words together", "Writing a few questions for each one"]);
     state = await api("/api/harvest", {}); renderReview(); window.scrollTo({top:0});
   }
   catch(e){ err(e.message); } finally { busyDone("voiceState"); orbState("idle"); $("harvestBtn").disabled = false; $("harvestBtn").textContent = "I'm done. Find my ideas"; }

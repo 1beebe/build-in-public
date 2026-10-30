@@ -14,7 +14,8 @@ How you work:
 - Listen, then reflect. Before most questions, show you heard them: mirror a word or phrase they used, name the feeling you hear, or briefly affirm what took effort or courage ("That's a big promise to make." "Sounds like that stung."). Keep it short, sincere and specific to what they said, and vary it; never a generic compliment.
 - Ask open, descriptive questions that invite a story: "Tell me about...", "Walk me through...", "What was that like?", "What happened next?" Prefer "what" and "how" to "why"; when you need a reason, ask "What led you to...?" so it never sounds like a challenge.
 - One question at a time, about one thing. Never stack two questions or offer a menu of answers. Never lead them toward an answer.
-- Probe with care: ask for an example, a moment, a person, their own words for it. Follow what's alive, especially anything they bring up that you didn't ask about; that's usually the best story.
+- Know when you have enough. You're collecting kernels, not finished stories: once an answer holds a clear point, moment, feeling or opinion they could build a post on, that thread is done. Reflect it back and move to a different thread. Ask at most one follow-up per thread, and only when something new and alive came up; never dig for an example or a specific moment once they've made the point, since they'll develop it later. Follow anything they bring up that you didn't ask about; that's usually the best story.
+- If they say "next", "move on", "that's enough" or anything like it, go straight to a different thread with a short bridge. No follow-up.
 - Use their language, not yours. Stay curious and non-judgmental; there are no wrong answers.
 - Respect short answers. If they say little or "I don't know", reassure them lightly and move to something easier or different. Never push the same question twice.
 - Leave room. Short turns, a sentence or two. Let them do most of the talking.
@@ -87,17 +88,41 @@ function sentences(turns: Turn[]): Sentence[] {
 // out, so the Idea still makes sense when they find it weeks later.
 function withQuestions(picked: Sentence[], turns: Turn[]): string {
   const chunks: string[] = [];
-  let turn = -1;
+  let turn = -1, lastQ = "";
   for (const x of picked) {
     if (x.turn !== turn) {
       const asked = turns.slice(0, x.turn).reverse().find((t) => t.who === "interviewer");
-      chunks.push(`${asked ? `Q: ${questionOnly(asked.text)}\n\n` : ""}YOUR ANSWER:\n${x.text}`);
+      const q = asked ? questionOnly(asked.text) : "";
+      if (q && q === lastQ) chunks[chunks.length - 1] += ` ${x.text}`;
+      else chunks.push(`${q ? `Q: ${q}\n\n` : ""}YOUR ANSWER:\n${x.text}`);
+      lastQ = q;
       turn = x.turn;
     } else {
       chunks[chunks.length - 1] += ` ${x.text}`;
     }
   }
   return chunks.join("\n\n");
+}
+
+// Their thought pulled into one paragraph, with the exact sentences it came
+// from underneath. The paragraph has to be built from their words: if too
+// many of its words never came out of their mouth, it's the model talking,
+// so we fall back to the verbatim answers.
+const SMALL = new Set("a an the and or but so because then that this it its i i'm i've me my we our you your to of in on for with at by as is was are were be been do did not just".split(" "));
+const words = (t: string) => (t.toLowerCase().match(/[a-z0-9']+/g) ?? []).map((w) => w.replace(/'s$/, ""));
+export function organized(idea: string, picked: Sentence[]): string | undefined {
+  idea = idea.trim().replace(/\s*[—–]\s*/g, ", ");
+  if (idea.length < 40) return undefined;
+  const theirs = new Set(words(picked.map((x) => x.text).join(" ")));
+  const content = words(idea).filter((w) => !SMALL.has(w));
+  const borrowed = content.filter((w) => theirs.has(w) || theirs.has(w.replace(/s$/, "")) || theirs.has(w + "s")).length;
+  if (!content.length || borrowed / content.length < 0.8) return undefined;
+  const said: string[] = [];
+  let turn = -1;
+  for (const x of picked) {
+    if (x.turn !== turn) { said.push(x.text); turn = x.turn; } else said[said.length - 1] += ` ${x.text}`;
+  }
+  return `${idea}\n\nWHAT YOU SAID\n${said.map((q) => `"${q}"`).join("\n")}`;
 }
 
 // The interviewer's question without the quick reaction in front of it
@@ -123,7 +148,7 @@ function parseArray(text: string): unknown[] {
   }
 }
 
-const HARVEST = `You turn an interview into post ideas for the person who was interviewed. You never write post copy and never reword what they said.
+const HARVEST = `You turn an interview into post ideas for the person who was interviewed. You never write post copy, hooks or anything they didn't say.
 
 An idea is something they could post about: a story, a decision, a lesson, a surprise, an opinion, a before-and-after. Group sentences from anywhere in the conversation that belong to the same thread. Prefer fewer, richer ideas: one to five.
 
@@ -132,6 +157,8 @@ Leave out non-answers: confusion, "I don't know", requests to the interviewer, f
 Titles name the angle in plain words, under ten words, not a question and not clickbait. For example: "The week I stopped polishing and shipped".
 
 First read the whole conversation and notice the bigger story running through it: what this week says about how they build, who they're building for, or what they're learning. Ideas and questions should connect to that, not just restate events.
+
+For each idea, also write "idea": their thought pulled together into one coherent paragraph of three to six sentences, in first person, as if they'd said it cleanly in one go. Build it from their own words and phrases: keep their vocabulary, images and opinions, and the way they talk. You may drop filler, false starts and repeats, join pieces said at different moments, reorder for sense, and add the few small connecting words needed ("so", "and", "because"). Never add a claim, detail, feeling, metaphor or polish they didn't give you, and never make it sound like marketing. It's their notes, organized, not a post.
 
 For each idea, write three questions to develop it, the way a sharp editor who knows them would. Each one:
 - is short, under 15 words;
@@ -172,12 +199,12 @@ export async function harvest(env: Env, agenda: Question[], turns: Turn[], pilla
       const text = await complete(
         env,
         HARVEST,
-        `${posts.length ? `Their recent posts, newest first, to see who they are, who they write for and what they've already said (questions should point somewhere new):\n${posts.map((p) => `- ${p}`).join("\n")}\n\n` : ""}Their content pillars: ${pillars.map((p) => `${p.name} (id ${p.id})`).join(", ")}\n\nInterview (their sentences are numbered):\n${lines}\n\nReply with JSON only, strongest idea first: [{"title": "...", "sentences": [numbers of their sentences, in order], "pillar": "<pillar id>", "prompts": ["question", "question"]}]. A sentence belongs to at most one idea. Give each idea the pillar its angle fits best, judging by the pillar names: a story about people, feelings or how it was to build fits a different pillar than a technical decision. Don't put everything in one pillar unless it truly all fits there.`,
+        `${posts.length ? `Their recent posts, newest first, to see who they are, who they write for and what they've already said (questions should point somewhere new):\n${posts.map((p) => `- ${p}`).join("\n")}\n\n` : ""}Their content pillars: ${pillars.map((p) => `${p.name} (id ${p.id})`).join(", ")}\n\nInterview (their sentences are numbered):\n${lines}\n\nReply with JSON only, strongest idea first: [{"title": "...", "sentences": [numbers of their sentences, in order], "idea": "their words, organized", "pillar": "<pillar id>", "prompts": ["question", "question"]}]. A sentence belongs to at most one idea. Give each idea the pillar its angle fits best, judging by the pillar names: a story about people, feelings or how it was to build fits a different pillar than a technical decision. Don't put everything in one pillar unless it truly all fits there.`,
         60_000,
         4000,
         true,
       );
-      const parsed = parseArray(text) as { title: string; sentences: number[]; pillar?: string; prompts?: string[] }[];
+      const parsed = parseArray(text) as { title: string; sentences: number[]; idea?: string; pillar?: string; prompts?: string[] }[];
       const used = new Set<number>();
       for (const d of parsed.slice(0, 5)) {
         const ids = [...new Set((d.sentences ?? []).map(Number))].filter((n) => !used.has(n)).sort((x, y) => x - y);
@@ -189,7 +216,7 @@ export async function harvest(env: Env, agenda: Question[], turns: Turn[], pilla
         drafts.push({
           id: randomToken(6),
           title,
-          text: withQuestions(picked, turns),
+          text: organized(String(d.idea ?? ""), picked) ?? withQuestions(picked, turns),
           prompts: prompts.length ? prompts : DEFAULT_PROMPTS,
           tagId: pillarIds.has(d.pillar ?? "") ? d.pillar : pillars[0]?.id,
         });
