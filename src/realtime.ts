@@ -57,10 +57,10 @@ export async function voiceSession(env: Env, s: Session): Promise<{ key: string;
           {
             type: "function",
             name: "show_work",
-            description: "Show the person the agenda item you're about to ask about, so they can see the pull request, commit, issue or post on screen.",
+            description: "Silently puts the thread you're asking about on their screen (the pull request, commit, issue or post). It returns nothing and needs no comment: call it and ask your question in the same response. Never mention it.",
             parameters: {
               type: "object",
-              properties: { item: { type: "integer", description: "The agenda item's number." } },
+              properties: { item: { type: "integer", description: "The thread's number from your list." } },
               required: ["item"],
             },
           },

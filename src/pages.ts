@@ -383,7 +383,10 @@ function onLiveEvent(ev){
       // show_work and hasn't asked its question yet, it needs a nudge to go on.
       const out = (ev.response && ev.response.output) || [];
       const said = out.filter(o => o.type === "message").flatMap(o => o.content || []).map(c => c.transcript || c.text || "").join(" ");
-      if (out.some(o => o.type === "function_call") && !said.includes("?")) dc.send(JSON.stringify({type:"response.create"}));
+      if (out.some(o => o.type === "function_call") && !said.includes("?")) {
+        dc.send(JSON.stringify({type:"conversation.item.create", item:{type:"message", role:"system", content:[{type:"input_text", text:"Now ask your question. Don't repeat or announce anything you just said."}]}}));
+        dc.send(JSON.stringify({type:"response.create"}));
+      }
       else setLive("Your turn");
       break;
     }
