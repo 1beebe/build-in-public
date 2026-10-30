@@ -8,6 +8,8 @@ compatibility_date = "2026-10-01"
 [vars]
 APP_URL = "https://interviewer.lbeebe.com"
 BUFFER_CLIENT_ID = "gWeAUTXEWPQCHFuC5MvkLI4HQMUcxb0odcMQOqNr2DB"
+# The Buffer organization that can open /stats, the private spend meter.
+OWNER_ORG_ID = "6a14cff3e9d6131bfceae7f6"
 
 [[kv_namespaces]]
 binding = "SESSIONS"

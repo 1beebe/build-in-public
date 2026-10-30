@@ -1,6 +1,7 @@
 import type { Env } from "./env";
 import type { Question, Session } from "./session";
 import { CONVERSE, agendaBrief } from "./conversation";
+import { SpendCapError, isSpendCap } from "./spend";
 
 // Live voice runs on OpenAI's realtime model, straight between the browser and
 // OpenAI over WebRTC. The server only mints a short-lived key with the
@@ -75,7 +76,11 @@ export async function voiceSession(env: Env, s: Session): Promise<{ key: string;
       },
     }),
   });
-  if (!res.ok) throw new Error(`realtime ${res.status}: ${(await res.text()).slice(0, 300)}`);
+  if (!res.ok) {
+    const body = (await res.text()).slice(0, 300);
+    if (isSpendCap(res.status, body)) throw new SpendCapError(body);
+    throw new Error(`realtime ${res.status}: ${body}`);
+  }
   const json = (await res.json()) as { value: string };
   return { key: json.value, model };
 }
@@ -119,7 +124,11 @@ export async function gptLiveSession(env: Env, s: Session, sdp: string): Promise
       transport: { type: "webrtc", sdp },
     }),
   });
-  if (!res.ok) throw new Error(`gpt-live ${res.status}: ${(await res.text()).slice(0, 300)}`);
+  if (!res.ok) {
+    const body = (await res.text()).slice(0, 300);
+    if (isSpendCap(res.status, body)) throw new SpendCapError(body);
+    throw new Error(`gpt-live ${res.status}: ${body}`);
+  }
   const json = (await res.json()) as { transport?: { sdp?: string } };
   if (!json.transport?.sdp) throw new Error("gpt-live: no SDP answer");
   return { sdp: json.transport.sdp, model, opening: liveOpening(s) };

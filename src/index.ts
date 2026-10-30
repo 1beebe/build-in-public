@@ -19,6 +19,7 @@ import { harvest, opening, reply } from "./conversation";
 import { gptLiveSession, openaiKey, voiceSession } from "./realtime";
 import { MindStudioError, speak, transcribe } from "./mindstudio";
 import { appPage, landingPage, privacyPage } from "./pages";
+import { SpendCapError, countInterview, statsPage, tickVoice, voiceAllowedToday } from "./spend";
 import { cookie, createSession, destroySession, loadSession, readCookie, saveSession, type Session } from "./session";
 
 const html = (body: string, init: ResponseInit = {}) =>
@@ -51,6 +52,12 @@ export default {
         );
       }
       if (req.method === "GET" && url.pathname === "/privacy") return html(privacyPage());
+      if (req.method === "GET" && url.pathname === "/stats") {
+        // The owner's spend meter. Anyone else gets a plain 404.
+        const loaded = await loadSession(req, env);
+        if (!env.OWNER_ORG_ID || loaded?.data.organizationId !== env.OWNER_ORG_ID) return new Response("Not found", { status: 404 });
+        return html(await statsPage(env), { headers: { "Cache-Control": "no-store" } });
+      }
       if (req.method === "GET" && url.pathname === "/connect") return connect(env);
       if (req.method === "GET" && url.pathname === "/callback") return callback(req, env, url);
       if (req.method === "POST" && url.pathname === "/logout") {
@@ -151,7 +158,8 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           `Their recent posts, newest first. They show who they are and who they write for; don't steer back to these topics:`,
           ...recent.posts.slice(0, 8).map((p) => `- ${p.slice(0, 200)}`),
         ].join("\n");
-        Object.assign(s, { turns: [opening(s.questions)], drafts: [], saved: [] });
+        Object.assign(s, { turns: [opening(s.questions)], drafts: [], saved: [], voice: undefined });
+        await countInterview(env);
         result = await view(env, client, s);
         break;
       }
@@ -172,8 +180,10 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const now = Date.now();
         s.voiceStarts = (s.voiceStarts ?? []).filter((t) => now - t < 3600_000);
         if (s.voiceStarts.length >= 12) throw new UserError("That's a lot of talking for one hour. Type for now, or come back in a bit.");
+        if (!(await voiceAllowedToday(env))) throw new UserError(VOICE_RESTING);
         s.voiceStarts.push(now);
         result = await voiceSession(env, s);
+        s.voice = { kind: "realtime", startedAt: now, counted: 0 };
         break;
       }
       case "/api/live": {
@@ -185,8 +195,10 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const now = Date.now();
         s.voiceStarts = (s.voiceStarts ?? []).filter((t) => now - t < 3600_000);
         if (s.voiceStarts.length >= 12) throw new UserError("That's a lot of talking for one hour. Type for now, or come back in a bit.");
+        if (!(await voiceAllowedToday(env))) throw new UserError(VOICE_RESTING);
         s.voiceStarts.push(now);
         result = await gptLiveSession(env, s, sdp.slice(0, 20_000));
+        s.voice = { kind: "gpt-live", startedAt: now, counted: 0 };
         break;
       }
       case "/api/voice-turns": {
@@ -201,12 +213,15 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
             about: Number.isInteger(t.about) && (t.about as number) >= 0 && (t.about as number) < agendaSize ? (t.about as number) : undefined,
           }))
           .filter((t) => t.text);
+        await tickVoice(env, s.voice);
         result = { ok: true };
         break;
       }
       case "/api/harvest": {
         if (!s.turns?.some((t) => t.who === "you")) throw new UserError("Answer at least one question first.");
         const pillars = (s.tags ?? []).filter((t) => (s.pillarTagIds ?? []).includes(t.id));
+        await tickVoice(env, s.voice);
+        s.voice = undefined; // the conversation's over; stop the meter
         s.drafts = await harvest(env, s.questions ?? [], s.turns, pillars, s.posts);
         s.saved = [];
         result = await view(env, client, s);
@@ -278,7 +293,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         return json(await source(env, s.repo, q.ref)); // read-only: the session doesn't change
       }
       case "/api/reset":
-        Object.assign(s, { questions: [], turns: [], drafts: [], saved: [], brief: undefined });
+        Object.assign(s, { questions: [], turns: [], drafts: [], saved: [], brief: undefined, voice: undefined });
         result = await view(env, client, s);
         break;
       default:
@@ -294,6 +309,10 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
       return json({ error: `Buffer needs a short break. Try again in about ${mins} minute${mins > 1 ? "s" : ""}. Nothing was lost.` }, 429);
     }
     if (err instanceof UserError || err instanceof RepoError) return json({ error: err.message }, 400);
+    if (err instanceof SpendCapError) {
+      console.error("OpenAI spend limit reached", err.message);
+      return json({ error: VOICE_RESTING }, 503);
+    }
     if (err instanceof MindStudioError) {
       console.error(err);
       return json({ error: "The voice service didn't answer. Try again, or type your answer." }, 502);
@@ -341,6 +360,7 @@ async function view(env: Env, client: BufferClient, s: Session, refresh = false)
 }
 
 const MAX_TURNS = 60;
+const VOICE_RESTING = "Voice is resting for today. Type your answers instead; it works the same.";
 
 async function audio(env: Env, key: string): Promise<Response> {
   const { value, metadata } = await env.SESSIONS.getWithMetadata<{ type: string }>(`audio:${key}`, "arrayBuffer");

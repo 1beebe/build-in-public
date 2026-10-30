@@ -22,4 +22,8 @@ export interface Env {
   // Optional fallback for questions when MindStudio isn't set up. Without
   // either key the interviewer asks rule-based questions from the commits.
   ANTHROPIC_API_KEY?: string;
+  // The Buffer organization that may open /stats (the app's owner).
+  OWNER_ORG_ID?: string;
+  // App-wide voice minutes a day before voice pauses for everyone. Default 120.
+  DAILY_VOICE_MINUTES?: string;
 }
