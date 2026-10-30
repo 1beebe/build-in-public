@@ -15,3 +15,7 @@ id = "44870f3b03c24272a3ecfda1224a1356"
 
 [observability]
 enabled = true
+
+# Landing photos and other static files, served before the Worker runs.
+[assets]
+directory = "./public"
