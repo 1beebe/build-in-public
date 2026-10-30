@@ -268,14 +268,14 @@ ${NAV}
 <section class="sec field" id="keep">
   <div class="wrap two flip">
     <div>
-      <h2 class="rise">Your words, kept as you said them.</h2>
-      <p class="say rise" style="--i:1">When you're done it reads the conversation back, finds the few stories worth telling, and shows you each one before anything is saved. Edit, untick, pick a pillar, then send them to your Buffer Ideas.</p>
+      <h2 class="rise">Your words, pulled into one thought.</h2>
+      <p class="say rise" style="--i:1">When you're done it reads the conversation back, finds the few stories worth telling, and pulls each one into a single thought made from your own words, with what you actually said underneath. You see every one before anything is saved. Edit, untick, pick a pillar, then send them to your Buffer Ideas.</p>
       <p class="never rise" style="--i:2">It never writes your posts. It only asks.</p>
     </div>
     <article class="idea rise" style="--i:1" aria-label="An Idea as it lands in Buffer">
       <p class="t">Why the summaries had to go</p>
-      <div><p class="lbl">Q</p><p>You rebuilt how answers get saved. What made the old way feel wrong?</p></div>
-      <div><p class="lbl">Your answer</p><p>"It was saving tidy summaries. I'd go to write and nothing sounded like me anymore."</p></div>
+      <div><p class="lbl">Your words</p><p>It was saving tidy summaries, and when I'd go to write, nothing sounded like me anymore.</p></div>
+      <div><p class="lbl">What you said</p><p>"It was saving tidy summaries. I'd go to write and nothing sounded like me anymore."</p></div>
       <div><p class="lbl">Prompts to develop it</p><ul><li>What did a tidy summary lose that you needed?</li><li>Who is this post for?</li></ul></div>
       <span class="tag"><i></i>Building</span>
     </article>
@@ -287,7 +287,7 @@ ${NAV}
     <h2 class="rise" id="whyH">It won't write your posts. On purpose.</h2>
     <div>
       <p class="say rise" style="--i:1">Writing is thinking. When you put your week into your own sentences, you find out what you actually learned, what you'd do again, and what you believe about the thing you're building. Hand that to a model and you skip the part that makes it yours.</p>
-      <p class="say rise" style="--i:2">So The Interviewer does the part that's hard to do alone. It asks, it listens, and it keeps your answers exactly as you said them. The writing stays with you, and so does your voice.</p>
+      <p class="say rise" style="--i:2">So The Interviewer does the part that's hard to do alone. It asks, it listens, and it keeps your thinking in your own words. The writing stays with you, and so does your voice.</p>
     </div>
   </div>
 </section>
