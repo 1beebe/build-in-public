@@ -41,3 +41,10 @@ npm run dev     # local, needs a .dev.vars file with the secrets below
    - `TOKEN_KEY`: 32 random bytes, base64 (`openssl rand -base64 32`).
    - `GITHUB_TOKEN` (optional): a fine-grained token with no permissions. It raises GitHub's limit for public reads from 60 to 5,000 an hour.
    - `ANTHROPIC_API_KEY` (optional): without it, the interviewer uses rule-based questions built from the commits.
+
+## Later
+
+- A "Start a draft" button that turns a saved answer into a Buffer draft linked to its Idea.
+- Search across past answers.
+- A skill so a personal agent can run the interview with more context.
+- An anonymous usage tally (people connected, interviews run, Ideas saved) on a private stats page, with nothing that identifies anyone.
