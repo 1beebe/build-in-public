@@ -97,26 +97,26 @@ export function landingPage(error?: string): string {
 <header style="display:flex;flex-direction:column;gap:14px">
   <p class="progress">For people building in public</p>
   <h1>You built something this week. Let's get it out of your head.</h1>
-  <p class="muted">The Interviewer reads what you shipped on GitHub and asks you a few specific questions about it. Your answers go into Buffer as Ideas, word for word, tagged by your content pillars. You write the posts. It only asks.</p>
+  <p class="muted">The Interviewer reads what you shipped on GitHub and what you've posted lately, then talks with you about your week, out loud or typed. When you're done, it finds the stories worth telling and saves them to Buffer as Ideas, in your exact words, with a few questions to help you shape each one. You write the posts. It only asks.</p>
 </header>
 ${error ? `<p class="error" role="alert">${escapeHtml(error)}</p>` : ""}
 <div class="row"><a class="btn" href="/connect">Connect with Buffer</a><span class="small muted">The only sign-in. Takes about 10 seconds.</span></div>
-<section class="card" aria-label="An example question">
-  <p class="progress">An example question</p>
-  <p class="sample">You merged "Add PKCE to the Buffer sign-in" on Tuesday. What broke first, and how did you find it?</p>
-  <p class="source">Merged PR: Add PKCE to the Buffer sign-in</p>
+<section class="card" aria-label="An example">
+  <p class="progress">How it sounds</p>
+  <p class="sample">"You rebuilt the interview this week so it's one conversation instead of a list of questions. What wasn't working before?"</p>
+  <p class="small muted">Then it follows whatever you say: the reason, the surprise, the person it's for.</p>
 </section>
 <section style="display:flex;flex-direction:column;gap:14px">
   <h2>How it works</h2>
   <ol class="steps">
     <li><span>Connect your Buffer account and paste a link to a public GitHub repo.</span></li>
     <li><span>Pick up to three Buffer tags to use as your content pillars.</span></li>
-    <li><span>Answer three to five questions about this week's commits and pull requests. Skip any you like. Skipped questions are saved too, so you can come back to them.</span></li>
-    <li><span>Open your Buffer Ideas and write from your own words.</span></li>
+    <li><span>Talk for ten minutes about your week. The change you're discussing shows up beside the conversation.</span></li>
+    <li><span>Review the ideas it found, edit or untick any, and save them to Buffer. Then write from your own words.</span></li>
   </ol>
 </section>
 <footer>
-  <p>What's stored: your Buffer sign-in (encrypted) and your repo link and pillar choices, for 30 days. Your answers live in your own Buffer account, not here. Built for Buffer Commit by Ligaya Beebe. Not made by or affiliated with Buffer. <a href="/privacy">Privacy</a></p>
+  <p>What's stored: your Buffer sign-in (encrypted), your repo link and pillar choices, and your latest conversation until you start a new one, for up to 30 days. Saved ideas live in your own Buffer account. Built for Buffer Commit by Ligaya Beebe. Not made by or affiliated with Buffer. <a href="/privacy">Privacy</a></p>
 </footer>`,
   );
 }
