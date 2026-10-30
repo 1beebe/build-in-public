@@ -1,4 +1,5 @@
 import type { Env } from "./env";
+import { recentFeedback } from "./feedback";
 
 // A running estimate of what the app spends, so there's one place to look and
 // a daily brake on voice. Estimates from list prices, not the bill: the
@@ -17,13 +18,18 @@ interface Day {
   openai: number;
   mindstudio: number;
   voiceMinutes: number;
+  views: number;
+  connectStarts: number;
+  connects: number;
   interviews: number;
+  saves: number;
+  feedback: number;
   typedCalls: number;
   harvestCalls: number;
 }
 
 const dayKey = (t = Date.now()) => `spend:${new Date(t).toISOString().slice(0, 10)}`;
-const empty = (): Day => ({ openai: 0, mindstudio: 0, voiceMinutes: 0, interviews: 0, typedCalls: 0, harvestCalls: 0 });
+const empty = (): Day => ({ openai: 0, mindstudio: 0, voiceMinutes: 0, views: 0, connectStarts: 0, connects: 0, interviews: 0, saves: 0, feedback: 0, typedCalls: 0, harvestCalls: 0 });
 
 async function getDay(env: Env, key: string): Promise<Day> {
   return { ...empty(), ...((await env.SESSIONS.get<Day>(key, "json")) ?? {}) };
@@ -43,6 +49,14 @@ async function add(env: Env, change: Partial<Day>): Promise<void> {
 }
 
 export const countInterview = (env: Env) => add(env, { interviews: 1 });
+export type FunnelEvent = "view" | "connectStart" | "connect" | "save" | "feedback";
+export const countFunnel = (env: Env, event: FunnelEvent) => add(env, {
+  ...(event === "view" ? { views: 1 } : {}),
+  ...(event === "connectStart" ? { connectStarts: 1 } : {}),
+  ...(event === "connect" ? { connects: 1 } : {}),
+  ...(event === "save" ? { saves: 1 } : {}),
+  ...(event === "feedback" ? { feedback: 1 } : {}),
+});
 export const countModelCall = (env: Env, kind: keyof typeof MODEL_CALL) =>
   add(env, {
     mindstudio: MODEL_CALL[kind],
@@ -100,20 +114,22 @@ export async function statsPage(env: Env): Promise<string> {
   const month = new Date().toISOString().slice(0, 7);
   const mtd = days.filter(([d]) => d.startsWith(month)).reduce((a, [, d]) => a + d.openai + d.mindstudio, 0);
   const today = days[0][1];
+  const feedback = await recentFeedback(env);
   const cap = Number(env.DAILY_VOICE_MINUTES) || DAILY_VOICE_MINUTES;
   const rows = days
-    .filter(([, d]) => d.openai || d.mindstudio || d.interviews)
+    .filter(([, d]) => d.openai || d.mindstudio || d.views || d.interviews || d.feedback)
     .map(
       ([date, d]) =>
-        `<tr><td>${esc(date)}</td><td>${d.interviews}</td><td>${d.typedCalls}</td><td>${d.harvestCalls}</td><td>${Math.round(d.voiceMinutes)}</td><td>${usd(d.openai)}</td><td>${usd(d.mindstudio)}</td><td><b>${usd(d.openai + d.mindstudio)}</b></td></tr>`,
+        `<tr><td>${esc(date)}</td><td>${d.views}</td><td>${d.connectStarts}</td><td>${d.connects}</td><td>${d.interviews}</td><td>${d.saves}</td><td>${d.feedback}</td><td>${d.typedCalls}</td><td>${d.harvestCalls}</td><td>${Math.round(d.voiceMinutes)}</td><td><b>${usd(d.openai + d.mindstudio)}</b></td></tr>`,
     )
     .join("");
+  const notes = feedback.map((f) => `<article><div><b>${esc(f.kind === "bug" ? "Bug" : "Feedback")}</b> · ${esc(new Date(f.createdAt).toLocaleString("en-US", { timeZone: "UTC", timeZoneName: "short" }))}</div><p>${esc(f.message)}</p>${f.contact ? `<small>Reply: ${esc(f.contact)}</small>` : ""}${f.path ? `<small>Page: ${esc(f.path)}</small>` : ""}</article>`).join("");
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Interviewer spend</title>
 <style>:root{color-scheme:light dark;--bg:#faf8f5;--fg:#1d1b18;--muted:#6b665e;--line:#e4dfd7}@media (prefers-color-scheme:dark){:root{--bg:#171614;--fg:#eeeae4;--muted:#a39d93;--line:#34312c}}
 body{background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif;margin:0;padding:32px 16px}main{max-width:720px;margin:0 auto}h1{font-size:1.4rem;margin:0 0 4px}p{color:var(--muted);margin:0 0 20px}
 .big{display:flex;gap:32px;flex-wrap:wrap;margin:0 0 24px}.big div{font-size:1.6rem;font-weight:600}.big span{display:block;font-size:.8rem;font-weight:400;color:var(--muted)}
-.wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}th,td{text-align:right;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap}th:first-child,td:first-child{text-align:left}th{font-size:.8rem;color:var(--muted);font-weight:500}</style></head>
-<body><main><h1>What the Interviewer is spending</h1><p>Estimates from list prices, in UTC days. Your OpenAI and MindStudio usage pages have the real bill.</p>
+.wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}th,td{text-align:right;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap}th:first-child,td:first-child{text-align:left}th{font-size:.8rem;color:var(--muted);font-weight:500}h2{margin-top:40px}article{padding:16px 0;border-bottom:1px solid var(--line)}article p{color:var(--fg);white-space:pre-wrap;margin:6px 0}small{display:block;color:var(--muted)}</style></head>
+<body><main><h1>The Interviewer at a glance</h1><p>Anonymous funnel counts and estimated model spend, grouped by UTC day.</p>
 <div class="big"><div>${usd(mtd)}<span>this month so far</span></div><div>${usd(today.openai + today.mindstudio)}<span>today</span></div><div>${Math.round(today.voiceMinutes)} / ${cap}<span>voice minutes today (then voice pauses)</span></div></div>
-<div class="wrap"><table><thead><tr><th>Day</th><th>Interviews</th><th>Typed</th><th>Harvest</th><th>Voice min</th><th>OpenAI</th><th>MindStudio</th><th>Total</th></tr></thead><tbody>${rows || `<tr><td colspan="8">Nothing yet.</td></tr>`}</tbody></table></div></main></body></html>`;
+<div class="wrap"><table><thead><tr><th>Day</th><th>Views</th><th>Connect</th><th>Connected</th><th>Interviews</th><th>Saved</th><th>Feedback</th><th>Typed</th><th>Harvest</th><th>Voice min</th><th>Spend</th></tr></thead><tbody>${rows || `<tr><td colspan="11">Nothing yet.</td></tr>`}</tbody></table></div><h2>Latest feedback</h2>${notes || "<p>Nothing yet.</p>"}</main></body></html>`;
 }

@@ -18,8 +18,9 @@ import { hasModel, planQuestions } from "./interview";
 import { harvest, opening, reply } from "./conversation";
 import { gptLiveSession, openaiKey } from "./realtime";
 import { MindStudioError } from "./mindstudio";
+import { storeFeedback } from "./feedback";
 import { appPage, landingPage, privacyPage } from "./pages";
-import { SpendCapError, countInterview, modelAllowedToday, statsPage, tickVoice, voiceAllowedToday } from "./spend";
+import { SpendCapError, countFunnel, countInterview, modelAllowedToday, statsPage, tickVoice, voiceAllowedToday } from "./spend";
 import { cookie, createSession, destroySession, loadSession, readCookie, saveSession, type Session } from "./session";
 
 const SECURITY_HEADERS: Record<string, string> = {
@@ -141,6 +142,7 @@ export default {
     const url = new URL(req.url);
     try {
       if (req.method === "GET" && url.pathname === "/") {
+        await countFunnel(env, "view");
         const error = url.searchParams.get("error");
         // Already connected: straight back to their interview, not a second sign-in.
         if (!error && (await loadSession(req, env))) return redirect("/app");
@@ -165,6 +167,7 @@ export default {
       }
       if (req.method === "GET" && url.pathname === "/connect") return connect(env);
       if (req.method === "GET" && url.pathname === "/callback") return callback(req, env, url);
+      if (req.method === "POST" && url.pathname === "/feedback") return feedback(req, env);
       if (req.method === "POST" && url.pathname === "/logout") {
         return redirect("/", { "Set-Cookie": await destroySession(req, env) });
       }
@@ -181,6 +184,7 @@ export default {
 } satisfies ExportedHandler<Env>;
 
 async function connect(env: Env): Promise<Response> {
+  await countFunnel(env, "connectStart");
   const { verifier, challenge } = await pkcePair();
   const state = randomToken(16);
   // The verifier never leaves the server. The state is also pinned to this
@@ -211,8 +215,42 @@ async function callback(req: Request, env: Env, url: URL): Promise<Response> {
   const headers = responseHeaders({ "Cache-Control": "no-store", Location: "/app" });
   if (existing) await saveSession(env, existing.id, session);
   else headers.append("Set-Cookie", (await createSession(env, session)).setCookie);
+  await countFunnel(env, "connect");
   headers.append("Set-Cookie", clear);
   return new Response(null, { status: 302, headers });
+}
+
+async function feedback(req: Request, env: Env): Promise<Response> {
+  if (req.headers.get("Origin") !== new URL(env.APP_URL).origin) return json({ error: "Requests have to come from the app." }, 403);
+  const length = Number(req.headers.get("Content-Length") ?? 0);
+  if (length > 8_000) return json({ error: "That feedback is too large." }, 413);
+  let body: Record<string, unknown>;
+  try {
+    const raw = await limitedBody(req);
+    if (new TextEncoder().encode(raw).byteLength > 8_000) return json({ error: "That feedback is too large." }, 413);
+    body = JSON.parse(raw || "{}");
+  }
+  catch { return json({ error: "That feedback wasn't valid." }, 400); }
+  if (String(body.website ?? "")) return json({ ok: true }); // quiet honeypot for form bots
+  const kind = body.kind === "bug" ? "bug" : "feedback";
+  let message: string, contact: string, path: string;
+  try {
+    message = textInput(body.message, 2_000, "Keep feedback to 2,000 characters or fewer.");
+    contact = textInput(body.contact, 200, "Keep contact details to 200 characters or fewer.");
+    path = textInput(body.path, 200, "That page path is too long.");
+  } catch (err) {
+    if (err instanceof UserError) return json({ error: err.message }, 400);
+    throw err;
+  }
+  if (message.length < 5) return json({ error: "Tell me a little more first." }, 400);
+  try {
+    await storeFeedback(req, env, { createdAt: new Date().toISOString(), kind, message, contact: contact || undefined, path: path || undefined });
+  } catch (err) {
+    if (err instanceof Error && err.message === "rate") return json({ error: "Thanks—that's enough feedback for today." }, 429);
+    throw err;
+  }
+  await countFunnel(env, "feedback");
+  return json({ ok: true });
 }
 
 async function api(req: Request, env: Env, path: string): Promise<Response> {
@@ -340,6 +378,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         // rate limit part way through keeps what's done and says so.
         const picked = Array.isArray(body.drafts) ? (body.drafts as Record<string, unknown>[]).slice(0, 12) : [];
         if (!picked.length) throw new UserError("Pick at least one idea to save.");
+        const savedBefore = s.saved?.length ?? 0;
         for (const d of picked) {
           const draft = s.drafts?.find((x) => x.id === d.id);
           if (!draft || s.saved?.includes(draft.id)) continue; // a double click must not create a second Idea
@@ -367,6 +406,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           (s.saved ??= []).push(draft.id);
           await saveSession(env, id, s);
         }
+        if ((s.saved?.length ?? 0) > savedBefore) await countFunnel(env, "save");
         result = await view(env, client, s);
         break;
       }

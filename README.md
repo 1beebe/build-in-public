@@ -43,7 +43,13 @@ npm run dev     # local, needs a .dev.vars file with the secrets below
    - `MINDSTUDIO_API_KEY` (optional): turns on DeepSeek Flash typed follow-ups and Claude Sonnet 5.5 harvesting through MindStudio's step API. The app selects an explicit Flash catalog entry rather than relying on catalog order. `INTERVIEW_MODEL` and `THINKING_MODEL` hard-pin provider model ids.
    - `OPENAI_API_KEY` (optional): turns on GPT-Live, OpenAI's full-duplex spoken conversation. The page sends its WebRTC offer to `/api/live` and the Worker opens the session, so no key reaches the browser. `LIVE_MODEL` and `REALTIME_VOICE` override the defaults (`gpt-live-1`, `marin`). Each person can start four live sessions an hour, each capped at 20 minutes.
    - `ANTHROPIC_API_KEY` (optional): a fallback for typed follow-ups and harvesting when MindStudio isn't set.
-   - Spend: the Worker keeps a rough daily estimate of OpenAI and MindStudio spend in KV. The owner (the Buffer organization in `OWNER_ORG_ID`) can see it at `/stats`; everyone else gets a 404. App-wide brakes default to 120 voice minutes, 500 typed calls and 100 harvest calls per UTC day; override them with `DAILY_VOICE_MINUTES`, `DAILY_TYPED_CALLS` and `DAILY_HARVEST_CALLS`. Hard monthly caps still belong in the provider project settings.
+   - Stats: the Worker keeps anonymous daily funnel counts and a rough estimate of OpenAI and MindStudio spend in KV. The owner (the Buffer organization in `OWNER_ORG_ID`) can see both, plus encrypted feedback reports, at `/stats`; everyone else gets a 404. App-wide brakes default to 120 voice minutes, 500 typed calls and 100 harvest calls per UTC day; override them with `DAILY_VOICE_MINUTES`, `DAILY_TYPED_CALLS` and `DAILY_HARVEST_CALLS`. Hard monthly caps still belong in the provider project settings.
+
+## Feedback and telemetry
+
+- Every page includes a small feedback/bug form. Messages and optional reply details are encrypted at rest, expire after 180 days, and appear only on the owner's private `/stats` page.
+- A daily, one-way IP hash limits feedback spam without storing the IP itself; it expires within two days.
+- First-party funnel telemetry counts homepage visits, Buffer connection attempts and completions, interviews started, Ideas saved and feedback sent. It contains no user or content identifiers and expires after 120 days. No third-party analytics script is loaded.
 
 ## Abuse and cost boundaries
 
@@ -61,4 +67,3 @@ npm run dev     # local, needs a .dev.vars file with the secrets below
 - A "Start a draft" button that turns a saved answer into a Buffer draft linked to its Idea.
 - Search across past answers.
 - A skill so a personal agent can run the interview with more context.
-- An anonymous usage tally (people connected, interviews run, Ideas saved) on a private stats page, with nothing that identifies anyone.

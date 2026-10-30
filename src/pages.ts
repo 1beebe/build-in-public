@@ -74,6 +74,15 @@ a:hover{text-decoration-thickness:2px}
   .js .rise{transform:none;transition:opacity .4s}
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important}
 }
+.feedback-open{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));z-index:20;min-height:42px;padding:0 16px;border:1px solid var(--control);border-radius:var(--r-ctl);background:var(--surface);color:var(--ink);font:500 .875rem/1 var(--font);box-shadow:0 8px 24px rgba(13,42,28,.12);cursor:pointer}
+.feedback-open:hover{background:var(--raised)}
+.feedback-dialog{width:min(92vw,520px);border:0;border-radius:20px;padding:0;background:var(--surface);color:var(--ink);box-shadow:0 24px 80px rgba(0,0,0,.28)}
+.feedback-dialog::backdrop{background:rgba(7,21,14,.56)}
+.feedback-form{padding:clamp(22px,4vw,32px);display:grid;gap:16px}
+.feedback-form h2{font-size:1.65rem}.feedback-form label{display:grid;gap:6px;font-size:.9rem;color:var(--muted)}
+.feedback-form select,.feedback-form textarea,.feedback-form input{width:100%;border:1px solid var(--control);border-radius:12px;background:var(--ground);color:var(--ink);font:400 1rem/1.45 var(--font);padding:11px 13px}
+.feedback-form textarea{min-height:140px;resize:vertical}.feedback-actions{display:flex;align-items:center;justify-content:space-between;gap:12px}.feedback-status{font-size:.9rem;color:var(--muted)}
+.feedback-trap{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;overflow:hidden!important}
 `;
 
 const PAGE_STYLE = `
@@ -214,6 +223,27 @@ const MARK = `<svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="
 const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600&display=swap">`;
 
+const FEEDBACK_WIDGET = `<button class="feedback-open" type="button" data-feedback-open>Feedback or bug</button>
+<dialog class="feedback-dialog" id="feedbackDialog">
+  <form class="feedback-form" id="feedbackForm">
+    <h2>Tell me what happened.</h2>
+    <label>What is this?<select name="kind"><option value="feedback">Feedback</option><option value="bug">A bug</option></select></label>
+    <label>What should I know?<textarea name="message" maxlength="2000" required placeholder="What were you trying to do? What happened?"></textarea></label>
+    <label>Email or handle <span class="small">(optional, only if you want a reply)</span><input name="contact" maxlength="200" autocomplete="email"></label>
+    <label class="feedback-trap" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+    <div class="feedback-actions"><button class="btn quiet" type="button" data-feedback-close>Cancel</button><button class="btn" type="submit">Send</button></div>
+    <p class="feedback-status" id="feedbackStatus" role="status"></p>
+  </form>
+</dialog>`;
+
+const FEEDBACK_SCRIPT = `(() => {
+  const d=document.getElementById("feedbackDialog"), f=document.getElementById("feedbackForm"), status=document.getElementById("feedbackStatus");
+  document.querySelector("[data-feedback-open]")?.addEventListener("click",()=>d.showModal());
+  document.querySelector("[data-feedback-close]")?.addEventListener("click",()=>d.close());
+  d?.addEventListener("click",e=>{if(e.target===d)d.close()});
+  f?.addEventListener("submit",async e=>{e.preventDefault();const send=f.querySelector('[type="submit"]');send.disabled=true;status.textContent="Sending…";const data=Object.fromEntries(new FormData(f));data.path=location.pathname;try{const r=await fetch("/feedback",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||"Could not send that.");f.reset();status.textContent="Thank you—sent.";setTimeout(()=>d.close(),900)}catch(x){status.textContent=x.message}finally{send.disabled=false}});
+})();`;
+
 function shell(title: string, body: string, opts: { style?: string; script?: string } = {}): string {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>${title}</title>
@@ -222,7 +252,7 @@ function shell(title: string, body: string, opts: { style?: string; script?: str
 <link rel="icon" href="data:image/svg+xml,${encodeURIComponent(MARK.replace('class="mark" ', 'xmlns="http://www.w3.org/2000/svg" '))}">
 ${FONTS}
 <script>document.documentElement.classList.add("js")</script>
-<style>${STYLE}${opts.style ?? ""}</style></head><body>${body}${opts.script ? `<script>${opts.script}</script>` : ""}</body></html>`;
+<style>${STYLE}${opts.style ?? ""}</style></head><body>${body}${FEEDBACK_WIDGET}<script>${FEEDBACK_SCRIPT}</script>${opts.script ? `<script>${opts.script}</script>` : ""}</body></html>`;
 }
 
 const NAV = `<header class="wrap nav">
@@ -351,7 +381,7 @@ ${NAV}
       <div class="rise"><h3>Buffer</h3><p>It reads your tags and recent work so its questions fit. It only writes the Ideas you approve—never posts.</p></div>
       <div class="rise" style="--i:1"><h3>GitHub</h3><p>It reads one week of public commits, pull requests, and issues. There is no GitHub sign-in or access to private code.</p></div>
       <div class="rise" style="--i:2"><h3>Your interview</h3><p>Your current conversation and sign-in are encrypted, expire after 30 days of inactivity, and disappear when you disconnect.</p></div>
-      <div class="rise" style="--i:3"><h3>Your privacy</h3><p>No tracking, analytics, or data sales. <a href="/privacy">The full privacy note</a> names every service.</p></div>
+      <div class="rise" style="--i:3"><h3>Your privacy</h3><p>No third-party trackers, ads, or data sales. Anonymous funnel counts show what works. <a href="/privacy">The full privacy note</a> has the details.</p></div>
 </div>
     </div>
   </div>
@@ -439,7 +469,11 @@ ${NAV}
 <h2>What's stored</h2>
 <p>Your Buffer sign-in tokens, encrypted with AES-GCM, plus the public GitHub repo link or week note and the current interview: its topics and the conversation, encrypted the same way. Starting a new interview clears the last one. All of it expires 30 days after your last visit. Disconnecting deletes it straight away.</p>
 <h2>What isn't</h2>
-<p>Anything after you're done with it. The Ideas you choose go to your own Buffer account. Nothing is sold, shared or used for ads, and there's no tracking or analytics.</p>
+<p>Anything after you're done with it. The Ideas you choose go to your own Buffer account. Nothing is sold, shared or used for ads.</p>
+<h2>Lightweight telemetry</h2>
+<p>The app keeps anonymous daily counts of homepage visits, Buffer connection attempts and completions, interviews started, Ideas saved, and feedback sent. These counts contain no name, account, IP address, repo, interview text, or cross-site identifier, and expire after 120 days. There are no third-party analytics scripts.</p>
+<h2>Feedback</h2>
+<p>If you send feedback or a bug report, the message, optional contact detail, page path, and time are encrypted at rest and kept for up to 180 days. A one-way daily hash of your IP address is used only to limit spam and expires within two days; the IP itself is never stored.</p>
 <h2>What's read</h2>
 <p>From Buffer: your organization, tags, recent Ideas and up to 20 posts from the last 30 days, only to understand who you write for and avoid repeats. From GitHub: public commits, pull requests and issues in the repo you name. The example on the home page asks GitHub directly from your browser and sends nothing here.</p>
 <h2>Which AI does what</h2>
