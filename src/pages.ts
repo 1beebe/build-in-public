@@ -937,7 +937,10 @@ function glFragment(who, delta){
 }
 function onGptLiveEvent(ev){
   switch (ev.type) {
-    case "session.started": setLive("Connected"); break;
+    case "session.started":
+      setLive("Connected");
+      if (gl && gl.opening && dc && dc.readyState === "open") dc.send(JSON.stringify({type:"session.commentary.append", event_id:"open_" + Date.now(), delegation_id:null, content:gl.opening}));
+      break;
     case "session.input_transcript.delta": glFragment("you", ev.delta); setLive("Listening"); break;
     case "session.output_transcript.delta":
       glFragment("interviewer", ev.delta); setLive("Speaking");
@@ -964,7 +967,8 @@ async function startGptLive(){
     await pc.setLocalDescription(await pc.createOffer());
     // The server needs the full offer, so wait for ICE gathering (briefly).
     await new Promise(res => { if (pc.iceGatheringState === "complete") return res(); const t = setTimeout(res, 2000); pc.addEventListener("icegatheringstatechange", () => { if (pc.iceGatheringState === "complete") { clearTimeout(t); res(); } }); });
-    const { sdp } = await api("/api/live", {sdp: pc.localDescription.sdp});
+    const { sdp, opening } = await api("/api/live", {sdp: pc.localDescription.sdp});
+    gl.opening = opening;
     await pc.setRemoteDescription({type:"answer", sdp});
     liveLabel(true);
     liveTimer = setTimeout(() => { stopLive(); err("Paused after 20 minutes. Start talking again to keep going, or find your ideas."); }, 20 * 60 * 1000);

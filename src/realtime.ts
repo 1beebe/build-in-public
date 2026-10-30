@@ -95,7 +95,14 @@ const LIVE_RULES = `This is a live voice conversation, full duplex: you can hear
 - Let silences be. Someone who's thinking needs a moment.
 - If they say they're done, thank them in one sentence and tell them to press "Find my ideas".`;
 
-export async function gptLiveSession(env: Env, s: Session, sdp: string): Promise<{ sdp: string; model: string }> {
+export function liveOpening(s: Session): string {
+  const answered = (s.turns ?? []).some((t) => t.who === "you");
+  return answered
+    ? "Speak first, in English: welcome them back in a few words and pick up where you left off with one question. Then listen."
+    : "Speak first, in English: say hi in a few words and ask your first question about the first thread, in your own words. Then listen.";
+}
+
+export async function gptLiveSession(env: Env, s: Session, sdp: string): Promise<{ sdp: string; model: string; opening: string }> {
   const model = env.LIVE_MODEL || LIVE_MODEL;
   const res = await fetch("https://api.openai.com/v1/live/sessions", {
     method: "POST",
@@ -104,6 +111,9 @@ export async function gptLiveSession(env: Env, s: Session, sdp: string): Promise
       session: {
         model,
         instructions: liveInstructions(s, LIVE_RULES),
+        // GPT-Live waits for the caller unless told to open; OpenAI's advice is a developer
+        // message here plus the same words via session.commentary.append once it starts.
+        input: [{ type: "message", role: "developer", content: [{ type: "input_text", text: liveOpening(s) }] }],
         audio: { output: { voice: env.REALTIME_VOICE || "marin" } },
       },
       transport: { type: "webrtc", sdp },
@@ -112,5 +122,5 @@ export async function gptLiveSession(env: Env, s: Session, sdp: string): Promise
   if (!res.ok) throw new Error(`gpt-live ${res.status}: ${(await res.text()).slice(0, 300)}`);
   const json = (await res.json()) as { transport?: { sdp?: string } };
   if (!json.transport?.sdp) throw new Error("gpt-live: no SDP answer");
-  return { sdp: json.transport.sdp, model };
+  return { sdp: json.transport.sdp, model, opening: liveOpening(s) };
 }
