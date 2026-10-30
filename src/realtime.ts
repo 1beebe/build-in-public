@@ -27,7 +27,7 @@ export async function voiceSession(env: Env, s: Session): Promise<{ key: string;
     `Threads you might get to (numbered):\n${agendaBrief(agenda)}`,
     sofar ? `The conversation so far (pick up where it left off, don't repeat it):\n${sofar}` : "",
     // Last, because the realtime model weighs the end of its instructions most.
-    `Every turn: a short, sincere reflection of what they said (their words, the feeling, or what it took), then ONE open question about ONE thing. Never join two questions with "and" or offer options. If their last answer was a word or two, reassure them lightly and ask about something new and easy.`,
+    `Every turn: first, one short reflection of ten words or fewer, warm but not gushing (mirror their phrase, name the feeling, or note what it took). Then ONE open question about ONE thing. Never "I love that", "such a", "vivid" or "lovely". Never join two questions with "and" or offer examples to pick from. If their last answer was a word or two, reassure them in a few words and ask about something new and easy.`,
   ]
     .filter(Boolean)
     .join("\n\n");
