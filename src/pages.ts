@@ -377,14 +377,20 @@ function onLiveEvent(ev){
     case "response.output_audio_transcript.done": case "response.audio_transcript.done": ensureItem(ev.item_id, "interviewer").text = ev.transcript || ""; drawLive(); syncLive(); break;
     case "input_audio_buffer.speech_started": setLive("Listening"); if (player) player.pause(); break;
     case "input_audio_buffer.speech_stopped": setLive("Thinking"); break;
-    case "response.done": setLive("Your turn"); break;
+    case "response.done": {
+      // The panel switch rides along with speech. Only if the model called
+      // show_work and said nothing does it need a nudge to go on.
+      const out = (ev.response && ev.response.output) || [];
+      if (out.some(o => o.type === "function_call") && !out.some(o => o.type === "message")) dc.send(JSON.stringify({type:"response.create"}));
+      else setLive("Your turn");
+      break;
+    }
     case "response.function_call_arguments.done":
       if (ev.name === "show_work") {
         let a = {}; try { a = JSON.parse(ev.arguments || "{}"); } catch {}
         const k = (a.item | 0) - 1;
         if (k >= 0 && k < (state.questions || []).length) { liveAbout = k; renderSource(k).then(markTopics); }
         dc.send(JSON.stringify({type:"conversation.item.create", item:{type:"function_call_output", call_id: ev.call_id, output: JSON.stringify({shown: k >= 0})}}));
-        dc.send(JSON.stringify({type:"response.create"}));
       }
       break;
     case "error": console.warn("realtime", ev.error || ev); break;

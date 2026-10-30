@@ -113,7 +113,7 @@ export async function harvest(env: Env, agenda: Question[], turns: Turn[], pilla
       const text = await complete(
         env,
         HARVEST,
-        `Their content pillars: ${pillars.map((p) => `${p.name} (id ${p.id})`).join(", ")}\n\nInterview (their sentences are numbered):\n${lines}\n\nReply with JSON only, strongest idea first: [{"title": "...", "sentences": [numbers of their sentences, in order], "pillar": "<pillar id>"}]. A sentence belongs to at most one idea.`,
+        `Their content pillars: ${pillars.map((p) => `${p.name} (id ${p.id})`).join(", ")}\n\nInterview (their sentences are numbered):\n${lines}\n\nReply with JSON only, strongest idea first: [{"title": "...", "sentences": [numbers of their sentences, in order], "pillar": "<pillar id>"}]. A sentence belongs to at most one idea. Give each idea the pillar its angle fits best, judging by the pillar names: a story about people, feelings or how it was to build fits a different pillar than a technical decision. Don't put everything in one pillar unless it truly all fits there.`,
         60_000,
       );
       const parsed = JSON.parse(text.slice(text.indexOf("["), text.lastIndexOf("]") + 1)) as { title: string; sentences: number[]; pillar?: string }[];

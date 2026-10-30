@@ -8,7 +8,7 @@ import { CONVERSE, agendaBrief } from "./conversation";
 const MODEL = "gpt-realtime-2.1";
 
 const VOICE_RULES = `This is a live voice conversation.
-- Before you ask about an agenda item, call show_work with its number so they can see it on screen while you talk.
+- When you move to an agenda item, call show_work with its number in the same response as you start talking about it, so it appears on screen while you speak. Don't wait for show_work before speaking.
 - Never read code, file paths, hashes or URLs aloud. Say what the change does in plain words.
 - Start with a short hello (a few words) and ask about the first agenda item.
 - Let silences be. Don't fill them, and don't talk over someone who's thinking.
@@ -44,7 +44,7 @@ export async function voiceSession(env: Env, s: Session): Promise<{ key: string;
         audio: {
           input: {
             transcription: { model: "gpt-4o-transcribe", prompt: `A builder talking about their project. Terms: ${terms.join(", ")}` },
-            turn_detection: { type: "semantic_vad", eagerness: "low" },
+            turn_detection: { type: "semantic_vad", eagerness: "medium" },
           },
           output: { voice: env.REALTIME_VOICE || "marin" },
         },
