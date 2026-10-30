@@ -48,10 +48,10 @@ export async function chatModel(env: Env): Promise<string> {
   return pick.id;
 }
 
-export async function generateText(env: Env, system: string, message: string, timeoutMs?: number): Promise<string> {
+export async function generateText(env: Env, system: string, message: string, timeoutMs?: number, maxTokens = 1200): Promise<string> {
   const out = await step<{ content: string }>(env, "userMessage", {
     message,
-    modelOverride: { model: await chatModel(env), temperature: 0.6, maxResponseTokens: 1200, preamble: system },
+    modelOverride: { model: await chatModel(env), temperature: 0.6, maxResponseTokens: maxTokens, preamble: system },
   }, timeoutMs);
   return out.content;
 }

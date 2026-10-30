@@ -86,6 +86,19 @@ function joinSentences(picked: Sentence[]): string {
   return text;
 }
 
+// A JSON array from a model reply. If the reply was cut off mid-array, keep
+// the complete objects rather than losing all of them.
+function parseArray(text: string): unknown[] {
+  const start = text.indexOf("[");
+  if (start === -1) throw new Error("no JSON array in reply");
+  try {
+    return JSON.parse(text.slice(start, text.lastIndexOf("]") + 1));
+  } catch {
+    const cut = text.lastIndexOf("}");
+    return JSON.parse(text.slice(start, cut + 1) + "]");
+  }
+}
+
 const HARVEST = `You turn an interview into post ideas for the person who was interviewed. You never write post copy and never reword what they said.
 
 An idea is something they could post about: a story, a decision, a lesson, a surprise, an opinion, a before-and-after. Group sentences from anywhere in the conversation that belong to the same thread. Prefer fewer, richer ideas: one to five.
@@ -124,8 +137,9 @@ export async function harvest(env: Env, agenda: Question[], turns: Turn[], pilla
         HARVEST,
         `Their content pillars: ${pillars.map((p) => `${p.name} (id ${p.id})`).join(", ")}\n\nInterview (their sentences are numbered):\n${lines}\n\nReply with JSON only, strongest idea first: [{"title": "...", "sentences": [numbers of their sentences, in order], "pillar": "<pillar id>", "prompts": ["question", "question"]}]. A sentence belongs to at most one idea. Give each idea the pillar its angle fits best, judging by the pillar names: a story about people, feelings or how it was to build fits a different pillar than a technical decision. Don't put everything in one pillar unless it truly all fits there.`,
         60_000,
+        4000,
       );
-      const parsed = JSON.parse(text.slice(text.indexOf("["), text.lastIndexOf("]") + 1)) as { title: string; sentences: number[]; pillar?: string; prompts?: string[] }[];
+      const parsed = parseArray(text) as { title: string; sentences: number[]; pillar?: string; prompts?: string[] }[];
       const used = new Set<number>();
       for (const d of parsed.slice(0, 5)) {
         const ids = [...new Set((d.sentences ?? []).map(Number))].filter((n) => !used.has(n)).sort((x, y) => x - y);
