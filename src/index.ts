@@ -140,7 +140,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         s.posts = recent.posts.map((p) => p.slice(0, 300));
         s.brief = [
           `Repo: ${shipped.repo}${shipped.description ? ` — ${shipped.description}` : ""}`,
-          `What they said they worked on this week: ${s.weekNote || "(nothing)"}`,
+          s.weekNote ? `What they said they worked on this week: ${s.weekNote}` : "They didn't add a note about their week (that's optional; it doesn't mean they did nothing).",
           `Their recent posts, newest first. They show who they are and who they write for; don't steer back to these topics:`,
           ...recent.posts.slice(0, 8).map((p) => `- ${p.slice(0, 200)}`),
         ].join("\n");

@@ -81,7 +81,7 @@ async function modelQuestions(
 ): Promise<Question[]> {
   const context = [
     `Repo: ${shipped.repo}${shipped.description ? ` — ${shipped.description}` : ""}`,
-    `What they said they worked on this week: ${weekNote || "(nothing yet)"}`,
+    weekNote ? `What they said they worked on this week: ${weekNote}` : "They didn't add a note about their week (optional).",
     `What changed on GitHub in the last 7 days (numbered):`,
     ...items.map((it, i) => `${i + 1}. ${it.label}`),
     `Earlier interview answers and Ideas in Buffer:`,
