@@ -117,10 +117,15 @@ const PAGE_STYLE = `
 /* Transcript */
 .talk{list-style:none;margin:0;padding:0;display:grid;gap:22px}
 .talk li{display:grid;gap:6px;max-width:44ch}
+.talk .rise{transition-duration:.5s;transition-delay:calc(var(--i,0) * 420ms)}
+.talk .them.rise{transform:translateY(16px)}
+.talk .you.rise{transform:translateY(16px) scale(.985)}
+.talk .rise.in{transform:none}
 .talk .who{font-size:.875rem;color:var(--muted)}
 .talk .them p{font-size:clamp(1.35rem,1.1rem + .9vw,1.9rem);line-height:1.22;letter-spacing:-.02em;font-weight:500}
 .talk .you{justify-self:end;background:var(--surface);border-radius:22px 22px 6px 22px;padding:16px 20px;border:1px solid var(--border)}
 .talk .flag{display:inline-flex;align-items:center;gap:8px;font-size:.875rem;color:var(--muted);background:var(--raised);border-radius:var(--r-ctl);padding:6px 14px;justify-self:start}
+@media (prefers-reduced-motion:reduce){.talk .rise{transition-delay:0ms}}
 
 /* The yellow field */
 .field{background:var(--accent);color:var(--accent-ink)}
@@ -276,6 +281,7 @@ ${NAV}
       <li class="you rise" style="--i:1"><span class="who">You</span><p>Like half the people who found it would hit the sign-up screen and just leave.</p></li>
       <li class="flag rise" style="--i:2">Opened beside you: the change you made</li>
       <li class="them rise" style="--i:3"><span class="who">The Interviewer</span><p>Half is a lot. How did you figure out that's where they were going?</p></li>
+      <li class="you rise" style="--i:4"><span class="who">You</span><p>At first I guessed. Then I checked where people dropped off and watched a few of them hesitate at the sign-up screen.</p></li>
     </ol>
   </div>
 </section>
