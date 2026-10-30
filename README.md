@@ -7,7 +7,7 @@ Built by Ligaya Beebe for Buffer Commit 2026. Not made by or affiliated with Buf
 ## How it works
 
 1. **Connect with Buffer.** OAuth 2.0 Authorization Code with PKCE. Buffer is the only sign-in. The PKCE verifier and the `state` value stay on the server, and the state is pinned to the browser by a short-lived cookie.
-2. **Paste a public repo.** Read through GitHub's public REST API, so there's no GitHub sign-in.
+2. **Paste a public repo, or skip it.** Read through GitHub's public REST API, so there's no GitHub sign-in. Builders without GitHub (no-code tools, courses, content) tick "No GitHub" and write a sentence about what they're working on instead; the interviewer starts from that and their recent posts.
 3. **Pick pillars.** Up to three of your existing Buffer tags.
 4. **Talk.** One live conversation, not a form. By voice it runs on OpenAI's realtime model over WebRTC; typed, DeepSeek (through MindStudio) answers each turn. Before it starts, Claude Sonnet (through MindStudio) reads the week's commits, pull requests and issues plus up to 20 of your Buffer posts from the last 30 days, and plans an arc: the story of the week, the decisions behind it, who it's for, what's next. A side panel shows the change being discussed, with the diff.
 5. **Harvest.** When you stop, Claude Sonnet reads the whole conversation, finds the bigger story, and proposes one to five Ideas. Each has an angle for a title, your sentences under the question that drew them out (rebuilt from your transcript by sentence number, so the words are always exactly yours), and three short questions to help you develop it. Topics you didn't get to are offered as Ideas to answer later.

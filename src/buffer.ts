@@ -8,7 +8,7 @@ const API_URL = "https://api.buffer.com";
 // The narrowest set the app needs: read the account and its tags and posts,
 // create Ideas, and create a draft post linked to an Idea. offline_access gives
 // a refresh token so people stay connected between weekly interviews.
-export const SCOPES = "account:read ideas:read ideas:write posts:read posts:write offline_access";
+export const SCOPES = "account:read ideas:read ideas:write posts:read offline_access";
 
 // Stop starting new work when the 15-minute window gets this low, so one busy
 // person can't use up the quota every other connected person shares.

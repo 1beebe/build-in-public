@@ -508,6 +508,8 @@ textarea{resize:vertical;min-height:120px;line-height:1.5}
 .chip:has(input:checked){background:var(--ink);color:var(--ground);box-shadow:none}
 .chip:has(input:focus-visible){outline:3px solid var(--ink);outline-offset:2px}
 .chip:has(input:disabled){cursor:default;opacity:.7}
+.check{display:flex;gap:10px;align-items:center;color:var(--muted);cursor:pointer}.check input{width:auto;margin:0}
+#repo:disabled{opacity:.45}
 .chip .swatch{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 0 1.5px var(--surface)}
 .row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
 
@@ -629,6 +631,7 @@ export function appPage(): string {
   <div class="panel">
     <label class="fieldset" id="orgWrap" hidden><span class="lbl">Buffer organization</span><select id="org"></select></label>
     <label class="fieldset"><span class="lbl">Your public GitHub repo</span><span class="hint">It reads this week's commits, merged pull requests and closed issues. No GitHub sign-in, nothing private.</span><input id="repo" type="text" placeholder="github.com/you/project" autocomplete="off" spellcheck="false"></label>
+    <label class="check"><input id="noRepo" type="checkbox"> No GitHub? Skip it. You'll just tell it what you're working on.</label>
     <div class="fieldset" role="group" aria-labelledby="pillarsLbl">
       <span class="lbl" id="pillarsLbl">Content pillars</span>
       <span class="hint">Pick up to three of your Buffer tags. Each idea gets one, so your week spreads across what you post about.</span>
@@ -643,7 +646,7 @@ export function appPage(): string {
   <div class="panel studio">
     <div class="orb" data-s="idle" aria-hidden="true"><i></i><i></i><b></b></div>
     <header style="display:grid;gap:10px"><h1>Ready when you are.</h1><p class="lede" id="repoLine"></p></header>
-    <label class="fieldset" style="width:100%"><span class="lbl">Anything on your mind from this week?</span><span class="hint">Optional. A sentence or two helps aim the first questions.</span>
+    <label class="fieldset" style="width:100%"><span class="lbl" id="noteLbl">Anything on your mind from this week?</span><span class="hint" id="noteHint">Optional. A sentence or two helps aim the first questions.</span>
       <textarea id="weekNote" style="min-height:96px"></textarea></label>
     <div class="row"><button id="startBtn" class="btn" type="button"><span class="rec"></span>Start the interview</button><button id="editSetup" class="btn quiet" type="button">Change repo or pillars</button></div>
     <p class="busyline" id="startBusy" aria-live="polite"></p>
@@ -759,6 +762,7 @@ function renderSetup(){
   $("orgWrap").hidden = orgs.length < 2;
   $("org").innerHTML = ""; for (const o of orgs){ const op = new Option(o.name, o.id); op.selected = o.id === state.organizationId; $("org").add(op); }
   $("repo").value = state.repo || "";
+  $("noRepo").checked = !!state.noRepo; $("repo").disabled = !!state.noRepo;
   $("tags").innerHTML = "";
   for (const t of state.tags || []) $("tags").append(chip(t, "pillar", "checkbox", (state.pillarTagIds||[]).includes(t.id)));
   $("noTags").hidden = (state.tags || []).length > 0;
@@ -1108,10 +1112,12 @@ function renderDone(){
 }
 
 function route(){
-  if (!state.repo || !(state.pillarTagIds||[]).length) return renderSetup();
+  if ((!state.repo && !state.noRepo) || !(state.pillarTagIds||[]).length) return renderSetup();
   if ((state.drafts||[]).length) return (state.saved||[]).length ? renderDone() : renderReview();
   if ((state.turns||[]).length) return renderTalk();
-  $("repoLine").textContent = "This week in " + state.repo + ". Out loud or typed, about ten minutes.";
+  $("repoLine").textContent = state.repo ? "This week in " + state.repo + ". Out loud or typed, about ten minutes." : "Your week, in your words. Out loud or typed, about ten minutes.";
+  $("noteLbl").textContent = state.repo ? "Anything on your mind from this week?" : "What are you working on?";
+  $("noteHint").textContent = state.repo ? "Optional. A sentence or two helps aim the first questions." : "A sentence or two, so it knows where to start. A course, a tool, a side project, anything you're building.";
   $("startPillars").replaceChildren(...pillars().map(p => { const c = el("span", "chip"), d = el("span", "swatch"); d.style.background = p.color; c.append(d, p.name); return c; }));
   show("start");
 }
@@ -1119,10 +1125,11 @@ async function load(){ try { state = await api("/api/state"); route(); } catch(e
 $("saveSetup").onclick = async () => {
   err(""); const ids = [...document.querySelectorAll('input[name=pillar]:checked')].map(x => x.value);
   if (ids.length > 3) return err("Pick up to three pillars.");
-  try { $("saveSetup").disabled = true; state = await api("/api/setup", {organizationId:$("org").value, repo:$("repo").value, pillarTagIds:ids}); route(); }
+  try { $("saveSetup").disabled = true; state = await api("/api/setup", {organizationId:$("org").value, repo:$("repo").value, noRepo:$("noRepo").checked, pillarTagIds:ids}); route(); }
   catch(e){ err(e.message); } finally { $("saveSetup").disabled = false; }
 };
 $("editSetup").onclick = renderSetup;
+$("noRepo").onchange = () => { $("repo").disabled = $("noRepo").checked; };
 $("startBtn").onclick = async () => {
   err(""); $("startBtn").disabled = true; $("editSetup").disabled = true; orbState("thinking");
   busyLines("startBusy", ["Reading this week's commits and pull requests", "Looking at what you've posted lately", "Planning a few threads to pull on", "Almost ready"]);

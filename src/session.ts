@@ -39,6 +39,7 @@ export interface Session {
   organizationId?: string;
   organizationName?: string;
   repo?: string; // "owner/name"
+  noRepo?: boolean; // they build outside GitHub and tell us about their work instead
   posts?: string[]; // their recent Buffer posts, to see who they are and who they write for
   pillarTagIds?: string[];
   tags?: { id: string; name: string; color: string }[]; // cached from Buffer

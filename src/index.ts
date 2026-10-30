@@ -13,7 +13,7 @@ import {
   type Org,
   type Tag,
 } from "./buffer";
-import { RepoError, getSource, parseRepo, whatShipped, type Source } from "./github";
+import { RepoError, getSource, parseRepo, whatShipped, type Shipped, type Source } from "./github";
 import { planQuestions } from "./interview";
 import { harvest, opening, reply } from "./conversation";
 import { gptLiveSession, openaiKey, voiceSession } from "./realtime";
@@ -122,24 +122,31 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         result = await view(env, client, s, true);
         break;
       case "/api/setup": {
-        const repo = parseRepo(String(body.repo ?? ""));
-        if (!repo) throw new UserError("Paste a GitHub repo link, like github.com/you/project.");
+        // No GitHub is fine: they'll tell us what they're working on instead.
+        const noRepo = Boolean(body.noRepo);
+        const repo = noRepo ? undefined : parseRepo(String(body.repo ?? ""));
+        if (!noRepo && !repo) throw new UserError("Paste a GitHub repo link, like github.com/you/project, or pick the no-GitHub option.");
         const ids = Array.isArray(body.pillarTagIds) ? body.pillarTagIds.map(String).slice(0, 3) : [];
         if (!ids.length) throw new UserError("Pick at least one pillar.");
         if (body.organizationId) s.organizationId = String(body.organizationId);
-        await whatShipped(env, repo, 1); // fails fast with a clear message if the repo isn't public
-        Object.assign(s, { repo, pillarTagIds: ids, questions: [], turns: [], drafts: [], saved: [] });
+        if (repo) await whatShipped(env, repo, 1); // fails fast with a clear message if the repo isn't public
+        Object.assign(s, { repo, noRepo, pillarTagIds: ids, questions: [], turns: [], drafts: [], saved: [] });
         result = await view(env, client, s, true);
         break;
       }
       case "/api/start": {
-        if (!s.repo || !s.organizationId) throw new UserError("Finish setup first.");
+        if ((!s.repo && !s.noRepo) || !s.organizationId) throw new UserError("Finish setup first.");
         s.weekNote = String(body.weekNote ?? "").slice(0, 500);
-        const [shipped, recent] = await Promise.all([whatShipped(env, s.repo), getRecent(client, s.organizationId)]);
+        // Without a repo, their note is all the interviewer has to start from.
+        if (!s.repo && s.weekNote.trim().length < 15) throw new UserError("Tell me a sentence or two about what you're working on, so I know where to start.");
+        const noShip: Shipped = { repo: "", commits: [], pulls: [], issues: [] };
+        const [shipped, recent] = await Promise.all([s.repo ? whatShipped(env, s.repo) : noShip, getRecent(client, s.organizationId)]);
         s.questions = await planQuestions(env, shipped, recent, s.weekNote);
         s.posts = recent.posts.map((p) => p.slice(0, 300));
         s.brief = [
-          `Repo: ${shipped.repo}${shipped.description ? ` — ${shipped.description}` : ""}`,
+          s.repo
+            ? `Repo: ${shipped.repo}${shipped.description ? ` — ${shipped.description}` : ""}`
+            : "They don't have a GitHub repo for this. Everything you know about their work is what they told you below, so let them show you around it.",
           s.weekNote ? `What they said they worked on this week: ${s.weekNote}` : "They didn't add a note about their week (that's optional; it doesn't mean they did nothing).",
           `Their recent posts, newest first. They show who they are and who they write for; don't steer back to these topics:`,
           ...recent.posts.slice(0, 8).map((p) => `- ${p.slice(0, 200)}`),
@@ -321,6 +328,7 @@ async function view(env: Env, client: BufferClient, s: Session, refresh = false)
     orgs,
     organizationId: s.organizationId,
     repo: s.repo,
+    noRepo: Boolean(s.noRepo),
     tags,
     pillarTagIds: s.pillarTagIds ?? [],
     questions: s.questions ?? [],

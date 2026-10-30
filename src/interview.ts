@@ -79,11 +79,13 @@ async function modelQuestions(
   recent: { ideas: RecentIdea[]; posts: string[] },
   weekNote: string,
 ): Promise<Question[]> {
+  const noRepo = !shipped.repo;
   const context = [
-    `Repo: ${shipped.repo}${shipped.description ? ` — ${shipped.description}` : ""}`,
+    noRepo
+      ? "They don't use GitHub for this work (they may build with no-code tools, courses, content or a product). All you know is their note."
+      : `Repo: ${shipped.repo}${shipped.description ? ` — ${shipped.description}` : ""}`,
     weekNote ? `What they said they worked on this week: ${weekNote}` : "They didn't add a note about their week (optional).",
-    `What changed on GitHub in the last 7 days (numbered):`,
-    ...items.map((it, i) => `${i + 1}. ${it.label}`),
+    ...(noRepo ? [] : [`What changed on GitHub in the last 7 days (numbered):`, ...items.map((it, i) => `${i + 1}. ${it.label}`)]),
     `Earlier interview answers and Ideas in Buffer:`,
     ...recent.ideas.slice(0, 12).map((i) => `- ${i.title ?? ""}: ${(i.text ?? "").slice(0, 280)}`),
     `Their recent posts, newest first (don't repeat these topics):`,
@@ -93,7 +95,7 @@ async function modelQuestions(
   const text = await complete(
     env,
     METHOD,
-    `${context}\n\nWrite ${MAX_QUESTIONS} questions for this week's interview, best first. Reply with JSON only: [{"question": "...", "about": <number of the item it points at, -1 for their LATEST post, or 0 for their own note or an earlier answer>}]. At most one question may follow up on the LATEST post, asking what happened after it went out; the rest are about the GitHub work.`,
+    `${context}\n\nWrite ${MAX_QUESTIONS} questions for this week's interview, best first. Reply with JSON only: [{"question": "...", "about": <number of the item it points at, -1 for their LATEST post, or 0 for their own note or an earlier answer>}]. At most one question may follow up on the LATEST post, asking what happened after it went out; ${noRepo ? "the rest grow from their note. You only know what they told you, so the first question is a warm, open invitation into what they described (\"Tell me about...\"), and the others are threads that fit whatever they say: a decision or turning point, who it's for, what surprised them or was hard, what's next. Don't invent details they didn't give." : "the rest are about the GitHub work."}`,
     45_000,
     2000,
     true,
