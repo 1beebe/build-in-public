@@ -16,7 +16,7 @@ import {
 import { RepoError, getSource, parseRepo, whatShipped, type Source } from "./github";
 import { planQuestions } from "./interview";
 import { harvest, opening, reply } from "./conversation";
-import { voiceSession } from "./realtime";
+import { openaiKey, voiceSession } from "./realtime";
 import { MindStudioError, speak, transcribe } from "./mindstudio";
 import { appPage, landingPage, privacyPage } from "./pages";
 import { cookie, createSession, destroySession, loadSession, readCookie, saveSession, type Session } from "./session";
@@ -151,7 +151,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         break;
       }
       case "/api/voice": {
-        if (!env.OPENAI_API_KEY) throw new UserError("Live voice isn't turned on yet. Type instead.");
+        if (!openaiKey(env)) throw new UserError("Live voice isn't turned on yet. Type instead.");
         if (!s.questions?.length) throw new UserError("Start an interview first.");
         // A few live sessions an hour per person keeps the voice bill sane.
         const now = Date.now();
@@ -296,7 +296,7 @@ async function view(env: Env, client: BufferClient, s: Session, refresh = false)
     drafts: s.drafts ?? [],
     saved: s.saved ?? [],
     voice: Boolean(env.MINDSTUDIO_API_KEY),
-    live: Boolean(env.OPENAI_API_KEY),
+    live: Boolean(openaiKey(env)),
   };
 }
 

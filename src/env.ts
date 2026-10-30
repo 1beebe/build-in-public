@@ -14,6 +14,7 @@ export interface Env {
   VOICE_MODEL?: string;
   // Optional. Turns on the live voice conversation (OpenAI's realtime model).
   OPENAI_API_KEY?: string;
+  OPEN_AI_KEY?: string; // the same key under the name it was first saved with
   REALTIME_MODEL?: string;
   REALTIME_VOICE?: string;
   // Optional fallback for questions when MindStudio isn't set up. Without

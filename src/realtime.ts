@@ -33,7 +33,7 @@ export async function voiceSession(env: Env, s: Session): Promise<{ key: string;
 
   const res = await fetch("https://api.openai.com/v1/realtime/client_secrets", {
     method: "POST",
-    headers: { Authorization: `Bearer ${env.OPENAI_API_KEY}`, "Content-Type": "application/json" },
+    headers: { Authorization: `Bearer ${openaiKey(env)}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       expires_after: { anchor: "created_at", seconds: 120 },
       session: {
@@ -67,3 +67,5 @@ export async function voiceSession(env: Env, s: Session): Promise<{ key: string;
   const json = (await res.json()) as { value: string };
   return { key: json.value, model };
 }
+
+export const openaiKey = (env: Env) => env.OPENAI_API_KEY || env.OPEN_AI_KEY;
