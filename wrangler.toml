@@ -7,7 +7,7 @@ compatibility_date = "2026-10-01"
 # or with `wrangler secret put`, never committed.
 [vars]
 APP_URL = "https://interviewer.lbeebe.com"
-BUFFER_CLIENT_ID = ""
+BUFFER_CLIENT_ID = "gWeAUTXEWPQCHFuC5MvkLI4HQMUcxb0odcMQOqNr2DB"
 
 [[kv_namespaces]]
 binding = "SESSIONS"

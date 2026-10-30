@@ -76,8 +76,26 @@ ${error ? `<p class="error" role="alert">${escapeHtml(error)}</p>` : ""}
   </ol>
 </section>
 <footer>
-  <p>What's stored: your Buffer sign-in (encrypted) and your repo link and pillar choices, for 30 days. Your answers live in your own Buffer account, not here. Built for Buffer Commit by Ligaya Beebe. Not made by or affiliated with Buffer.</p>
+  <p>What's stored: your Buffer sign-in (encrypted) and your repo link and pillar choices, for 30 days. Your answers live in your own Buffer account, not here. Built for Buffer Commit by Ligaya Beebe. Not made by or affiliated with Buffer. <a href="/privacy">Privacy</a></p>
 </footer>`,
+  );
+}
+
+export function privacyPage(): string {
+  return shell(
+    "Privacy · The Interviewer",
+    `
+<h1>Privacy</h1>
+<p>The Interviewer stores as little as it can, for as short a time as it can.</p>
+<h2>What's stored</h2>
+<p>Your Buffer sign-in tokens, encrypted with AES-GCM, plus the public GitHub repo link and the Buffer tags you picked as pillars, and the current week's questions. All of it expires 30 days after your last visit. Disconnecting deletes it straight away.</p>
+<h2>What isn't</h2>
+<p>Your answers. They're sent to your own Buffer account as Ideas and aren't kept here. Nothing is sold, shared or used for ads, and there's no tracking or analytics.</p>
+<h2>What's read</h2>
+<p>From Buffer: your organization, tags, recent Ideas and recent posts, only to aim the questions and avoid repeats. From GitHub: public commits, pull requests and issues in the repo you name. If AI-written questions are turned on, that same context is sent to Anthropic's API to write the questions, and isn't used to train models.</p>
+<h2>Contact</h2>
+<p>Ligaya Beebe, L. Beebe, LLC. Not made by or affiliated with Buffer.</p>
+<p><a href="/">Back</a></p>`,
   );
 }
 

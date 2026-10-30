@@ -15,7 +15,7 @@ import {
 } from "./buffer";
 import { RepoError, parseRepo, whatShipped } from "./github";
 import { planQuestions } from "./interview";
-import { appPage, landingPage } from "./pages";
+import { appPage, landingPage, privacyPage } from "./pages";
 import { cookie, createSession, destroySession, loadSession, readCookie, saveSession, type Session } from "./session";
 
 const html = (body: string, init: ResponseInit = {}) =>
@@ -45,6 +45,7 @@ export default {
           ),
         );
       }
+      if (req.method === "GET" && url.pathname === "/privacy") return html(privacyPage());
       if (req.method === "GET" && url.pathname === "/connect") return connect(env);
       if (req.method === "GET" && url.pathname === "/callback") return callback(req, env, url);
       if (req.method === "POST" && url.pathname === "/logout") {
