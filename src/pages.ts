@@ -212,7 +212,7 @@ const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com"><link 
 function shell(title: string, body: string, opts: { style?: string; script?: string } = {}): string {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>${title}</title>
-<meta name="description" content="A weekly interview about what you built on GitHub. Your answers land in Buffer as Ideas, in your own words.">
+<meta name="description" content="Talk through what you built, find the ideas worth developing, and save them to Buffer in your own words. A thinking scaffold for building in public—not an AI ghostwriter.">
 <meta name="theme-color" content="#f6f6f3" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#07150e" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,${encodeURIComponent(MARK.replace('class="mark" ', 'xmlns="http://www.w3.org/2000/svg" '))}">
 ${FONTS}
@@ -234,8 +234,8 @@ ${NAV}
 <main>
 <section class="wrap hero">
   <div>
-    <h1 class="rise">Talk about what you shipped.</h1>
-    <p class="lead rise" style="--i:1">Everyone says build in public. Hardly anyone tells you where to start. The Interviewer looks at what you worked on this week, asks you about it (out loud or typed), and saves the stories worth telling to your Buffer as Ideas, in your own words.</p>
+    <h1 class="rise">If you can talk about it, you can write about it.</h1>
+    <p class="lead rise" style="--i:1">The Interviewer looks at what you worked on this week and asks you about it, out loud or typed. It helps tease out the ideas worth developing, then saves them to Buffer in your own words—ready for you to turn into posts.</p>
     ${error ? `<p class="alert" role="alert">${escapeHtml(error)}</p>` : ""}
     <div class="act rise" style="--i:2"><a class="btn" href="/connect">Connect with Buffer</a><span class="small muted">Signs in with Buffer, the social media planner. New to it? <a href="https://buffer.com" target="_blank" rel="noopener">The free plan</a> works.</span></div>
   </div>
@@ -269,7 +269,7 @@ ${NAV}
     <h2 class="rise" id="startH">You know you should share it. You just don't know what to say.</h2>
     <div>
       <p class="say rise" style="--i:1">Build in public is everywhere as advice and almost nowhere as instructions. Friday comes, you open a blank post, the week's work feels too small or too technical to talk about, and nothing gets written.</p>
-      <p class="say rise" style="--i:2">The stories are already there, in what you decided, what broke, and who you built it for. They just need someone to ask. Ten minutes of good questions about your real commits, and you walk away with a few stories you can start telling.</p>
+      <p class="say rise" style="--i:2">The ideas are already there, in what you decided, what broke, and who you built it for. They just need someone to ask. Ten minutes of good questions about your real work, and you walk away with a few threads you can develop into posts for the channels where you build in public.</p>
     </div>
   </div>
 </section>
@@ -309,8 +309,8 @@ ${NAV}
   <div class="wrap two">
     <h2 class="rise" id="whyH">It won't write your posts. On purpose.</h2>
     <div>
-      <p class="say rise" style="--i:1">Writing is thinking. When you put your week into your own sentences, you find out what you actually learned, what you'd do again, and what you believe about the thing you're building. Hand that to a model and you skip the part that makes it yours.</p>
-      <p class="say rise" style="--i:2">So The Interviewer does the part that's hard to do alone. It asks, it listens, and it keeps your thinking in your own words. The writing stays with you, and so does your voice.</p>
+      <p class="say rise" style="--i:1">Writing is thinking. Talking is thinking, too. When you put your week into your own sentences, you find out what you actually learned, what you'd do again, and what you believe about the thing you're building. Hand that work to a model and you skip the part that makes it yours.</p>
+      <p class="say rise" style="--i:2">The Interviewer is a scaffold, not a ghostwriter. It asks, listens, and helps you notice the ideas inside what you said. It won't manufacture a finished post or add more AI slop to the feed. You do the writing and thinking; it helps you find a stronger place to start.</p>
     </div>
   </div>
 </section>
