@@ -502,7 +502,6 @@ ${NAV}
 <li><b>Claude Sonnet 5.5</b>, by Anthropic, through MindStudio: at the end, organizes the conversation into ideas while preserving meaning and voice.</li>
 <li><b>DeepSeek Flash</b>, through MindStudio: asks the next question when you type your answers.</li>
 <li><b>OpenAI GPT-Live</b>: holds the live spoken conversation.</li>
-<li><b>ElevenLabs Scribe</b>, through MindStudio: turns a recorded answer into text.</li>
 </ul>
 <h2>Voice</h2>
 <p>A live voice conversation streams between your browser and OpenAI's voice model. This app passes your browser's connection request to OpenAI and keeps the written transcript for the harvest. The live audio isn't stored here.</p>
@@ -569,7 +568,13 @@ textarea{resize:vertical;min-height:120px;line-height:1.5}
 /* Talk */
 .split{display:grid;gap:20px;align-items:start}
 .split .convo{order:-1}
-@media (min-width:1000px){.split{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}.split .convo{grid-column:1;grid-row:1}.split .src{grid-column:2;grid-row:1;position:sticky;top:84px;max-height:calc(100vh - 104px);overflow:auto}}
+@media (min-width:1000px){
+  .split{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
+  .split .convo{grid-column:1;grid-row:1}
+  .split .src{grid-column:2;grid-row:1;position:sticky;top:84px;max-height:calc(100vh - 104px);overflow:auto}
+  .split.solo{grid-template-columns:minmax(0,760px);justify-content:center}
+  .split.solo .convo{grid-column:1}
+}
 .convo{gap:18px}
 .convo .head{display:flex;align-items:center;gap:18px}
 .convo .head .orb{width:64px;height:64px}
@@ -639,7 +644,38 @@ button.chip.on{background:var(--ink);color:var(--ground);box-shadow:none}
 .done-list{list-style:none;margin:0;padding:0;display:grid;gap:10px;width:100%}
 .done-list li{display:flex;gap:12px;align-items:baseline;background:var(--ground);border-radius:16px;padding:14px 18px;animation:fadein .5s var(--ease) both;animation-delay:calc(var(--i,0) * 110ms)}
 .done-list li::before{content:"";flex:none;width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 1px var(--control);transform:translateY(-1px)}
-@media (max-width:640px){.top .scope{display:none}.savebar{border-radius:20px;padding:12px}.savebar .row{width:100%}.savebar .row .btn{flex:1}}
+@media (max-width:640px){
+  .top .wrap{min-height:56px;gap:8px}
+  .top .scope{display:none}
+  .top .wordmark{font-size:1rem;gap:7px}
+  .top .mark{width:26px;height:26px}
+  .top .btn.text{min-height:44px;padding-inline:8px;font-size:.92rem}
+  main.app{padding-block:16px calc(72px + env(safe-area-inset-bottom))}
+  .screen{gap:16px}
+  .panel{padding:16px;border-radius:16px;gap:16px}
+  .convo .head{gap:12px}
+  .convo .head .orb{width:52px;height:52px}
+  .log{max-height:none;overflow:visible;gap:16px}
+  .log li{max-width:96%}
+  .log .you{padding:10px 14px}
+  .topics{margin-inline:-2px;padding-bottom:8px}
+  .live{display:grid;grid-template-columns:1fr;padding:10px}
+  #liveBtn{width:100%;min-width:0}
+  .live .state{min-width:0;text-align:center}
+  .composer textarea{min-height:112px}
+  .composer .row{display:grid;grid-template-columns:auto 1fr}
+  .composer .row .btn.text{justify-self:start}
+  .done-row{display:grid;gap:10px}
+  .done-row .btn{width:100%}
+  .draft .title{font-size:1.15rem}
+  .draft .text{min-height:132px}
+  .savebar{bottom:calc(8px + env(safe-area-inset-bottom));border-radius:18px;padding:12px 14px}
+  .savebar .count{width:100%}
+  .savebar .row{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .savebar .row .btn{width:100%;padding-inline:12px}
+  .studio > .row{display:grid;width:100%}
+  .studio > .row .btn{width:100%}
+}
 `;
 
 export function appPage(): string {
@@ -664,8 +700,8 @@ export function appPage(): string {
   </div>
 </section>
 
-<section id="talk" class="screen wide split" hidden>
-<aside id="src" class="panel src" aria-label="What we're talking about"></aside>
+<section id="talk" class="screen wide split solo" hidden>
+<aside id="src" class="panel src" aria-label="What this question is about" hidden></aside>
 <div class="panel convo">
   <div class="head">
     <div class="orb" id="orb" data-s="idle" aria-hidden="true"><i></i><i></i><b></b></div>
@@ -773,10 +809,13 @@ const sources = new Map();
 const KIND = {pull:"Merged pull request", commit:"Commit", issue:"Closed issue", post:"Your latest Buffer post"};
 async function renderSource(about){
   const q = (state.questions||[])[about];
+  const available = Boolean(q && q.ref);
+  $("src").hidden = !available;
+  $("talk").classList.toggle("solo", !available);
+  if (!available) { shown = about; $("src").innerHTML = ""; markTopics(); return; }
   if (shown === about && $("src").childNodes.length) return;
   shown = about;
   const box = $("src"); box.innerHTML = ""; box.classList.remove("swap"); void box.offsetWidth; box.classList.add("swap");
-  if (!q || !q.ref) { box.append(el("p", "kind", "Your week"), el("h3", "", state.repo || ""), el("p", "small muted", "When the conversation gets to a specific change, it opens here.")); return; }
   const sk = el("div", "skel"); sk.append(el("i"), el("i"), el("i"));
   box.append(el("p", "kind", KIND[q.ref.kind]), sk);
   let src = sources.get(q.id);

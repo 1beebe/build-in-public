@@ -8,7 +8,7 @@ Built by Ligaya Beebe for Buffer Commit 2026. Not made by or affiliated with Buf
 
 1. **Connect with Buffer.** OAuth 2.0 Authorization Code with PKCE. Buffer is the only sign-in. The PKCE verifier and the `state` value stay on the server, and the state is pinned to the browser by a short-lived cookie.
 2. **Name the work.** One field accepts either a public GitHub repo or a sentence about what you're working on. GitHub needs no sign-in and private code stays out of reach.
-3. **Talk.** One live conversation, not a form. GPT-Live 1 handles spoken conversations; DeepSeek Flash (through MindStudio) handles typed turns. The app ranks a few useful threads from the week's work and recent posts, and a side panel shows a plain-language work card with technical details tucked away.
+3. **Talk.** One live conversation, not a form. GPT-Live 1 handles spoken conversations; DeepSeek Flash (through MindStudio) handles typed turns. The app ranks a few useful threads from the week's work and recent posts. When a question points to a concrete pull request, commit, issue or post, an evidence panel appears with technical details tucked away; otherwise the conversation uses the full width.
 4. **Harvest.** When you stop, Claude Sonnet 5.5 reads the whole conversation, finds the bigger story, and proposes one to five Ideas. Each has an angle for a title, one coherent paragraph that removes fillers, false starts, and repetition without inventing claims, and three short questions to help you develop it.
 5. **Save.** You edit and untick, optionally choose a Buffer tag on each card, then save the ones you keep (`aiAssisted: true`, since the AI chose and arranged the words).
 
