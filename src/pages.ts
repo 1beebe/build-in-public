@@ -29,7 +29,8 @@ html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--font);font-size:clamp(1.0625rem,1rem + .2vw,1.1875rem);line-height:1.5;
   font-optical-sizing:auto;-webkit-font-smoothing:antialiased}
 h1,h2,h3{font-weight:600;letter-spacing:-.035em;line-height:.98;margin:0;text-wrap:balance}
-p{margin:0}
+p{margin:0;text-wrap:pretty}
+li{text-wrap:pretty}
 a{color:inherit;text-underline-offset:.18em;text-decoration-thickness:1px}
 a:hover{text-decoration-thickness:2px}
 ::selection{background:var(--accent);color:var(--accent-ink)}
@@ -52,6 +53,7 @@ a:hover{text-decoration-thickness:2px}
 .btn.text{background:transparent;padding:0 6px;min-height:40px;color:var(--muted)}
 .btn.text:hover{color:var(--ink)}
 .btn.small{min-height:38px;padding:0 16px;font-size:.92rem}
+@media (pointer:coarse){.btn.small,.btn.text,.chip,button.chip,.file summary,input[type=text],input.title{min-height:44px}.wordmark{min-height:44px}}
 .btn .rec{width:10px;height:10px;border-radius:50%;background:var(--live);flex:none}
 .wordmark{white-space:nowrap;display:inline-flex;align-items:center;gap:10px;font-weight:600;letter-spacing:-.03em;font-size:1.15rem;text-decoration:none;color:var(--ink)}
 .mark{width:30px;height:30px;flex:none}
@@ -94,18 +96,16 @@ const PAGE_STYLE = `
 .work .kind{color:var(--muted)}
 .work .ttl{font-weight:500;font-size:1rem;line-height:1.3;overflow-wrap:anywhere}
 .work .meta{display:flex;flex-wrap:wrap;gap:4px 12px;color:var(--muted)}
-.work pre{margin:0;background:var(--code);border-radius:10px;font:.75rem/1.55 var(--mono);padding:8px 0;overflow:hidden}
+.work pre{margin:0;background:var(--code);border-radius:10px;font:.8125rem/1.55 var(--mono);padding:8px 0;overflow:hidden}
 .work pre span{display:block;padding:0 10px;white-space:pre;overflow:hidden;text-overflow:ellipsis}
 .work pre .a{background:var(--add);color:var(--add-fg)} .work pre .d{background:var(--del);color:var(--del-fg)}
 .asks{display:grid;gap:16px;align-content:start}
 .asks .who{font-size:.875rem;color:var(--muted);display:flex;align-items:center;gap:8px}
-.asks .q{font-size:clamp(1.35rem,1.1rem + .8vw,1.75rem);line-height:1.22;letter-spacing:-.02em;font-weight:500;min-height:3.66em}
-.caret{display:inline-block;width:.08em;height:1em;background:var(--ink);vertical-align:-.12em;margin-left:2px;animation:blink 1s steps(1) infinite}
-@keyframes blink{50%{opacity:0}}
+.asks .q{font-size:clamp(1.35rem,1.1rem + .8vw,1.75rem);line-height:1.28;letter-spacing:-.02em;font-weight:500;min-height:3.84em}
+.caret{display:inline-block;width:.08em;height:1em;background:var(--ink);vertical-align:-.12em;margin-left:2px}
 .reply{display:flex;align-items:center;gap:12px;background:var(--ground);border-radius:var(--r-ctl);padding:10px 16px;color:var(--muted);font-size:.95rem}
-.dot{width:10px;height:10px;border-radius:50%;background:var(--live);flex:none;animation:pulse 1.6s var(--ease) infinite}
-@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--live) 45%,transparent)}100%{box-shadow:0 0 0 12px transparent}}
-.demo .note{font-size:.875rem;color:var(--muted)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--live);flex:none}
+.demo .note{font-size:.95rem;color:var(--muted);max-width:62ch}
 
 /* Sections */
 .sec{padding-block:clamp(72px,10vw,180px)}
@@ -130,11 +130,10 @@ const PAGE_STYLE = `
 .field .say{color:var(--accent-ink)}
 .idea{background:#fffef5;color:#0d2a1c;border-radius:18px;padding:clamp(20px,2.4vw,32px);display:grid;gap:18px;font-size:.98rem;line-height:1.5;box-shadow:0 18px 40px -24px rgba(13,42,28,.45);transform:rotate(-1deg)}
 .idea .t{font-size:1.4rem;font-weight:600;letter-spacing:-.025em;line-height:1.15}
-.idea .lbl{font-size:.8rem;font-weight:600;color:#3d5446}
+.idea .lbl{font-size:.875rem;font-weight:600;color:#3d5446}
 .idea .tag{display:inline-flex;align-items:center;gap:8px;font-size:.875rem;background:#eef0e8;border-radius:var(--r-ctl);padding:5px 12px;justify-self:start}
 .idea .tag i{width:9px;height:9px;border-radius:50%;background:#2e8b57}
 .idea ul{margin:0;padding-left:1.1em;display:grid;gap:4px}
-.never{margin-top:40px;font-size:1.05rem;font-weight:500;display:flex;gap:12px;align-items:baseline}
 
 /* Steps */
 .steps{list-style:none;margin:56px 0 0;padding:0;display:grid;gap:36px 28px}
@@ -162,12 +161,13 @@ const PAGE_STYLE = `
 .kept{display:grid;gap:28px;margin-top:48px}
 @media (min-width:900px){.kept{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .kept div{display:grid;gap:10px;align-content:start}
+.kept p{max-width:62ch}
 .kept h3{font-size:1.3rem;letter-spacing:-.02em;line-height:1.15}
 
 /* Close */
 .foot{background:var(--field);color:var(--field-ink);padding-block:clamp(64px,8vw,120px) 32px}
 .foot .big{font-size:clamp(3rem,14.2vw,13.5rem);white-space:nowrap;font-weight:600;letter-spacing:-.045em;line-height:.88;margin:0}
-.foot .row{display:flex;flex-wrap:wrap;gap:16px 32px;justify-content:space-between;align-items:end;margin-top:48px;font-size:.92rem;color:var(--field-muted)}
+.foot .row{display:flex;flex-wrap:wrap;gap:16px 32px;justify-content:space-between;align-items:end;margin-top:48px;font-size:1rem;color:var(--field-muted)}
 .foot .row a:not(.btn){color:var(--field-ink)}
 .foot .btn{background:var(--accent);color:var(--accent-ink)}
 @media (prefers-color-scheme:dark){.foot .btn{background:var(--field-ink);color:var(--field)}}
@@ -270,12 +270,11 @@ ${NAV}
     <div>
       <h2 class="rise">Your words, pulled into one thought.</h2>
       <p class="say rise" style="--i:1">When you're done it reads the conversation back, finds the few stories worth telling, and pulls each one into a single thought made from your own words, with what you actually said underneath. You see every one before anything is saved. Edit, untick, pick a pillar, then send them to your Buffer Ideas.</p>
-      <p class="never rise" style="--i:2">It never writes your posts. It only asks.</p>
     </div>
     <article class="idea rise" style="--i:1" aria-label="An Idea as it lands in Buffer">
       <p class="t">Why the summaries had to go</p>
-      <div><p class="lbl">Your words</p><p>It was saving tidy summaries, and when I'd go to write, nothing sounded like me anymore.</p></div>
-      <div><p class="lbl">What you said</p><p>"It was saving tidy summaries. I'd go to write and nothing sounded like me anymore."</p></div>
+      <div><p class="lbl">Your words</p><p>It was saving tidy summaries, and nothing sounded like me anymore. So now it keeps my own sentences and just puts them in order.</p></div>
+      <div><p class="lbl">What you said</p><p>"It was saving tidy summaries. I'd go to write and nothing sounded like me anymore."</p><p>"So now it keeps my own sentences and just puts them in order."</p></div>
       <div><p class="lbl">Prompts to develop it</p><ul><li>What did a tidy summary lose that you needed?</li><li>Who is this post for?</li></ul></div>
       <span class="tag"><i></i>Building</span>
     </article>
@@ -407,11 +406,12 @@ ${NAV}
 <h2>What's read</h2>
 <p>From Buffer: your organization, tags, recent Ideas and up to 20 posts from the last 30 days, only to aim the questions, understand who you write for, and avoid repeats. From GitHub: public commits, pull requests and issues in the repo you name. That context is sent to MindStudio, which runs the AI model that writes the questions. The example on the home page asks GitHub directly from your browser and sends nothing here.</p>
 <h2>Voice</h2>
-<p>A live voice conversation runs directly between your browser and OpenAI's realtime model; this app only hands your browser a key that works for two minutes, and keeps the written transcript for the harvest. If you answer out loud, the recording is held here for at most 10 minutes behind a random link so MindStudio can transcribe it, then deleted. You see the text and can edit it before anything is saved. Questions read aloud are generated by MindStudio from the question text.</p>
+<p>A live voice conversation streams between your browser and OpenAI's voice model. This app only sets up the call, either by passing your browser's connection request to OpenAI or by handing your browser a key that works for two minutes, and keeps the written transcript for the harvest. The live audio isn't stored here. If you answer out loud, the recording is held here for at most 10 minutes behind a random link so MindStudio can transcribe it, then deleted. You see the text and can edit it before anything is saved. Questions read aloud are generated by MindStudio from the question text.</p>
 <h2>Contact</h2>
 <p>Ligaya Beebe, L. Beebe, LLC. Not made by or affiliated with Buffer.</p>
 <p><a href="/">Back to the start</a></p>
 </article></main>`,
+    { style: PAGE_STYLE },
   );
 }
 
@@ -435,7 +435,7 @@ main.app{padding-block:clamp(24px,4vw,48px) 96px}
 .fieldset > .lbl{font-weight:500;font-size:.95rem}
 .fieldset > .hint{color:var(--muted);font-size:.875rem;max-width:60ch}
 input[type=text],textarea,select{font:inherit;font-size:1rem;color:var(--ink);background:var(--ground);border:1px solid var(--control);border-radius:var(--r-in);padding:12px 14px;width:100%;transition:border-color .15s,background-color .15s}
-input[type=text]:focus,textarea:focus,select:focus{border-color:var(--ink);background:var(--surface);outline:none}
+input[type=text]:focus,textarea:focus,select:focus{border-color:var(--ink);background:var(--surface);outline:none;box-shadow:0 0 0 2px var(--ink)}
 textarea{resize:vertical;min-height:120px;line-height:1.5}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{position:relative;display:inline-flex;align-items:center;gap:8px;border-radius:var(--r-ctl);padding:8px 14px;cursor:pointer;background:var(--ground);box-shadow:inset 0 0 0 1px var(--control);font-size:.92rem;transition:background-color .15s,box-shadow .15s,transform .15s;user-select:none}
@@ -455,14 +455,14 @@ textarea{resize:vertical;min-height:120px;line-height:1.5}
 .howgoes{display:grid;gap:28px;padding:clamp(4px,1.6vw,20px)}
 .howgoes div{display:grid;gap:8px}
 .howgoes h2{font-size:1.15rem;letter-spacing:-.02em;line-height:1.2}
-.howgoes p{color:var(--muted);font-size:.95rem}
+.howgoes p{color:var(--muted);font-size:1rem}
 .howgoes .chips{display:flex}.howgoes .chip{cursor:default}
 .studio .orb{width:104px;height:104px}
 .orb{--lvl:0;position:relative;width:88px;height:88px;flex:none}
 .orb i{position:absolute;inset:0;border-radius:50%;background:var(--accent);transform:scale(calc(.78 + var(--lvl) * .5));transition:transform .09s linear}
 .orb i + i{background:transparent;box-shadow:inset 0 0 0 2px var(--accent);transform:scale(calc(.9 + var(--lvl) * .9));opacity:calc(.25 + var(--lvl));transition:transform .14s linear,opacity .14s linear}
 .orb b{position:absolute;inset:34%;border-radius:50%;background:var(--ink);transition:transform .3s var(--ease),background-color .3s}
-.orb[data-s=idle] i:first-child,.orb[data-s=connecting] i:first-child{animation:breathe 3.2s ease-in-out infinite}
+.orb[data-s=connecting] i:first-child{animation:breathe 3.2s ease-in-out infinite}
 .orb[data-s=thinking] b{animation:think 1s ease-in-out infinite}
 .orb[data-s=listening] b{background:var(--live)}
 .orb[data-s=speaking] b{transform:scale(.7)}
@@ -485,14 +485,12 @@ textarea{resize:vertical;min-height:120px;line-height:1.5}
 .log:empty{display:none}
 .log li{display:grid;gap:4px;max-width:92%}
 .log li p{white-space:pre-wrap;overflow-wrap:anywhere}
-.log .who{font-size:.8rem;color:var(--muted)}
-.log .them p{font-size:clamp(1.15rem,1.05rem + .4vw,1.4rem);line-height:1.3;letter-spacing:-.015em;font-weight:500}
+.log .who{font-size:.875rem;color:var(--muted)}
+.log .them p{font-size:clamp(1.15rem,1.05rem + .4vw,1.4rem);line-height:1.36;letter-spacing:-.015em;font-weight:500}
 .log .you{align-self:flex-end;background:var(--raised);border-radius:20px 20px 6px 20px;padding:12px 16px}
 .log .new{animation:fadein .45s var(--ease)}
-.typing p{display:flex;gap:6px;height:1.4em;align-items:center}
-.typing p i{width:8px;height:8px;border-radius:50%;background:var(--muted);animation:hop 1.2s var(--ease) infinite}
-.typing p i:nth-child(2){animation-delay:.15s}.typing p i:nth-child(3){animation-delay:.3s}
-@keyframes hop{0%,60%,100%{transform:none;opacity:.4}30%{transform:translateY(-5px);opacity:1}}
+.log .typing p{color:var(--muted);font-weight:400}
+.saylbl{display:block;font-size:.875rem;color:var(--muted);margin-bottom:6px}
 .live{display:flex;flex-wrap:wrap;align-items:center;gap:12px;background:var(--raised);border-radius:var(--r-card);padding:12px 12px 12px 12px}
 .live .state{color:var(--muted);font-size:.92rem;flex:1;min-width:10em}
 #liveBtn{min-width:11em}
@@ -518,11 +516,11 @@ button.chip.on{background:var(--ink);color:var(--ground);box-shadow:none}
 .plus{color:var(--add-fg)} .minus{color:var(--del-fg)}
 .src .body{white-space:pre-wrap;overflow-wrap:anywhere;font-size:.92rem;max-height:14em;overflow:auto;color:var(--muted)}
 .file{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface)}
-.file summary{cursor:pointer;padding:10px 12px;font:500 .82rem/1.4 var(--mono);display:flex;gap:10px;justify-content:space-between;overflow-wrap:anywhere;list-style:none}
+.file summary{cursor:pointer;padding:10px 12px;font:500 .875rem/1.4 var(--mono);display:flex;gap:10px;justify-content:space-between;overflow-wrap:anywhere;list-style:none}
 .file summary::-webkit-details-marker{display:none}
 .file summary:hover{background:var(--raised)}
-.diff{margin:0;background:var(--code);font:.78rem/1.55 var(--mono);overflow-x:auto;padding:6px 0}
-.diff span{display:block;padding:0 12px;white-space:pre}
+.diff{margin:0;background:var(--code);font:.8125rem/1.55 var(--mono);overflow-x:auto;padding:6px 0}
+.diff span{display:block;padding:0 12px;white-space:pre;width:max-content;min-width:100%}
 .diff .a{background:var(--add);color:var(--add-fg)} .diff .d{background:var(--del);color:var(--del-fg)} .diff .h{color:var(--muted)}
 .src.swap > *{animation:fadein .4s var(--ease) both}
 .skel{display:grid;gap:10px}.skel i{display:block;height:14px;border-radius:7px;background:var(--raised)}.skel i:nth-child(1){height:24px;width:80%}.skel i:nth-child(2){width:55%}.skel i:nth-child(3){height:120px}
@@ -535,7 +533,7 @@ button.chip.on{background:var(--ink);color:var(--ground);box-shadow:none}
 .draft.later{background:var(--ground);border-style:dashed}
 .draft .title{font:600 1.3rem/1.2 var(--font);letter-spacing:-.02em;border-color:transparent;background:transparent;padding:6px 8px;margin-left:-8px;width:calc(100% + 8px)}
 .draft .title:hover{border-color:var(--border)}
-.draft .lbl{font-size:.8rem;font-weight:600;color:var(--muted);display:block;margin-bottom:6px}
+.draft .lbl{font-size:.875rem;font-weight:600;color:var(--muted);display:block;margin-bottom:6px}
 .draft .text{min-height:150px}
 .draft .prompts{min-height:84px;font-size:.92rem}
 .pick{justify-self:start}
@@ -605,8 +603,8 @@ export function appPage(): string {
   <ol id="log" class="log" aria-live="polite"></ol>
   <div class="live" id="liveBox" hidden><button id="liveBtn" class="btn" type="button"><span class="rec"></span><span class="lt">Start talking</span></button><span id="liveState" class="state" aria-live="polite"></span><button id="voicePick" class="btn small text" type="button"></button></div>
   <div class="composer">
-    <label for="say" class="sr">Your answer</label>
-    <textarea id="say" placeholder="Type your answer. Enter sends, Shift+Enter for a new line."></textarea>
+    <label for="say" class="saylbl">Type your answer</label>
+    <textarea id="say" placeholder="Enter sends. Shift+Enter for a new line."></textarea>
     <div class="row">
       <button id="sendBtn" class="btn small" type="button">Send</button><button id="nextBtn" class="btn small text" type="button" title="Enough on this one. Ask about something else.">Next topic</button>
       <button id="micBtn" class="btn quiet small" type="button" aria-pressed="false" hidden>Answer out loud</button>
@@ -729,7 +727,7 @@ async function renderSource(about){
   src.files.forEach((f, k) => {
     const d = el("details", "file"); if (k < 2 && f.patch) d.open = true;
     const sum = el("summary"); sum.append(el("span", "", f.name)); const n = el("span", "num"); n.append(el("span", "plus", "+" + f.additions), " ", el("span", "minus", "−" + f.deletions)); sum.append(n); d.append(sum);
-    if (f.patch) { const pre = el("pre", "diff"); for (const line of f.patch.split("\\\\n")) pre.append(el("span", line.startsWith("@@") ? "h" : line[0] === "+" ? "a" : line[0] === "-" ? "d" : "", line || " ")); d.append(pre); }
+    if (f.patch) { const pre = el("pre", "diff"); for (const line of f.patch.split("\\n")) pre.append(el("span", line.startsWith("@@") ? "h" : line[0] === "+" ? "a" : line[0] === "-" ? "d" : "", line || " ")); d.append(pre); }
     else { const none = el("p", "small muted", f.status === "removed" ? "File removed." : "No preview for this file."); none.style.padding = "0 12px 10px"; d.append(none); }
     box.append(d);
   });
@@ -754,7 +752,7 @@ function renderTalk(){
     log.append(li);
   });
   drawn = turns.length;
-  if (busy) { const li = el("li", "them typing new"), p = el("p"); p.append(el("i"), el("i"), el("i")); p.setAttribute("aria-label", "Thinking"); li.append(el("span", "who", "The Interviewer"), p); log.append(li); }
+  if (busy) { const li = el("li", "them typing new"), p = el("p"); p.textContent = "Thinking about what you said"; li.append(el("span", "who", "The Interviewer"), p); log.append(li); }
   $("liveBox").hidden = !state.live || !window.RTCPeerConnection;
   $("micBtn").hidden = $("speakWrap").hidden = !state.voice || !window.MediaRecorder || !$("liveBox").hidden;
   if (!liveOn()) { orbState(busy ? "thinking" : "idle"); if (!$("liveBox").hidden && !$("liveState").textContent) setLive(""); }
