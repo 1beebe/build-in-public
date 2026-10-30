@@ -58,6 +58,22 @@ main.wide{max-width:1180px}
 .diff span{display:block;padding:0 12px;white-space:pre}
 .diff .a{background:var(--add);color:var(--add-fg)} .diff .d{background:var(--del);color:var(--del-fg)} .diff .h{color:var(--muted)}
 .small-btn{padding:9px 14px;font-size:.92rem}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button.chip{font:inherit;font-size:.88rem;background:transparent;color:var(--fg);padding:5px 11px}
+.chip.on{border-color:var(--accent);background:var(--soft);color:var(--accent)}
+.log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;max-height:46vh;overflow:auto}
+.log li{display:flex;flex-direction:column;gap:2px;max-width:92%}
+.log li p{white-space:pre-wrap;overflow-wrap:anywhere}
+.log .them p{font-family:var(--display);font-size:1.12rem;line-height:1.4}
+.log .you{align-self:flex-end;background:var(--soft);border-radius:12px;padding:10px 14px}
+.log .who{font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.typing p{color:var(--muted)}
+.drafts{display:grid;gap:16px}
+@media (min-width:960px){.drafts{grid-template-columns:1fr 1fr}}
+.draft .title{font:600 1.05rem/1.35 var(--display)}
+.draft .text{min-height:120px}
+.draft.later{opacity:.85;border-style:dashed}
+.pick{align-self:flex-start}
 #micBtn[aria-pressed=true]{background:var(--warn);border-color:var(--warn);color:var(--accent-fg)}
 [hidden]{display:none!important}
 `;
@@ -109,9 +125,9 @@ export function privacyPage(): string {
 <h1>Privacy</h1>
 <p>The Interviewer stores as little as it can, for as short a time as it can.</p>
 <h2>What's stored</h2>
-<p>Your Buffer sign-in tokens, encrypted with AES-GCM, plus the public GitHub repo link and the Buffer tags you picked as pillars, and the current week's questions. All of it expires 30 days after your last visit. Disconnecting deletes it straight away.</p>
+<p>Your Buffer sign-in tokens, encrypted with AES-GCM, plus the public GitHub repo link, the Buffer tags you picked as pillars, and the current interview: its topics and the conversation, encrypted the same way. Starting a new interview clears the last one. All of it expires 30 days after your last visit. Disconnecting deletes it straight away.</p>
 <h2>What isn't</h2>
-<p>Your answers. They're sent to your own Buffer account as Ideas and aren't kept here. Nothing is sold, shared or used for ads, and there's no tracking or analytics.</p>
+<p>Anything after you're done with it. The Ideas you choose go to your own Buffer account. Nothing is sold, shared or used for ads, and there's no tracking or analytics.</p>
 <h2>What's read</h2>
 <p>From Buffer: your organization, tags, recent Ideas and recent posts, only to aim the questions and avoid repeats. From GitHub: public commits, pull requests and issues in the repo you name. That context is sent to MindStudio, which runs the AI model that writes the questions.</p>
 <h2>Voice</h2>
@@ -146,24 +162,36 @@ export function appPage(): string {
 
 <section id="start" class="card" hidden>
   <p class="progress" id="repoLine"></p>
-  <label>What did you work on this week? <span class="muted small" style="font-weight:400">Optional, one or two sentences. It helps aim the questions.</span>
+  <label>What did you work on this week? <span class="muted small" style="font-weight:400">Optional, one or two sentences. It helps aim the conversation.</span>
     <textarea id="weekNote" style="min-height:90px"></textarea></label>
-  <div class="row"><button id="startBtn" class="btn" type="button">Interview me</button><button id="editSetup" class="btn quiet" type="button">Change repo or pillars</button></div>
+  <div class="row"><button id="startBtn" class="btn" type="button">Start the interview</button><button id="editSetup" class="btn quiet" type="button">Change repo or pillars</button></div>
 </section>
 
-<section id="ask" class="split" hidden>
-<aside id="src" class="card src" aria-label="What this question is about"></aside>
-<div class="card panel" aria-live="polite">
-  <p class="progress" id="count"></p>
-  <p class="sample" id="question"></p>
-  <div class="row" id="voiceRow" hidden><button id="hearBtn" class="btn quiet small-btn" type="button">▶ Hear the question</button></div>
-  <p class="source" id="source"></p>
-  <label for="answer">Your answer</label>
-  <textarea id="answer" placeholder="Talk it through. It's saved exactly as you write it."></textarea>
-  <div class="row" id="micRow" hidden><button id="micBtn" class="btn quiet small-btn" type="button" aria-pressed="false">● Answer out loud</button><span id="micNote" class="small muted"></span></div>
-  <div><span style="font-weight:700;font-size:.95rem">Pillar</span><div id="pillars" class="chips" style="margin-top:8px"></div></div>
-  <div class="row"><button id="saveBtn" class="btn" type="button">Save to Buffer</button><button id="skipBtn" class="btn quiet" type="button">Save question for later</button></div>
+<section id="talk" class="split" hidden>
+<aside id="src" class="card src" aria-label="What we're talking about"></aside>
+<div class="card panel">
+  <div class="row" style="justify-content:space-between"><p class="progress" id="talkLine"></p><span id="voiceState" class="small muted"></span></div>
+  <div id="topics" class="chips" aria-label="Topics from your week"></div>
+  <ol id="log" class="log" aria-live="polite"></ol>
+  <label for="say" class="sr">Your answer</label>
+  <textarea id="say" placeholder="Type your answer. Enter sends, Shift+Enter for a new line." style="min-height:96px"></textarea>
+  <div class="row">
+    <button id="sendBtn" class="btn" type="button">Send</button>
+    <button id="micBtn" class="btn quiet small-btn" type="button" aria-pressed="false" hidden>● Talk</button>
+    <label class="chip" id="speakWrap" hidden style="font-weight:400"><input type="checkbox" id="speakOn"> Read questions aloud</label>
+    <span id="micNote" class="small muted"></span>
+  </div>
+  <div class="row" style="border-top:1px solid var(--line);padding-top:14px"><button id="harvestBtn" class="btn quiet" type="button">I'm done. Find my ideas</button></div>
 </div>
+</section>
+
+<section id="review" style="display:flex;flex-direction:column;gap:18px" hidden>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <h2>Ideas from your interview</h2>
+    <p class="muted">Each title names an angle. The text is your own words from the conversation, exactly as you said them. Edit anything, untick what you don't want, then save.</p>
+  </div>
+  <div id="drafts" class="drafts"></div>
+  <div class="row"><button id="saveAll" class="btn" type="button">Save to Buffer</button><button id="backTalk" class="btn quiet" type="button">Back to the conversation</button></div>
 </section>
 
 <section id="done" class="card" hidden>
@@ -177,36 +205,11 @@ export function appPage(): string {
 
 const APP_SCRIPT = `
 const $ = (id) => document.getElementById(id);
-let state = null, i = 0;
-function show(id){ for (const s of ["setup","start","ask","done"]) $(s).hidden = s !== id; document.querySelector("main").classList.toggle("wide", id === "ask"); }
-function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
-const sources = new Map();
-const KIND = {pull:"Merged pull request", commit:"Commit", issue:"Closed issue", post:"Buffer post"};
-async function renderSource(q){
-  const box = $("src"); box.innerHTML = "";
-  if (!q.ref) { box.hidden = true; return; }
-  box.hidden = false; box.append(el("p", "progress", KIND[q.ref.kind]), el("p", "muted small", "Reading it…"));
-  let src = sources.get(q.id);
-  if (!src) { try { src = await api("/api/source?q=" + encodeURIComponent(q.id)); sources.set(q.id, src); } catch(e) { box.lastChild.textContent = e.message; return; } }
-  if (state.questions[i] !== q) return; // they moved on while it loaded
-  box.innerHTML = "";
-  box.append(el("p", "progress", KIND[src.kind]));
-  const h = el("h3"); if (src.url) { const a = el("a", "", src.title); a.href = src.url; a.target = "_blank"; a.rel = "noopener"; h.append(a); } else h.textContent = src.title; box.append(h);
-  const meta = el("div", "meta");
-  if (src.who) meta.append(el("span", "", src.who));
-  if (src.when) meta.append(el("span", "", new Date(src.when).toLocaleDateString(undefined, {weekday:"short", month:"short", day:"numeric"})));
-  if (src.stats) { meta.append(el("span", "plus", "+" + src.stats.additions), el("span", "minus", "−" + src.stats.deletions), el("span", "", src.stats.files + (src.stats.files === 1 ? " file" : " files"))); }
-  if (meta.childNodes.length) box.append(meta);
-  if (src.body) box.append(el("div", "body", src.body));
-  src.files.forEach((f, k) => {
-    const d = el("details", "file"); if (k < 2 && f.patch) d.open = true;
-    const sum = el("summary"); sum.append(el("span", "", f.name)); const n = el("span"); n.append(el("span", "plus", "+" + f.additions), " ", el("span", "minus", "−" + f.deletions)); sum.append(n); d.append(sum);
-    if (f.patch) { const pre = el("pre", "diff"); for (const line of f.patch.split("\\n")) pre.append(el("span", line.startsWith("@@") ? "h" : line[0] === "+" ? "a" : line[0] === "-" ? "d" : "", line || " ")); d.append(pre); }
-    else { const none = el("p", "small muted", f.status === "removed" ? "File removed." : "No preview for this file."); none.style.padding = "0 12px 10px"; d.append(none); }
-    box.append(d);
-  });
-}
+let state = null, shown = null, busy = false;
+const SCREENS = ["setup","start","talk","review","done"];
+function show(id){ for (const s of SCREENS) $(s).hidden = s !== id; document.querySelector("main").classList.toggle("wide", id === "talk" || id === "review"); }
 function err(m){ $("msg").textContent = m || ""; $("msg").hidden = !m; }
+function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 async function api(path, body){
   const res = await fetch(path, body ? {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)} : {});
   const json = await res.json().catch(() => ({}));
@@ -221,6 +224,9 @@ function chip(tag, name, type, checked){
   l.querySelector(".dot").style.background = tag.color; l.querySelector("span:last-child").textContent = tag.name;
   return l;
 }
+const pillars = () => (state.tags||[]).filter(t => (state.pillarTagIds||[]).includes(t.id));
+
+// Setup
 function renderSetup(){
   const orgs = state.orgs || [];
   $("orgWrap").hidden = orgs.length < 2;
@@ -231,31 +237,148 @@ function renderSetup(){
   $("noTags").hidden = (state.tags || []).length > 0;
   show("setup");
 }
-function renderQuestion(){
-  const qs = state.questions || [];
-  const done = new Set([...(state.answered||[]), ...(state.skipped||[])]);
-  while (i < qs.length && done.has(qs[i].id)) i++;
-  if (i >= qs.length) return renderDone();
-  const q = qs[i];
-  $("count").textContent = (q.followUpOf ? "Follow-up · " : "") + "Question " + (i+1) + " of " + qs.length;
-  $("voiceRow").hidden = $("micRow").hidden = !state.voice || !window.MediaRecorder; $("micNote").textContent = "";
-  $("question").textContent = q.text;
-  $("source").innerHTML = ""; const s = q.sourceUrl ? Object.assign(document.createElement("a"), {href:q.sourceUrl, target:"_blank", rel:"noopener"}) : document.createElement("span");
-  s.textContent = q.source; $("source").append(s);
-  $("answer").value = "";
-  $("pillars").innerHTML = "";
-  const pillars = (state.tags||[]).filter(t => (state.pillarTagIds||[]).includes(t.id));
-  pillars.forEach((t, k) => $("pillars").append(chip(t, "p", "radio", k === 0)));
-  show("ask"); renderSource(q); $("answer").focus({preventScroll:true});
+
+// The side panel: the piece of work the conversation is on.
+const sources = new Map();
+const KIND = {pull:"Merged pull request", commit:"Commit", issue:"Closed issue", post:"Your latest Buffer post"};
+async function renderSource(about){
+  const q = (state.questions||[])[about];
+  if (shown === about && $("src").childNodes.length) return;
+  shown = about;
+  const box = $("src"); box.innerHTML = "";
+  if (!q || !q.ref) { box.append(el("p", "progress", "Your week"), el("p", "muted", state.repo || "")); return; }
+  box.append(el("p", "progress", KIND[q.ref.kind]), el("p", "muted small", "Reading it…"));
+  let src = sources.get(q.id);
+  if (!src) { try { src = await api("/api/source?q=" + encodeURIComponent(q.id)); sources.set(q.id, src); } catch(e) { box.lastChild.textContent = e.message; return; } }
+  if (shown !== about) return;
+  box.innerHTML = "";
+  box.append(el("p", "progress", KIND[src.kind]));
+  const h = el("h3"); if (src.url) { const a = el("a", "", src.title); a.href = src.url; a.target = "_blank"; a.rel = "noopener"; h.append(a); } else h.textContent = src.title; box.append(h);
+  const meta = el("div", "meta");
+  if (src.who) meta.append(el("span", "", src.who));
+  if (src.when) meta.append(el("span", "", new Date(src.when).toLocaleDateString(undefined, {weekday:"short", month:"short", day:"numeric"})));
+  if (src.stats) meta.append(el("span", "plus", "+" + src.stats.additions), el("span", "minus", "−" + src.stats.deletions), el("span", "", src.stats.files + (src.stats.files === 1 ? " file" : " files")));
+  if (meta.childNodes.length) box.append(meta);
+  if (src.body) box.append(el("div", "body", src.body));
+  src.files.forEach((f, k) => {
+    const d = el("details", "file"); if (k < 2 && f.patch) d.open = true;
+    const sum = el("summary"); sum.append(el("span", "", f.name)); const n = el("span"); n.append(el("span", "plus", "+" + f.additions), " ", el("span", "minus", "−" + f.deletions)); sum.append(n); d.append(sum);
+    if (f.patch) { const pre = el("pre", "diff"); for (const line of f.patch.split("\\\\n")) pre.append(el("span", line.startsWith("@@") ? "h" : line[0] === "+" ? "a" : line[0] === "-" ? "d" : "", line || " ")); d.append(pre); }
+    else { const none = el("p", "small muted", f.status === "removed" ? "File removed." : "No preview for this file."); none.style.padding = "0 12px 10px"; d.append(none); }
+    box.append(d);
+  });
 }
+
+// The conversation
+function currentAbout(){ const t = [...(state.turns||[])].reverse().find(t => t.about != null); return t ? t.about : null; }
+function renderTalk(){
+  $("talkLine").textContent = "Interview · " + (state.repo || "");
+  const about = currentAbout();
+  $("topics").innerHTML = "";
+  (state.questions||[]).forEach((q, k) => {
+    const b = el("button", "chip" + (k === shown ? " on" : ""), q.source.replace(/^(Merged PR|Closed issue|Commit): /, ""));
+    b.type = "button"; b.title = q.source; b.onclick = () => { renderSource(k); markTopics(); };
+    $("topics").append(b);
+  });
+  const log = $("log"); log.innerHTML = "";
+  for (const t of state.turns || []) {
+    const li = el("li", t.who === "you" ? "you" : "them");
+    li.append(el("span", "who", t.who === "you" ? "You" : "Interviewer"), el("p", "", t.text));
+    log.append(li);
+  }
+  if (busy) { const li = el("li", "them typing"); li.append(el("span", "who", "Interviewer"), el("p", "", "…")); log.append(li); }
+  log.scrollTop = log.scrollHeight;
+  $("micBtn").hidden = $("speakWrap").hidden = !state.voice || !window.MediaRecorder;
+  show("talk");
+  if (about != null && about !== shown) renderSource(about).then(markTopics); else if (shown == null) renderSource(null);
+  markTopics();
+}
+function markTopics(){ [...$("topics").children].forEach((b, k) => b.classList.toggle("on", k === shown)); }
+
+async function say(){
+  const text = $("say").value.trim(); if (!text || busy) return;
+  err(""); busy = true; $("sendBtn").disabled = true;
+  state.turns = [...(state.turns||[]), {who:"you", text}]; $("say").value = ""; renderTalk();
+  try { state = await api("/api/say", {text}); busy = false; renderTalk(); speakLatest(); }
+  catch(e){ busy = false; state.turns.pop(); $("say").value = text; renderTalk(); err(e.message); }
+  finally { $("sendBtn").disabled = false; $("say").focus(); }
+}
+$("sendBtn").onclick = say;
+$("say").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); say(); } });
+
+// Voice: questions read aloud, answers spoken and written down.
+let player = null;
+async function speakLatest(){
+  if (!$("speakOn").checked) return;
+  try { $("voiceState").textContent = "…"; const { audioUrl } = await api("/api/speak", {}); if (player) player.pause(); player = new Audio(audioUrl); player.onended = () => { $("voiceState").textContent = ""; }; $("voiceState").textContent = "Speaking"; await player.play(); }
+  catch(e){ $("voiceState").textContent = ""; }
+}
+$("speakOn").onchange = () => { if ($("speakOn").checked) speakLatest(); else if (player) player.pause(); };
+let rec = null, chunks = [];
+$("micBtn").onclick = async () => {
+  err("");
+  if (rec && rec.state === "recording") { rec.stop(); return; }
+  if (player) player.pause();
+  let stream; try { stream = await navigator.mediaDevices.getUserMedia({audio:true}); } catch { return err("The browser didn't allow the microphone. You can type instead."); }
+  chunks = []; rec = new MediaRecorder(stream);
+  rec.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+  rec.onstop = async () => {
+    stream.getTracks().forEach(t => t.stop());
+    $("micBtn").setAttribute("aria-pressed", "false"); $("micBtn").textContent = "● Talk"; $("micBtn").disabled = true; $("micNote").textContent = "Writing down what you said…";
+    try {
+      const blob = new Blob(chunks, {type: rec.mimeType || "audio/webm"});
+      const res = await fetch("/api/transcribe", {method:"POST", headers:{"Content-Type": blob.type}, body: blob});
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || "Couldn't write that down. Try again or type it.");
+      const a = $("say"); a.value = (a.value.trim() ? a.value.trim() + " " : "") + json.text; a.focus();
+      $("micNote").textContent = "Check it, then send.";
+    } catch(e){ err(e.message); $("micNote").textContent = ""; } finally { $("micBtn").disabled = false; }
+  };
+  rec.start(); $("micBtn").setAttribute("aria-pressed", "true"); $("micBtn").textContent = "■ Stop"; $("micNote").textContent = "Listening…";
+};
+
+// Harvest and review
+$("harvestBtn").onclick = async () => {
+  err(""); $("harvestBtn").disabled = true; $("harvestBtn").textContent = "Reading the conversation…";
+  try { state = await api("/api/harvest", {}); renderReview(); }
+  catch(e){ err(e.message); } finally { $("harvestBtn").disabled = false; $("harvestBtn").textContent = "I'm done. Find my ideas"; }
+};
+function renderReview(){
+  const box = $("drafts"); box.innerHTML = "";
+  for (const d of state.drafts || []) {
+    const card = el("div", "card draft" + (d.later ? " later" : "")); card.dataset.id = d.id;
+    const top = el("label", "chip pick"); const cb = el("input"); cb.type = "checkbox"; cb.checked = !d.later; top.append(cb, el("span", "", d.later ? "Save to answer later" : "Save this idea")); card.append(top);
+    if ((state.saved||[]).includes(d.id)) { cb.checked = false; cb.disabled = true; top.lastChild.textContent = "Saved"; }
+    const t = el("input", "title"); t.type = "text"; t.value = d.title; t.setAttribute("aria-label", "Idea title"); card.append(t);
+    const x = el("textarea", "text"); x.value = d.text; x.setAttribute("aria-label", "Idea text, in your words"); card.append(x);
+    const chips = el("div", "chips"); pillars().forEach((p, k) => chips.append(chip(p, "pl-" + d.id, "radio", d.tagId ? d.tagId === p.id : k === 0))); card.append(chips);
+    box.append(card);
+  }
+  show("review");
+}
+$("backTalk").onclick = renderTalk;
+$("saveAll").onclick = async () => {
+  err("");
+  const drafts = [...document.querySelectorAll(".draft")].filter(c => c.querySelector(".pick input").checked).map(c => ({
+    id: c.dataset.id, title: c.querySelector(".title").value, text: c.querySelector(".text").value,
+    tagId: (c.querySelector('.chips input:checked') || {}).value,
+  }));
+  if (!drafts.length) return err("Tick at least one idea to save.");
+  $("saveAll").disabled = true; $("saveAll").textContent = "Saving…";
+  try { state = await api("/api/save", {drafts}); renderDone(); }
+  catch(e){ err(e.message); try { state = await api("/api/state"); renderReview(); } catch {} }
+  finally { $("saveAll").disabled = false; $("saveAll").textContent = "Save to Buffer"; }
+};
 function renderDone(){
-  const a = (state.answered||[]).length, s = (state.skipped||[]).length;
-  $("doneLine").textContent = a + (a === 1 ? " answer" : " answers") + " saved to your Buffer Ideas" + (s ? ", and " + s + (s === 1 ? " question" : " questions") + " saved for later." : ".");
+  const n = (state.saved||[]).length;
+  $("doneLine").textContent = n + (n === 1 ? " idea" : " ideas") + " saved to your Buffer Ideas, in your own words.";
   show("done");
 }
+
 function route(){
   if (!state.repo || !(state.pillarTagIds||[]).length) return renderSetup();
-  if ((state.questions||[]).length) { i = 0; return renderQuestion(); }
+  if ((state.drafts||[]).length) return (state.saved||[]).length ? renderDone() : renderReview();
+  if ((state.turns||[]).length) return renderTalk();
   $("repoLine").textContent = state.repo; show("start");
 }
 async function load(){ try { state = await api("/api/state"); route(); } catch(e){ err(e.message); } }
@@ -268,50 +391,10 @@ $("saveSetup").onclick = async () => {
 $("editSetup").onclick = renderSetup;
 $("startBtn").onclick = async () => {
   err(""); $("startBtn").disabled = true; $("startBtn").textContent = "Reading your week…";
-  try { state = await api("/api/start", {weekNote:$("weekNote").value}); i = 0; renderQuestion(); }
-  catch(e){ err(e.message); } finally { $("startBtn").disabled = false; $("startBtn").textContent = "Interview me"; }
+  try { state = await api("/api/start", {weekNote:$("weekNote").value}); shown = null; renderTalk(); speakLatest(); $("say").focus({preventScroll:true}); }
+  catch(e){ err(e.message); } finally { $("startBtn").disabled = false; $("startBtn").textContent = "Start the interview"; }
 };
-function pickedPillar(){ const p = document.querySelector('input[name=p]:checked'); return p ? p.value : null; }
-$("saveBtn").onclick = async () => {
-  err(""); if (!$("answer").value.trim()) return err("Write an answer first, or save the question for later.");
-  $("saveBtn").disabled = true;
-  try { state = await api("/api/answer", {questionId: state.questions[i].id, answer: $("answer").value, tagId: pickedPillar()}); i++; renderQuestion(); }
-  catch(e){ err(e.message); } finally { $("saveBtn").disabled = false; }
-};
-$("skipBtn").onclick = async () => {
-  err(""); $("skipBtn").disabled = true;
-  try { state = await api("/api/skip", {questionId: state.questions[i].id, tagId: pickedPillar()}); i++; renderQuestion(); }
-  catch(e){ err(e.message); } finally { $("skipBtn").disabled = false; }
-};
-let player = null;
-$("hearBtn").onclick = async () => {
-  err(""); const q = state.questions[i]; $("hearBtn").disabled = true; $("hearBtn").textContent = "Getting the voice…";
-  try { const { audioUrl } = await api("/api/speak", {questionId: q.id}); q.audioUrl = audioUrl; if (player) player.pause(); player = new Audio(audioUrl); await player.play(); }
-  catch(e){ err(e.message); } finally { $("hearBtn").disabled = false; $("hearBtn").textContent = "▶ Hear the question"; }
-};
-let rec = null, chunks = [];
-$("micBtn").onclick = async () => {
-  err("");
-  if (rec && rec.state === "recording") { rec.stop(); return; }
-  let stream; try { stream = await navigator.mediaDevices.getUserMedia({audio:true}); } catch { return err("The browser didn't allow the microphone. You can type instead."); }
-  const q = state.questions[i]; chunks = [];
-  rec = new MediaRecorder(stream);
-  rec.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
-  rec.onstop = async () => {
-    stream.getTracks().forEach(t => t.stop());
-    $("micBtn").setAttribute("aria-pressed", "false"); $("micBtn").textContent = "● Answer out loud"; $("micBtn").disabled = true; $("micNote").textContent = "Writing down what you said…";
-    try {
-      const blob = new Blob(chunks, {type: rec.mimeType || "audio/webm"});
-      const res = await fetch("/api/transcribe?q=" + encodeURIComponent(q.id), {method:"POST", headers:{"Content-Type": blob.type}, body: blob});
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json.error || "Couldn't write that down. Try again or type it.");
-      if (state.questions[i] === q) { const a = $("answer"); a.value = (a.value.trim() ? a.value.trim() + "\\n\\n" : "") + json.text; a.focus(); }
-      $("micNote").textContent = "Check it over, then save. It's saved exactly as it reads here.";
-    } catch(e){ err(e.message); $("micNote").textContent = ""; } finally { $("micBtn").disabled = false; }
-  };
-  rec.start(); $("micBtn").setAttribute("aria-pressed", "true"); $("micBtn").textContent = "■ Stop"; $("micNote").textContent = "Listening…";
-};
-$("again").onclick = async () => { try { state = await api("/api/reset", {}); route(); } catch(e){ err(e.message); } };
+$("again").onclick = async () => { try { state = await api("/api/reset", {}); shown = null; sources.clear(); route(); } catch(e){ err(e.message); } };
 load();
 `;
 

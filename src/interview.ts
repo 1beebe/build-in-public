@@ -108,10 +108,10 @@ async function modelQuestions(
   });
 }
 
-const hasModel = (env: Env) => Boolean(env.MINDSTUDIO_API_KEY || env.ANTHROPIC_API_KEY);
+export const hasModel = (env: Env) => Boolean(env.MINDSTUDIO_API_KEY || env.ANTHROPIC_API_KEY);
 
 // MindStudio (DeepSeek) when it's set up, Claude as a fallback.
-async function complete(env: Env, system: string, message: string): Promise<string> {
+export async function complete(env: Env, system: string, message: string): Promise<string> {
   if (env.MINDSTUDIO_API_KEY) return generateText(env, system, message);
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -121,25 +121,6 @@ async function complete(env: Env, system: string, message: string): Promise<stri
   if (!res.ok) throw new Error(`model ${res.status}`);
   const json = (await res.json()) as { content: { type: string; text?: string }[] };
   return json.content.find((c) => c.type === "text")?.text ?? "";
-}
-
-// After an answer, the one question a good interviewer would ask next, or
-// nothing if the answer already told the story. Only with a model.
-export async function followUp(env: Env, q: Question, answer: string): Promise<Question | null> {
-  if (!hasModel(env) || answer.length < 15) return null;
-  try {
-    const text = await complete(
-      env,
-      METHOD,
-      `You asked: ${q.text}\nAbout: ${q.source}\nThey answered: ${answer.slice(0, 2000)}\n\nIf the answer opened a thread worth pulling (a reason, a surprise, a person, a decision), write ONE follow-up question that picks it up, using their own words where you can. If the answer already told the whole story, reply NONE. Reply with the question or NONE, nothing else.`,
-    );
-    const line = text.trim().replace(/^["']|["']$/g, "");
-    if (!line || /^none\b/i.test(line) || line.length > 220) return null;
-    return { id: randomToken(8), text: line, source: q.source, sourceUrl: q.sourceUrl, ref: q.ref, followUpOf: q.id };
-  } catch (err) {
-    console.error("follow-up failed", err);
-    return null;
-  }
 }
 
 // Works with no model at all: specific, if less clever, questions about the

@@ -16,8 +16,21 @@ export interface Question {
   // What the side panel shows: a pull request number, commit sha or issue
   // number in the repo, or the text of a Buffer post.
   ref?: { kind: "pull" | "commit" | "issue" | "post"; key: string };
-  followUpOf?: string; // the question whose answer prompted this one
-  audioUrl?: string; // the question read aloud, made on first listen
+}
+
+export interface Turn {
+  who: "interviewer" | "you";
+  text: string;
+  about?: number; // index into the agenda: what the side panel shows
+}
+
+// An Idea proposed from the conversation, waiting for review.
+export interface Draft {
+  id: string;
+  title: string; // the angle, written by the model
+  text: string; // their own words, quoted exactly
+  tagId?: string;
+  later?: boolean; // an agenda topic they didn't get to
 }
 
 export interface Session {
@@ -27,9 +40,11 @@ export interface Session {
   repo?: string; // "owner/name"
   pillarTagIds?: string[];
   tags?: { id: string; name: string; color: string }[]; // cached from Buffer
-  questions?: Question[];
-  answered?: string[]; // question ids saved with an answer
-  skipped?: string[]; // question ids saved as unanswered Ideas
+  questions?: Question[]; // the agenda: what the interviewer means to cover
+  turns?: Turn[]; // the conversation, kept only until it's saved or reset
+  drafts?: Draft[];
+  saved?: string[]; // draft ids already sent to Buffer
+  brief?: string; // repo, their note and recent posts, for the interviewer's context
   weekNote?: string; // their one-line "what did you work on", used only to aim questions
 }
 

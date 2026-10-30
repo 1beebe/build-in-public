@@ -9,8 +9,9 @@ Built by Ligaya Beebe for Buffer Commit 2026. Not made by or affiliated with Buf
 1. **Connect with Buffer.** OAuth 2.0 Authorization Code with PKCE. Buffer is the only sign-in. The PKCE verifier and the `state` value stay on the server, and the state is pinned to the browser by a short-lived cookie.
 2. **Paste a public repo.** Read through GitHub's public REST API, so there's no GitHub sign-in.
 3. **Pick pillars.** Up to three of your existing Buffer tags.
-4. **Interview.** Questions point at one real piece of work each, shown beside the question: the pull request, commit or issue with its diff, or your latest Buffer post. After a good answer the interviewer may ask one follow-up. You can listen to each question and answer out loud; the recording is transcribed, you check the text, and only then is it saved.
-5. **Save.** Each answer becomes a Buffer Idea: the question as its title, your answer as its text (exactly as written), your chosen pillar tag, and `aiAssisted: false`. A question you skip is saved as an Idea too, marked `aiAssisted: true`, so you can answer it later.
+4. **Talk.** One conversation, not a form. The interviewer (DeepSeek through MindStudio) reacts to what you say, pulls threads and moves through your week, while the side panel shows the pull request, commit or issue it's on, with the diff. Type, or talk and check the transcript.
+5. **Harvest.** When you're done, DeepSeek reads the conversation and proposes Ideas: a title naming each angle, and your exact sentences as the text. Quotes that don't appear word for word in what you said are dropped. Topics you didn't get to are offered as Ideas to answer later.
+6. **Save.** You edit, untick and pick pillars, then the ones you keep go to Buffer as Ideas with your pillar tag (`aiAssisted: false` for your own words, `true` for saved-for-later questions).
 
 ## Buffer API use
 

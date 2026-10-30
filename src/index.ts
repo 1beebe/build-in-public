@@ -14,7 +14,8 @@ import {
   type Tag,
 } from "./buffer";
 import { RepoError, getSource, parseRepo, whatShipped, type Source } from "./github";
-import { followUp, planQuestions } from "./interview";
+import { planQuestions } from "./interview";
+import { harvest, opening, reply } from "./conversation";
 import { MindStudioError, speak, transcribe } from "./mindstudio";
 import { appPage, landingPage, privacyPage } from "./pages";
 import { cookie, createSession, destroySession, loadSession, readCookie, saveSession, type Session } from "./session";
@@ -119,7 +120,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         if (!ids.length) throw new UserError("Pick at least one pillar.");
         if (body.organizationId) s.organizationId = String(body.organizationId);
         await whatShipped(env, repo, 1); // fails fast with a clear message if the repo isn't public
-        Object.assign(s, { repo, pillarTagIds: ids, questions: [], answered: [], skipped: [] });
+        Object.assign(s, { repo, pillarTagIds: ids, questions: [], turns: [], drafts: [], saved: [] });
         result = await view(env, client, s, true);
         break;
       }
@@ -128,52 +129,67 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         s.weekNote = String(body.weekNote ?? "").slice(0, 500);
         const [shipped, recent] = await Promise.all([whatShipped(env, s.repo), getRecent(client, s.organizationId)]);
         s.questions = await planQuestions(env, shipped, recent, s.weekNote);
-        s.answered = [];
-        s.skipped = [];
+        s.brief = [
+          `Repo: ${shipped.repo}${shipped.description ? ` — ${shipped.description}` : ""}`,
+          `What they said they worked on this week: ${s.weekNote || "(nothing)"}`,
+          `Their recent posts, newest first (don't steer back to these):`,
+          ...recent.posts.slice(0, 5).map((p) => `- ${p.slice(0, 200)}`),
+        ].join("\n");
+        Object.assign(s, { turns: [opening(s.questions)], drafts: [], saved: [] });
         result = await view(env, client, s);
         break;
       }
-      case "/api/answer":
-      case "/api/skip": {
-        const q = s.questions?.find((x) => x.id === body.questionId);
-        if (!q) throw new UserError("That question is no longer open. Reload the page.");
-        if ([...(s.answered ?? []), ...(s.skipped ?? [])].includes(q.id)) {
-          result = await view(env, client, s); // already saved: a double click must not create a second Idea
-          break;
-        }
-        const answer = path === "/api/answer" ? String(body.answer ?? "").trim() : "";
-        if (path === "/api/answer" && !answer) throw new UserError("Write an answer first, or save the question for later.");
-        if (client.nearLimit) throw new RateLimited(60);
-        const tags = (s.tags ?? []).filter((t) => t.id === body.tagId);
-        await createIdea(client, s.organizationId!, {
-          title: q.text,
-          // Answers are saved exactly as written. A skipped question is saved with
-          // where it came from, so it still makes sense when they find it later.
-          text: answer || `Saved by The Interviewer to answer later. About: ${q.source}${q.sourceUrl ? ` (${q.sourceUrl})` : ""}`,
-          tags,
-          aiAssisted: !answer,
-        });
-        (answer ? (s.answered ??= []) : (s.skipped ??= [])).push(q.id);
-        // One follow-up per original question, and the interview stays short.
-        if (answer && !q.followUpOf && (s.questions?.length ?? 0) < MAX_INTERVIEW) {
-          const next = await followUp(env, q, answer);
-          if (next) s.questions!.splice(s.questions!.indexOf(q) + 1, 0, next);
+      case "/api/say": {
+        const text = String(body.text ?? "").trim().slice(0, 4000);
+        if (!text) throw new UserError("Say something first.");
+        if (!s.questions?.length || !s.turns) throw new UserError("Start an interview first.");
+        if ((s.turns.length ?? 0) > MAX_TURNS) throw new UserError("That's a long interview. Pull your ideas together, then start a new one.");
+        s.turns.push({ who: "you", text });
+        s.turns.push(await reply(env, s.questions, s.turns, s.brief ?? ""));
+        result = await view(env, client, s);
+        break;
+      }
+      case "/api/harvest": {
+        if (!s.turns?.some((t) => t.who === "you")) throw new UserError("Answer at least one question first.");
+        const pillars = (s.tags ?? []).filter((t) => (s.pillarTagIds ?? []).includes(t.id));
+        s.drafts = await harvest(env, s.questions ?? [], s.turns, pillars);
+        s.saved = [];
+        result = await view(env, client, s);
+        break;
+      }
+      case "/api/save": {
+        // The reviewed drafts, as edited on the page. Saved one by one, so a
+        // rate limit part way through keeps what's done and says so.
+        const picked = Array.isArray(body.drafts) ? (body.drafts as Record<string, unknown>[]).slice(0, 12) : [];
+        if (!picked.length) throw new UserError("Pick at least one idea to save.");
+        for (const d of picked) {
+          const draft = s.drafts?.find((x) => x.id === d.id);
+          if (!draft || s.saved?.includes(draft.id)) continue; // a double click must not create a second Idea
+          const title = String(d.title ?? draft.title).trim().slice(0, 200);
+          const text = String(d.text ?? draft.text).trim();
+          if (!text) continue;
+          if (client.nearLimit) throw new RateLimited(60);
+          await createIdea(client, s.organizationId!, {
+            title,
+            text,
+            tags: (s.tags ?? []).filter((t) => t.id === d.tagId),
+            aiAssisted: Boolean(draft.later), // their own words otherwise; the AI only named the angle
+          });
+          (s.saved ??= []).push(draft.id);
+          await saveSession(env, id, s);
         }
         result = await view(env, client, s);
         break;
       }
       case "/api/speak": {
         if (!env.MINDSTUDIO_API_KEY) throw new UserError("Voice isn't turned on yet.");
-        const q = s.questions?.find((x) => x.id === body.questionId);
-        if (!q) throw new UserError("That question is no longer open. Reload the page.");
-        q.audioUrl ??= await speak(env, q.text);
-        result = { audioUrl: q.audioUrl };
+        const last = [...(s.turns ?? [])].reverse().find((t) => t.who === "interviewer");
+        if (!last) throw new UserError("Nothing to say yet.");
+        result = { audioUrl: await speak(env, last.text) };
         break;
       }
       case "/api/transcribe": {
         if (!env.MINDSTUDIO_API_KEY) throw new UserError("Voice isn't turned on yet.");
-        const q = s.questions?.find((x) => x.id === new URL(req.url).searchParams.get("q"));
-        if (!q) throw new UserError("That question is no longer open. Reload the page.");
         const bytes = await req.arrayBuffer();
         if (!bytes.byteLength) throw new UserError("That recording came through empty. Try again.");
         if (bytes.byteLength > 15_000_000) throw new UserError("That recording is too long. Try a shorter answer.");
@@ -183,9 +199,8 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const type = (req.headers.get("Content-Type") ?? "audio/webm").split(";")[0];
         await env.SESSIONS.put(`audio:${key}`, bytes, { expirationTtl: 600, metadata: { type } });
         try {
-          const terms = [...new Set([...(s.repo ?? "").split(/[\/_.-]/), ...q.source.replace(/^[^:]+: /, "").split(/\s+/)])]
-            .filter((t) => t.length > 3);
-          result = { text: await transcribe(env, `${env.APP_URL}/audio/${key}`, terms) };
+          const terms = [...(s.repo ?? "").split(/[\/_.-]/), ...(s.questions ?? []).flatMap((q) => q.source.replace(/^[^:]+: /, "").split(/\s+/))];
+          result = { text: await transcribe(env, `${env.APP_URL}/audio/${key}`, [...new Set(terms)].filter((t) => t.length > 3)) };
         } finally {
           await env.SESSIONS.delete(`audio:${key}`);
         }
@@ -197,7 +212,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         return json(await source(env, s.repo, q.ref)); // read-only: the session doesn't change
       }
       case "/api/reset":
-        Object.assign(s, { questions: [], answered: [], skipped: [] });
+        Object.assign(s, { questions: [], turns: [], drafts: [], saved: [], brief: undefined });
         result = await view(env, client, s);
         break;
       default:
@@ -250,13 +265,14 @@ async function view(env: Env, client: BufferClient, s: Session, refresh = false)
     tags,
     pillarTagIds: s.pillarTagIds ?? [],
     questions: s.questions ?? [],
-    answered: s.answered ?? [],
-    skipped: s.skipped ?? [],
+    turns: s.turns ?? [],
+    drafts: s.drafts ?? [],
+    saved: s.saved ?? [],
     voice: Boolean(env.MINDSTUDIO_API_KEY),
   };
 }
 
-const MAX_INTERVIEW = 8;
+const MAX_TURNS = 60;
 
 async function audio(env: Env, key: string): Promise<Response> {
   const { value, metadata } = await env.SESSIONS.getWithMetadata<{ type: string }>(`audio:${key}`, "arrayBuffer");
