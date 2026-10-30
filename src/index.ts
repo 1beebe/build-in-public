@@ -36,6 +36,8 @@ export default {
     try {
       if (req.method === "GET" && url.pathname === "/") {
         const error = url.searchParams.get("error");
+        // Already connected: straight back to their interview, not a second sign-in.
+        if (!error && (await loadSession(req, env))) return redirect("/app");
         return html(
           landingPage(
             error === "reconnect"
@@ -87,12 +89,17 @@ async function callback(req: Request, env: Env, url: URL): Promise<Response> {
   if (!code || !verifier) return redirect("/?error=expired", { "Set-Cookie": clear });
 
   const tokens = await exchangeCode(env, code, verifier);
-  const session: Session = { tokens };
+  // Signing in again keeps their setup and any interview in progress.
+  const existing = await loadSession(req, env);
+  const session: Session = existing ? { ...existing.data, tokens } : { tokens };
   const { orgs } = await getStart(new BufferClient(env, session));
-  if (orgs.length === 1) Object.assign(session, { organizationId: orgs[0].id, organizationName: orgs[0].name });
-  const { setCookie } = await createSession(env, session);
+  if (!orgs.some((o) => o.id === session.organizationId)) {
+    Object.assign(session, { organizationId: undefined, organizationName: undefined, repo: undefined, pillarTagIds: undefined, questions: [], turns: [], drafts: [], saved: [] });
+  }
+  if (orgs.length === 1 && !session.organizationId) Object.assign(session, { organizationId: orgs[0].id, organizationName: orgs[0].name });
   const headers = new Headers({ Location: "/app" });
-  headers.append("Set-Cookie", setCookie);
+  if (existing) await saveSession(env, existing.id, session);
+  else headers.append("Set-Cookie", (await createSession(env, session)).setCookie);
   headers.append("Set-Cookie", clear);
   return new Response(null, { status: 302, headers });
 }
