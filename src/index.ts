@@ -241,6 +241,13 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         if (!q?.ref || !s.repo) throw new UserError("Nothing to show for this question.");
         return json(await source(env, s.repo, q.ref)); // read-only: the session doesn't change
       }
+      case "/api/models": {
+        // Temporary: which chat models this MindStudio key can use.
+        const res = await fetch("https://v1.mindstudio-api.com/developer/v2/helpers/models/llm_chat", { headers: { Authorization: `Bearer ${env.MINDSTUDIO_API_KEY}` } });
+        const { models } = (await res.json()) as { models: { id: string; name: string }[] };
+        result = models.filter((m) => /claude|gpt|gemini|deepseek|kimi|qwen/i.test(`${m.id} ${m.name}`)).map((m) => `${m.id} | ${m.name}`);
+        break;
+      }
       case "/api/reset":
         Object.assign(s, { questions: [], turns: [], drafts: [], saved: [], brief: undefined });
         result = await view(env, client, s);
