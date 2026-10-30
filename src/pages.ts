@@ -508,7 +508,7 @@ textarea{resize:vertical;min-height:120px;line-height:1.5}
 .chip:has(input:checked){background:var(--ink);color:var(--ground);box-shadow:none}
 .chip:has(input:focus-visible){outline:3px solid var(--ink);outline-offset:2px}
 .chip:has(input:disabled){cursor:default;opacity:.7}
-.check{display:flex;gap:10px;align-items:center;color:var(--muted);cursor:pointer}.check input{width:auto;margin:0}
+.check{display:flex;gap:12px;align-items:center;color:var(--muted);cursor:pointer;min-height:44px}.check input{width:20px;height:20px;margin:0;flex:none;accent-color:var(--ink)}
 #repo:disabled{opacity:.45}
 .chip .swatch{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 0 1.5px var(--surface)}
 .row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
