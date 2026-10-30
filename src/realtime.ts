@@ -15,14 +15,16 @@ const VOICE_RULES = `This is a live voice conversation.
 - Let silences be. Don't fill them, and don't talk over someone who's thinking.
 - If they say they're done, thank them in one sentence and tell them to press "Find my ideas".`;
 
-export async function voiceSession(env: Env, s: Session): Promise<{ key: string; model: string }> {
+// The interviewer's full brief for a live voice session: who it is, the
+// rules for talking out loud, what it knows, and where the conversation is.
+function liveInstructions(s: Session, rules: string): string {
   const agenda: Question[] = s.questions ?? [];
   // Before they've said anything, the opening question on screen is replaced by the live hello.
   const answered = (s.turns ?? []).some((t) => t.who === "you");
   const sofar = !answered ? "" : (s.turns ?? []).map((t) => `${t.who === "you" ? "THEM" : "YOU"}: ${t.text}`).join("\n");
-  const instructions = [
+  return [
     CONVERSE,
-    VOICE_RULES,
+    rules,
     `Context:\n${s.brief ?? ""}`,
     `Threads you might get to (numbered):\n${agendaBrief(agenda)}`,
     sofar ? `The conversation so far (pick up where it left off, don't repeat it):\n${sofar}` : "",
@@ -31,6 +33,11 @@ export async function voiceSession(env: Env, s: Session): Promise<{ key: string;
   ]
     .filter(Boolean)
     .join("\n\n");
+}
+
+export async function voiceSession(env: Env, s: Session): Promise<{ key: string; model: string }> {
+  const agenda: Question[] = s.questions ?? [];
+  const instructions = liveInstructions(s, VOICE_RULES);
   const terms = [...new Set([...(s.repo ?? "").split(/[\/_.-]/), ...agenda.flatMap((q) => q.source.replace(/^[^:]+: /, "").split(/\s+/))])]
     .filter((t) => t.length > 3)
     .slice(0, 40);
@@ -74,3 +81,36 @@ export async function voiceSession(env: Env, s: Session): Promise<{ key: string;
 }
 
 export const openaiKey = (env: Env) => env.OPENAI_API_KEY || env.OPEN_AI_KEY;
+
+// GPT-Live: OpenAI's full-duplex voice model, which listens while it talks and
+// backchannels like a person. The browser sends its WebRTC offer here and the
+// Worker opens the session with the real key, so the key never leaves the server.
+const LIVE_MODEL = "gpt-live-1";
+
+const LIVE_RULES = `This is a live voice conversation, full duplex: you can hear them while you talk.
+- Small sounds of listening while they speak ("mm", "yeah") are welcome. Don't talk over a real answer.
+- Never read code, file paths, hashes or URLs aloud. Say what the change does in plain words.
+- If the conversation hasn't started, say hi in a few words and ask your first question about the first thread, in your own words.
+- Every turn ends with your question (or, at the end, the goodbye).
+- Let silences be. Someone who's thinking needs a moment.
+- If they say they're done, thank them in one sentence and tell them to press "Find my ideas".`;
+
+export async function gptLiveSession(env: Env, s: Session, sdp: string): Promise<{ sdp: string; model: string }> {
+  const model = env.LIVE_MODEL || LIVE_MODEL;
+  const res = await fetch("https://api.openai.com/v1/live/sessions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${openaiKey(env)}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      session: {
+        model,
+        instructions: liveInstructions(s, LIVE_RULES),
+        audio: { output: { voice: env.REALTIME_VOICE || "marin" } },
+      },
+      transport: { type: "webrtc", sdp },
+    }),
+  });
+  if (!res.ok) throw new Error(`gpt-live ${res.status}: ${(await res.text()).slice(0, 300)}`);
+  const json = (await res.json()) as { transport?: { sdp?: string } };
+  if (!json.transport?.sdp) throw new Error("gpt-live: no SDP answer");
+  return { sdp: json.transport.sdp, model };
+}

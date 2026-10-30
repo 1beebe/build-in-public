@@ -16,7 +16,7 @@ import {
 import { RepoError, getSource, parseRepo, whatShipped, type Source } from "./github";
 import { planQuestions } from "./interview";
 import { harvest, opening, reply } from "./conversation";
-import { openaiKey, voiceSession } from "./realtime";
+import { gptLiveSession, openaiKey, voiceSession } from "./realtime";
 import { MindStudioError, speak, transcribe } from "./mindstudio";
 import { appPage, landingPage, privacyPage } from "./pages";
 import { cookie, createSession, destroySession, loadSession, readCookie, saveSession, type Session } from "./session";
@@ -167,6 +167,19 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         if (s.voiceStarts.length >= 12) throw new UserError("That's a lot of talking for one hour. Type for now, or come back in a bit.");
         s.voiceStarts.push(now);
         result = await voiceSession(env, s);
+        break;
+      }
+      case "/api/live": {
+        // The GPT-Live voice option: the page posts its WebRTC offer, gets the answer.
+        if (!openaiKey(env)) throw new UserError("Live voice isn't turned on yet. Type instead.");
+        if (!s.questions?.length) throw new UserError("Start an interview first.");
+        const sdp = String(body.sdp ?? "");
+        if (!sdp.startsWith("v=")) throw new UserError("The voice connection didn't start. Try again.");
+        const now = Date.now();
+        s.voiceStarts = (s.voiceStarts ?? []).filter((t) => now - t < 3600_000);
+        if (s.voiceStarts.length >= 12) throw new UserError("That's a lot of talking for one hour. Type for now, or come back in a bit.");
+        s.voiceStarts.push(now);
+        result = await gptLiveSession(env, s, sdp.slice(0, 20_000));
         break;
       }
       case "/api/voice-turns": {

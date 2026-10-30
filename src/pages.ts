@@ -603,7 +603,7 @@ export function appPage(): string {
   </div>
   <div id="topics" class="topics" aria-label="Topics from your week"></div>
   <ol id="log" class="log" aria-live="polite"></ol>
-  <div class="live" id="liveBox" hidden><button id="liveBtn" class="btn" type="button"><span class="rec"></span><span class="lt">Start talking</span></button><span id="liveState" class="state" aria-live="polite"></span></div>
+  <div class="live" id="liveBox" hidden><button id="liveBtn" class="btn" type="button"><span class="rec"></span><span class="lt">Start talking</span></button><span id="liveState" class="state" aria-live="polite"></span><button id="voicePick" class="btn small text" type="button"></button></div>
   <div class="composer">
     <label for="say" class="sr">Your answer</label>
     <textarea id="say" placeholder="Type your answer. Enter sends, Shift+Enter for a new line."></textarea>
@@ -897,6 +897,8 @@ async function startLive(){
 }
 async function stopLive(){
   clearTimeout(liveTimer);
+  if (gl) { clearTimeout(gl.quiet); if (dc && dc.readyState === "open") try { dc.send(JSON.stringify({type:"session.close"})); } catch {} gl = null; }
+  $("voicePick").hidden = false;
   if (dc) try { dc.close(); } catch {}
   if (pc) try { pc.close(); } catch {}
   if (mic) mic.getTracks().forEach(t => t.stop());
@@ -905,7 +907,70 @@ async function stopLive(){
   liveLabel(false); setLive("");
   if (was) await syncLive(true);
 }
-$("liveBtn").onclick = () => liveOn() ? stopLive() : startLive();
+$("liveBtn").onclick = () => liveOn() ? stopLive() : (voiceModel() === "gpt-live" ? startGptLive() : startLive());
+
+// A second voice to compare: GPT-Live, OpenAI's full-duplex model, which
+// listens while it talks. The page sends its WebRTC offer to our server, which
+// opens the session, so no key reaches the browser. Transcripts arrive as timed
+// fragments from both sides, grouped here into turns on each change of speaker.
+function voiceModel(){ try { return localStorage.getItem("voiceModel") || "realtime"; } catch { return "realtime"; } }
+function drawVoicePick(){ $("voicePick").textContent = voiceModel() === "gpt-live" ? "Using the new full-duplex voice. Switch back" : "Try the new full-duplex voice"; }
+$("voicePick").onclick = () => {
+  if (liveOn()) return;
+  try { localStorage.setItem("voiceModel", voiceModel() === "gpt-live" ? "realtime" : "gpt-live"); } catch {}
+  drawVoicePick();
+};
+drawVoicePick();
+let gl = null;
+function glFragment(who, delta){
+  if (!delta) return;
+  const last = liveTurns[liveTurns.length - 1];
+  // A few words with no question from the interviewer while they were talking
+  // is a backchannel ("mm", "yeah"): drop it and keep their turn going.
+  if (who === "you" && last && last === gl.cur.interviewer && last.text.trim().split(/ +/).length <= 3 && last.text.indexOf("?") < 0 && liveTurns[liveTurns.length - 2] === gl.cur.you) {
+    liveTurns.pop(); gl.cur.interviewer = null;
+  }
+  let t = liveTurns[liveTurns.length - 1];
+  if (!t || t !== gl.cur[who]) { t = {who, text:"", about: who === "interviewer" ? liveAbout : undefined}; liveTurns.push(t); gl.cur[who] = t; }
+  t.text += delta;
+  drawLive(); syncLive();
+}
+function onGptLiveEvent(ev){
+  switch (ev.type) {
+    case "session.started": setLive("Connected"); break;
+    case "session.input_transcript.delta": glFragment("you", ev.delta); setLive("Listening"); break;
+    case "session.output_transcript.delta":
+      glFragment("interviewer", ev.delta); setLive("Speaking");
+      clearTimeout(gl.quiet); gl.quiet = setTimeout(() => { if (liveOn()) setLive("Your turn"); }, 900);
+      break;
+    case "session.closed": if (liveOn()) stopLive(); break;
+    case "error": console.warn("gpt-live", ev.error || ev); break;
+  }
+}
+async function startGptLive(){
+  err(""); $("liveBtn").disabled = true; $("voicePick").hidden = true; setLive("Connecting…");
+  try {
+    mic = await navigator.mediaDevices.getUserMedia({audio:true});
+    meter(mic);
+    items = {}; liveTurns = (state.turns || []).some(t => t.who === "you") ? state.turns.map(t => ({...t})) : []; liveAbout = currentAbout();
+    gl = {cur:{}, quiet:null};
+    pc = new RTCPeerConnection();
+    const out = new Audio(); out.autoplay = true;
+    pc.ontrack = (e) => { out.srcObject = e.streams[0]; meter(e.streams[0]); };
+    mic.getTracks().forEach(t => pc.addTrack(t, mic));
+    dc = pc.createDataChannel("oai-events");
+    dc.onmessage = (e) => { try { onGptLiveEvent(JSON.parse(e.data)); } catch (x) { console.warn(x); } };
+    pc.onconnectionstatechange = () => { if (["failed","disconnected"].includes(pc.connectionState)) { stopLive(); err("The voice connection dropped. Your conversation so far is kept. Start talking again to pick up."); } };
+    await pc.setLocalDescription(await pc.createOffer());
+    // The server needs the full offer, so wait for ICE gathering (briefly).
+    await new Promise(res => { if (pc.iceGatheringState === "complete") return res(); const t = setTimeout(res, 2000); pc.addEventListener("icegatheringstatechange", () => { if (pc.iceGatheringState === "complete") { clearTimeout(t); res(); } }); });
+    const { sdp } = await api("/api/live", {sdp: pc.localDescription.sdp});
+    await pc.setRemoteDescription({type:"answer", sdp});
+    liveLabel(true);
+    liveTimer = setTimeout(() => { stopLive(); err("Paused after 20 minutes. Start talking again to keep going, or find your ideas."); }, 20 * 60 * 1000);
+  } catch (e) { stopLive(); err(e.message === "Permission denied" ? "The browser didn't allow the microphone. You can type instead." : e.message); }
+  finally { $("liveBtn").disabled = false; }
+}
 
 // Harvest and review
 $("harvestBtn").onclick = async () => {

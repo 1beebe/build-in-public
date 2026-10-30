@@ -18,6 +18,7 @@ export interface Env {
   OPEN_AI_KEY?: string; // the same key under the name it was first saved with
   REALTIME_MODEL?: string;
   REALTIME_VOICE?: string;
+  LIVE_MODEL?: string; // GPT-Live, the full-duplex voice option
   // Optional fallback for questions when MindStudio isn't set up. Without
   // either key the interviewer asks rule-based questions from the commits.
   ANTHROPIC_API_KEY?: string;
