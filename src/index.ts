@@ -160,9 +160,18 @@ export default {
       }
       if (req.method === "GET" && url.pathname === "/privacy") return html(privacyPage());
       if (req.method === "GET" && url.pathname === "/stats") {
-        // The owner's spend meter. Anyone else gets a plain 404.
+        // Never trust the organization id cached in the session for admin
+        // access. Re-read the organizations this Buffer grant can actually see.
         const loaded = await loadSession(req, env);
-        if (!env.OWNER_ORG_ID || loaded?.data.organizationId !== env.OWNER_ORG_ID) return textResponse("Not found", 404);
+        if (!env.OWNER_ORG_ID || !loaded) return textResponse("Not found", 404);
+        try {
+          const client = new BufferClient(env, loaded.data);
+          const { orgs } = await getStart(client);
+          if (client.sessionChanged) await saveSession(env, loaded.id, loaded.data);
+          if (!orgs.some((org) => org.id === env.OWNER_ORG_ID)) return textResponse("Not found", 404);
+        } catch {
+          return textResponse("Not found", 404);
+        }
         return html(await statsPage(env), { headers: { "Cache-Control": "no-store" } });
       }
       if (req.method === "GET" && url.pathname === "/connect") return connect(env);
@@ -287,7 +296,12 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const repo = parseRepo(work) ?? undefined;
         const noRepo = !repo;
         if (noRepo && work.length < 15) throw new UserError("Paste a public GitHub repo, or tell me a sentence or two about what you worked on.");
-        if (body.organizationId) s.organizationId = String(body.organizationId);
+        if (body.organizationId && String(body.organizationId) !== s.organizationId) {
+          const requested = String(body.organizationId);
+          const { orgs } = await getStart(client);
+          if (!orgs.some((org) => org.id === requested)) throw new UserError("Choose a Buffer organization from your account.");
+          s.organizationId = requested;
+        }
         if (repo) await whatShipped(env, repo, 1); // fails fast with a clear message if the repo isn't public
         Object.assign(s, { repo, noRepo, weekNote: repo ? undefined : work, questions: [], turns: [], drafts: [], saved: [] });
         result = await view(env, client, s, true);
