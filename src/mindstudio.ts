@@ -7,7 +7,7 @@ const STEP_TIMEOUT_MS = 25_000;
 
 export class MindStudioError extends Error {}
 
-export async function step<T>(env: Env, type: string, input: Record<string, unknown>): Promise<T> {
+export async function step<T>(env: Env, type: string, input: Record<string, unknown>, timeoutMs = STEP_TIMEOUT_MS): Promise<T> {
   const start = await fetch(`${BASE}/steps/${type}/execute-async`, {
     method: "POST",
     headers: { Authorization: `Bearer ${env.MINDSTUDIO_API_KEY}`, "Content-Type": "application/json" },
@@ -16,7 +16,7 @@ export async function step<T>(env: Env, type: string, input: Record<string, unkn
   if (!start.ok) throw new MindStudioError(`${type} ${start.status}: ${(await start.text()).slice(0, 300)}`);
   const { executionToken } = (await start.json()) as { executionToken: string };
 
-  const deadline = Date.now() + STEP_TIMEOUT_MS;
+  const deadline = Date.now() + timeoutMs;
   for (let delay = 150; Date.now() < deadline; delay = Math.min(delay * 2, 2000)) {
     await new Promise((r) => setTimeout(r, delay));
     const res = await fetch(`${BASE}/steps/${type}/execute-async/poll/${executionToken}`);
@@ -48,11 +48,11 @@ export async function chatModel(env: Env): Promise<string> {
   return pick.id;
 }
 
-export async function generateText(env: Env, system: string, message: string): Promise<string> {
+export async function generateText(env: Env, system: string, message: string, timeoutMs?: number): Promise<string> {
   const out = await step<{ content: string }>(env, "userMessage", {
     message,
     modelOverride: { model: await chatModel(env), temperature: 0.6, maxResponseTokens: 1200, preamble: system },
-  });
+  }, timeoutMs);
   return out.content;
 }
 

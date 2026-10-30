@@ -111,8 +111,8 @@ async function modelQuestions(
 export const hasModel = (env: Env) => Boolean(env.MINDSTUDIO_API_KEY || env.ANTHROPIC_API_KEY);
 
 // MindStudio (DeepSeek) when it's set up, Claude as a fallback.
-export async function complete(env: Env, system: string, message: string): Promise<string> {
-  if (env.MINDSTUDIO_API_KEY) return generateText(env, system, message);
+export async function complete(env: Env, system: string, message: string, timeoutMs?: number): Promise<string> {
+  if (env.MINDSTUDIO_API_KEY) return generateText(env, system, message, timeoutMs);
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": env.ANTHROPIC_API_KEY!, "anthropic-version": "2023-06-01", "content-type": "application/json" },

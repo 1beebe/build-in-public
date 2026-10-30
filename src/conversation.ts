@@ -12,6 +12,9 @@ How you talk:
 - Each turn: at most a few words that show you heard them, using their words (no praise, no summarizing their work back to them), then exactly one question.
 - Pull the thread they just opened before moving on: a reason, a surprise, a person, a decision, something that broke.
 - When a thread is done, move to the next agenda item and name it plainly.
+- Many builders work with AI coding agents, so they may not have written every line. Ask about their decisions, what they were going for, what surprised them, who it's for and what they learned, not about implementation details.
+- If they ask what a change does, explain it in a sentence from the context you have, then ask your question. Never say you can't see the repo.
+- If they don't know, don't follow, or want to move on, move to the next item right away. Don't rephrase the same question.
 - Never suggest wording for a post. Never lecture.
 - After about six to eight of their answers, or when the agenda is covered, ask if there's anything else on their mind before you pull their ideas together.`;
 
@@ -58,53 +61,99 @@ function lastAbout(turns: Turn[]): number | undefined {
   return undefined;
 }
 
-const norm = (s: string) => s.replace(/\s+/g, " ").trim().toLowerCase();
+// Their lines, split into numbered sentences, so the model can point at
+// sentences instead of copying them. The Idea text is rebuilt from the
+// originals, so it's always exactly what they said.
+interface Sentence { id: number; turn: number; text: string }
 
-// Turn the conversation into proposed Ideas. The model chooses the angles and
-// which of their sentences belong together; the text is only ever their own
-// words, and any quote that isn't found word for word in what they said is dropped.
+function sentences(turns: Turn[]): Sentence[] {
+  const out: Sentence[] = [];
+  turns.forEach((t, turn) => {
+    if (t.who !== "you") return;
+    for (const m of t.text.matchAll(/[^.!?\n]+(?:[.!?]+["'”’)\]]*|$)/g)) {
+      const text = m[0].trim();
+      if (text) out.push({ id: out.length + 1, turn, text });
+    }
+  });
+  return out;
+}
+
+function joinSentences(picked: Sentence[]): string {
+  let text = "";
+  picked.forEach((x, i) => {
+    text += i === 0 ? x.text : (x.turn === picked[i - 1].turn ? " " : "\n\n") + x.text;
+  });
+  return text;
+}
+
+const HARVEST = `You turn an interview into post ideas for the person who was interviewed. You never write post copy and never reword what they said.
+
+An idea is something they could post about: a story, a decision, a lesson, a surprise, an opinion, a before-and-after. Group sentences from anywhere in the conversation that belong to the same thread. Prefer fewer, richer ideas: one to five.
+
+Leave out non-answers: confusion, "I don't know", requests to the interviewer, filler, and anything that only makes sense next to the question.
+
+Titles name the angle in plain words, under ten words, not a question and not clickbait. For example: "Why one question at a time felt dead".`;
+
+// Turn the conversation into proposed Ideas: the model picks the angles and
+// which of their sentences carry each one.
 export async function harvest(env: Env, agenda: Question[], turns: Turn[], pillars: Tag[]): Promise<Draft[]> {
-  const theirs = turns.filter((t) => t.who === "you" && t.text.trim());
-  const said = theirs.map((t) => norm(t.text));
+  const all = sentences(turns);
   const pillarIds = new Set(pillars.map((p) => p.id));
   let drafts: Draft[] = [];
 
-  if (hasModel(env) && theirs.length) {
+  if (hasModel(env) && all.length) {
     try {
+      const lines = turns
+        .map((t, i) =>
+          t.who === "you"
+            ? all.filter((x) => x.turn === i).map((x) => `  [S${x.id}] ${x.text}`).join("\n")
+            : `INTERVIEWER: ${t.text}`,
+        )
+        .join("\n");
       const text = await complete(
         env,
-        `You turn an interview into post ideas for the person who was interviewed. You never write post copy. For each idea you write a short title naming the angle (under 12 words, plain, not clickbait), and you pick the exact sentences they said that carry it.`,
-        `Their content pillars: ${pillars.map((p) => `${p.name} (id ${p.id})`).join(", ")}\n\nInterview:\n${transcript(turns)}\n\nPropose one idea per distinct thread they opened, strongest first: as few as 1, at most 6. Never use the same sentence in two ideas. Reply with JSON only: [{"title": "...", "quotes": ["exact sentences copied character for character from THEM lines"], "pillar": "<pillar id>"}]`,
+        HARVEST,
+        `Their content pillars: ${pillars.map((p) => `${p.name} (id ${p.id})`).join(", ")}\n\nInterview (their sentences are numbered):\n${lines}\n\nReply with JSON only, strongest idea first: [{"title": "...", "sentences": [numbers of their sentences, in order], "pillar": "<pillar id>"}]. A sentence belongs to at most one idea.`,
+        60_000,
       );
-      const parsed = JSON.parse(text.slice(text.indexOf("["), text.lastIndexOf("]") + 1)) as { title: string; quotes: string[]; pillar?: string }[];
-      drafts = parsed
-        .map((d) => ({
-          title: String(d.title ?? "").trim().slice(0, 120),
-          quotes: (d.quotes ?? []).map((q) => String(q).trim()).filter((q) => q && said.some((s) => s.includes(norm(q)))),
-          pillar: d.pillar,
-        }))
-        .filter((d) => d.title && d.quotes.length)
-        // Belt and braces: an idea whose words are all already used elsewhere is a duplicate.
-        .filter(function (this: Set<string>, d) {
-          const fresh = d.quotes.filter((q) => !this.has(norm(q)));
-          d.quotes.forEach((q) => this.add(norm(q)));
-          return fresh.length > 0;
-        }, new Set<string>())
-        .slice(0, 6)
-        .map((d) => ({ id: randomToken(6), title: d.title, text: d.quotes.join("\n\n"), tagId: pillarIds.has(d.pillar ?? "") ? d.pillar : pillars[0]?.id }));
+      const parsed = JSON.parse(text.slice(text.indexOf("["), text.lastIndexOf("]") + 1)) as { title: string; sentences: number[]; pillar?: string }[];
+      const used = new Set<number>();
+      for (const d of parsed.slice(0, 5)) {
+        const ids = [...new Set((d.sentences ?? []).map(Number))].filter((n) => !used.has(n)).sort((x, y) => x - y);
+        const picked = ids.map((n) => all[n - 1]).filter(Boolean);
+        const title = String(d.title ?? "").trim().replace(/^["']|["']$/g, "").slice(0, 120);
+        if (!title || !picked.length) continue;
+        ids.forEach((n) => used.add(n));
+        drafts.push({ id: randomToken(6), title, text: joinSentences(picked), tagId: pillarIds.has(d.pillar ?? "") ? d.pillar : pillars[0]?.id });
+      }
     } catch (err) {
-      console.error("harvest failed, using one idea per answer", err);
+      console.error("harvest failed, grouping by topic", err);
     }
   }
 
-  // Without a model, or if nothing usable came back: one Idea per answer,
-  // titled by the question that drew it out.
+  // Without a model, or if nothing usable came back: one Idea per topic they
+  // talked about, from their substantial answers.
   if (!drafts.length) {
-    drafts = turns.flatMap((t, i) => {
-      if (t.who !== "you" || t.text.trim().length < 20) return [];
-      const asked = turns.slice(0, i).reverse().find((x) => x.who === "interviewer");
-      return [{ id: randomToken(6), title: (asked?.text ?? "From your interview").slice(0, 120), text: t.text.trim(), tagId: pillars[0]?.id }];
+    const byTopic = new Map<string, { title: string; parts: Sentence[] }>();
+    let topic = "", title = "";
+    turns.forEach((t, i) => {
+      if (t.who === "interviewer") {
+        const key = t.about !== undefined ? `a${t.about}` : topic || "general";
+        if (key !== topic || !title) title = t.about !== undefined ? (agenda[t.about]?.source ?? t.text) : t.text;
+        topic = key;
+        return;
+      }
+      if (t.text.trim().length < 40 || /\?\s*$/.test(t.text)) return; // non-answers and questions back
+      const group = byTopic.get(topic) ?? { title, parts: [] };
+      group.parts.push(...all.filter((x) => x.turn === i));
+      byTopic.set(topic, group);
     });
+    drafts = [...byTopic.values()].map((g) => ({
+      id: randomToken(6),
+      title: g.title.replace(/^(Merged PR|Closed issue|Commit): /, "").slice(0, 120),
+      text: joinSentences(g.parts),
+      tagId: pillars[0]?.id,
+    }));
   }
 
   // Agenda topics they never got to, saved for later if they want them.
