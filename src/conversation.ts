@@ -97,6 +97,8 @@ function withQuestions(picked: Sentence[], turns: Turn[]): string {
 // The interviewer's question without the quick reaction in front of it
 // ("Huh, two days."), so the saved Idea reads cleanly.
 function questionOnly(text: string): string {
+  // An explanation, then a blank line, then the question: keep the question.
+  text = text.split(/\n\s*\n/).filter((p) => p.includes("?")).pop() ?? text;
   const parts = text.match(/[^.!?\n]+[.!?]*/g)?.map((p) => p.trim()).filter(Boolean) ?? [text];
   while (parts.length > 1 && !parts[0].includes("?") && parts[0].split(/\s+/).length <= 8) parts.shift();
   return parts.join(" ");
