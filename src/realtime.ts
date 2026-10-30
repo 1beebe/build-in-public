@@ -8,9 +8,9 @@ import { CONVERSE, agendaBrief } from "./conversation";
 const MODEL = "gpt-realtime-2.1";
 
 const VOICE_RULES = `This is a live voice conversation.
-- When you move to an agenda item, call show_work with its number in the same response as you start talking about it, so it appears on screen while you speak. Don't wait for show_work before speaking.
+- When you move to a new thread from the list, call show_work with its number in the same response as you start talking about it, so it appears on screen while you speak. Don't wait for show_work before speaking.
 - Never read code, file paths, hashes or URLs aloud. Say what the change does in plain words.
-- If the conversation hasn't started, say a short hello (a few words) and ask about the first agenda item, in fewer words than it's written.
+- If the conversation hasn't started, say a short hello (a few words) and open with the first thread, in your own words.
 - Let silences be. Don't fill them, and don't talk over someone who's thinking.
 - If they say they're done, thank them in one sentence and tell them to press "Find my ideas".`;
 
@@ -23,7 +23,7 @@ export async function voiceSession(env: Env, s: Session): Promise<{ key: string;
     CONVERSE,
     VOICE_RULES,
     `Context:\n${s.brief ?? ""}`,
-    `Agenda (numbered):\n${agendaBrief(agenda)}`,
+    `Threads you might get to (numbered):\n${agendaBrief(agenda)}`,
     sofar ? `The conversation so far (pick up where it left off, don't repeat it):\n${sofar}` : "",
   ]
     .filter(Boolean)
