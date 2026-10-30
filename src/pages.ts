@@ -143,6 +143,19 @@ const PAGE_STYLE = `
 .steps p{max-width:28ch}
 
 /* Kept */
+.pic{margin:0;border-radius:var(--r-card);overflow:hidden;background:var(--raised)}
+.pic img{display:block;width:100%;height:100%;object-fit:cover}
+.band{margin:0;height:clamp(240px,40vw,600px);overflow:hidden;background:var(--raised)}
+.band img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 58%}
+#sounds .pic{margin-top:48px;aspect-ratio:4/5;max-width:440px}
+.stephead{display:grid;gap:32px;align-items:end}
+@media (min-width:900px){.stephead{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.stephead .pic{aspect-ratio:16/10}
+.keptwrap{display:grid;gap:clamp(36px,5vw,80px);margin-top:48px;align-items:start}
+@media (min-width:900px){.keptwrap{grid-template-columns:minmax(0,4fr) minmax(0,8fr)}}
+.keptwrap .pic{aspect-ratio:4/5}
+.keptwrap .kept{margin-top:0}
+@media (min-width:900px){.keptwrap .kept{grid-template-columns:1fr}}
 .kept{display:grid;gap:28px;margin-top:48px}
 @media (min-width:900px){.kept{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .kept div{display:grid;gap:10px;align-content:start}
@@ -221,11 +234,14 @@ ${NAV}
   </div>
 </section>
 
+<figure class="band" aria-hidden="true"><img src="/img/desk.webp" alt="" width="1600" height="1067" loading="lazy" decoding="async"></figure>
+
 <section class="sec" id="sounds" style="background:var(--raised)">
   <div class="wrap two">
     <div>
       <h2 class="rise">It follows what you say.</h2>
       <p class="say rise" style="--i:1">It reads your commits before you start, so it can skip the obvious and ask why. When you get to a change, the change itself opens beside the conversation. When something you say is more interesting than its plan, it follows you.</p>
+      <figure class="pic rise" style="--i:2"><img src="/img/cafe.webp" alt="Two people talking across a small cafe table, one laughing mid-story" width="960" height="1190" loading="lazy" decoding="async"></figure>
     </div>
     <ol class="talk" aria-label="An example conversation">
       <li class="them rise"><span class="who">The Interviewer</span><p>You rebuilt how answers get saved. What made the old way feel wrong?</p></li>
@@ -255,7 +271,10 @@ ${NAV}
 
 <section class="sec">
   <div class="wrap">
-    <h2 class="rise">Ten minutes, start to Buffer.</h2>
+    <div class="stephead">
+      <h2 class="rise">Ten minutes, start to Buffer.</h2>
+      <figure class="pic rise" style="--i:1"><img src="/img/pad.webp" alt="A yellow legal pad of handwritten notes and a pen beside a keyboard" width="1200" height="897" loading="lazy" decoding="async"></figure>
+    </div>
     <ol class="steps">
       <li class="rise"><span class="min num">10<small>sec</small></span><p>Connect your Buffer account. Nothing else to sign up for.</p></li>
       <li class="rise" style="--i:1"><span class="min num">1<small>min</small></span><p>Paste a public GitHub repo and pick up to three Buffer tags as your pillars.</p></li>
@@ -268,10 +287,13 @@ ${NAV}
 <section class="sec" style="background:var(--raised)" aria-labelledby="keptH">
   <div class="wrap">
     <h2 class="rise" id="keptH">What it keeps, and for how long.</h2>
+    <div class="keptwrap">
+    <figure class="pic rise"><img src="/img/couch.webp" alt="Someone on a couch at night with a laptop, talking and smiling" width="960" height="1190" loading="lazy" decoding="async"></figure>
     <div class="kept">
       <div class="rise"><h3>Kept, briefly</h3><p>Your Buffer sign-in, encrypted. Your repo link and pillars. Your latest conversation, until you start a new one. All of it expires 30 days after your last visit.</p></div>
       <div class="rise" style="--i:1"><h3>Read, not kept</h3><p>Public commits, pull requests and issues in the repo you name. Your Buffer tags and up to 20 recent posts, so it knows who you write for.</p></div>
       <div class="rise" style="--i:2"><h3>Never</h3><p>No tracking, no analytics, nothing sold or shared. The Ideas you save live in your own Buffer account. <a href="/privacy">Full privacy note</a></p></div>
+    </div>
     </div>
   </div>
 </section>
