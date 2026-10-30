@@ -913,8 +913,8 @@ $("liveBtn").onclick = () => liveOn() ? stopLive() : (voiceModel() === "gpt-live
 // listens while it talks. The page sends its WebRTC offer to our server, which
 // opens the session, so no key reaches the browser. Transcripts arrive as timed
 // fragments from both sides, grouped here into turns on each change of speaker.
-function voiceModel(){ try { return localStorage.getItem("voiceModel") || "realtime"; } catch { return "realtime"; } }
-function drawVoicePick(){ $("voicePick").textContent = voiceModel() === "gpt-live" ? "Using the new full-duplex voice. Switch back" : "Try the new full-duplex voice"; }
+function voiceModel(){ try { return localStorage.getItem("voiceModel") || "gpt-live"; } catch { return "gpt-live"; } }
+function drawVoicePick(){ $("voicePick").textContent = voiceModel() === "gpt-live" ? "Try the classic voice" : "Using the classic voice. Switch back"; }
 $("voicePick").onclick = () => {
   if (liveOn()) return;
   try { localStorage.setItem("voiceModel", voiceModel() === "gpt-live" ? "realtime" : "gpt-live"); } catch {}
