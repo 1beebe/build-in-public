@@ -1,130 +1,358 @@
+// Look: off-white ground, bottle-green ink, legal-pad yellow on the one action.
+// One typeface (Bricolage Grotesque). No gradients, glows or glass.
 const STYLE = `
 :root{
-  --bg:#f5f6f2; --surface:#ffffff; --fg:#17191e; --muted:#5b616e; --line:#dfe1da; --accent:#0f6e66; --accent-fg:#ffffff; --soft:#e6f0ee; --warn:#9a4a12;
-  --add:#e3f4e6; --add-fg:#1d6b2c; --del:#fbe7e6; --del-fg:#a1302b; --code:#f0f1ec;
-  --display:"Bricolage Grotesque",system-ui,sans-serif; --body:"Atkinson Hyperlegible",system-ui,sans-serif;
+  --ground:#f6f6f3; --surface:#ffffff; --raised:#ebece7; --active:#e2e4dd;
+  --ink:#0d2a1c; --muted:#4c5a51; --faint:#5f6b64;
+  --border:#e1e3dd; --control:#c3c9c2;
+  --accent:#f6e016; --accent-ink:#0d2a1c; --accent-press:#e5cf06;
+  --field:#0d2a1c; --field-ink:#f6f6f3; --field-muted:#b9c6bd;
+  --live:#d7361f; --warn:#a33a12;
+  --add:#e3f4e6; --add-fg:#1d6b2c; --del:#fbe7e6; --del-fg:#a1302b; --code:#f1f2ee;
+  --font:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  --r-card:20px; --r-ctl:999px; --r-in:12px;
+  --gut:clamp(16px,3.2vw,40px);
+  --ease:cubic-bezier(.2,.7,.2,1);
+  color-scheme:light;
 }
 @media (prefers-color-scheme:dark){:root{
-  --bg:#121417; --surface:#1b1e23; --fg:#eceef1; --muted:#a3a9b4; --line:#2e333b; --accent:#4fc1b4; --accent-fg:#0b1513; --soft:#1d2f2d; --warn:#f0a36b;
-  --add:#16301d; --add-fg:#7fd492; --del:#3a1b1a; --del-fg:#f29b94; --code:#16191d; color-scheme:dark}}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.55;
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-main{max-width:640px;margin:0 auto;padding-block:48px 64px;display:flex;flex-direction:column;gap:28px}
-h1,h2{font-family:var(--display);letter-spacing:-.015em;text-wrap:balance;margin:0}
-h1{font-size:clamp(2rem,6vw,2.8rem);line-height:1.08}
-h2{font-size:1.35rem;line-height:1.25}
+  --ground:#07150e; --surface:#0d2117; --raised:#14301f; --active:#1b3a27;
+  --ink:#edf2eb; --muted:#adbcb1; --faint:#98a89c;
+  --border:#1d3a28; --control:#3c5a47;
+  --field:#f6e016; --field-ink:#0d2a1c; --field-muted:#3e4a1a;
+  --live:#ff6a4d; --warn:#f0a36b;
+  --add:#16301d; --add-fg:#7fd492; --del:#3a1b1a; --del-fg:#f29b94; --code:#0a1b12;
+  color-scheme:dark}}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--font);font-size:clamp(1.0625rem,1rem + .2vw,1.1875rem);line-height:1.5;
+  font-optical-sizing:auto;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-weight:600;letter-spacing:-.035em;line-height:.98;margin:0;text-wrap:balance}
 p{margin:0}
-.muted{color:var(--muted)}
-.small{font-size:.9rem}
-a{color:var(--accent)}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:600 1rem/1 var(--body);padding:14px 20px;border-radius:10px;
-  border:1px solid var(--accent);background:var(--accent);color:var(--accent-fg);text-decoration:none;cursor:pointer}
-.btn.quiet{background:transparent;color:var(--accent)}
-.btn:disabled{opacity:.5;cursor:default}
-.btn:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:16px}
-label{font-weight:700;font-size:.95rem;display:flex;flex-direction:column;gap:6px}
-input[type=text],textarea,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px 14px;width:100%}
-textarea{min-height:150px;resize:vertical}
-.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:99px;padding:6px 12px;font-weight:400;flex-direction:row;cursor:pointer}
-.chip input{accent-color:var(--accent)}
-.dot{width:10px;height:10px;border-radius:50%}
-.source{font-size:.88rem;color:var(--muted);border-left:3px solid var(--accent);padding-left:10px}
-.progress{font-size:.85rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.steps{display:grid;gap:14px;padding:0;margin:0;list-style:none;counter-reset:s}
-.steps li{display:grid;grid-template-columns:32px 1fr;gap:12px;counter-increment:s}
-.steps li::before{content:counter(s);font-family:var(--display);font-weight:700;width:32px;height:32px;border-radius:50%;background:var(--soft);color:var(--accent);display:grid;place-items:center}
-.error{color:var(--warn);font-weight:700}
-.sample{font-family:var(--display);font-size:1.25rem;line-height:1.35}
-footer{font-size:.85rem;color:var(--muted)}
-main.wide{max-width:1180px}
-.split{display:grid;gap:20px}
-.split .panel{order:-1}
-@media (min-width:960px){
-  .split{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);align-items:start}
-  .split .panel{order:0;position:sticky;top:20px}
-}
-.src{gap:14px;min-width:0}
-.src h3{font-family:var(--display);font-size:1.2rem;line-height:1.3;margin:0}
-.meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.88rem;color:var(--muted)}
-.plus{color:var(--add-fg)} .minus{color:var(--del-fg)}
-.body{white-space:pre-wrap;overflow-wrap:anywhere;font-size:.95rem;max-height:16em;overflow:auto}
-.file{border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.file summary{cursor:pointer;padding:9px 12px;font:600 .86rem/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;display:flex;gap:10px;justify-content:space-between;overflow-wrap:anywhere}
-.diff{margin:0;background:var(--code);font:.8rem/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;overflow-x:auto;padding:6px 0}
-.diff span{display:block;padding:0 12px;white-space:pre}
-.diff .a{background:var(--add);color:var(--add-fg)} .diff .d{background:var(--del);color:var(--del-fg)} .diff .h{color:var(--muted)}
-.small-btn{padding:9px 14px;font-size:.92rem}
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-button.chip{font:inherit;font-size:.88rem;background:transparent;color:var(--fg);padding:5px 11px}
-.chip.on{border-color:var(--accent);background:var(--soft);color:var(--accent)}
-.log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;max-height:46vh;overflow:auto}
-.log li{display:flex;flex-direction:column;gap:2px;max-width:92%}
-.log li p{white-space:pre-wrap;overflow-wrap:anywhere}
-.log .them p{font-family:var(--display);font-size:1.12rem;line-height:1.4}
-.log .you{align-self:flex-end;background:var(--soft);border-radius:12px;padding:10px 14px}
-.log .who{font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.typing p{color:var(--muted)}
-.drafts{display:grid;gap:16px}
-@media (min-width:960px){.drafts{grid-template-columns:1fr 1fr}}
-.draft .title{font:600 1.05rem/1.35 var(--display)}
-.draft .text{min-height:120px}
-.draft .prompts{min-height:84px;font-size:.92rem;color:var(--muted)}
-.draft.later{opacity:.85;border-style:dashed}
-.pick{align-self:flex-start}
-.live{padding:12px;border-radius:12px;background:var(--soft)}
-#liveBtn.on{background:var(--warn);border-color:var(--warn)}
-#micBtn[aria-pressed=true]{background:var(--warn);border-color:var(--warn);color:var(--accent-fg)}
+a{color:inherit;text-underline-offset:.18em;text-decoration-thickness:1px}
+a:hover{text-decoration-thickness:2px}
+::selection{background:var(--accent);color:var(--accent-ink)}
+:focus-visible{outline:3px solid var(--ink);outline-offset:3px;border-radius:6px}
 [hidden]{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.muted{color:var(--muted)}
+.small{font-size:.875rem;line-height:1.45}
+.num{font-variant-numeric:tabular-nums}
+
+/* Controls */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 24px;border-radius:var(--r-ctl);
+  font:500 1rem/1 var(--font);letter-spacing:-.01em;text-decoration:none;cursor:pointer;border:0;
+  background:var(--accent);color:var(--accent-ink);transition:transform .18s var(--ease),background-color .18s}
+.btn:hover{background:var(--accent-press)}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.55;cursor:default;transform:none}
+.btn.quiet{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--control)}
+.btn.quiet:hover{background:var(--raised)}
+.btn.text{background:transparent;padding:0 6px;min-height:40px;color:var(--muted)}
+.btn.text:hover{color:var(--ink)}
+.btn.small{min-height:38px;padding:0 16px;font-size:.92rem}
+.btn .rec{width:10px;height:10px;border-radius:50%;background:var(--live);flex:none}
+.wordmark{white-space:nowrap;display:inline-flex;align-items:center;gap:10px;font-weight:600;letter-spacing:-.03em;font-size:1.15rem;text-decoration:none;color:var(--ink)}
+.mark{width:30px;height:30px;flex:none}
+
+/* Page frame */
+.wrap{width:100%;max-width:1360px;margin:0 auto;padding-inline:var(--gut)}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:20px;padding-block:20px}
+.nav ul{display:flex;gap:28px;list-style:none;margin:0;padding:0;font-size:.95rem}
+.nav ul a{text-decoration:none;color:var(--muted)}
+.nav ul a:hover{color:var(--ink)}
+@media (max-width:820px){.nav ul{display:none}}
+@media (max-width:480px){.nav .btn .long{display:none}}
+
+/* Motion: entrances only when scripts run, travel only when allowed */
+.js .rise{opacity:0;transform:translateY(22px);transition:opacity .7s var(--ease),transform .7s var(--ease);transition-delay:calc(var(--i,0) * 80ms)}
+.js .rise.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  .js .rise{transform:none;transition:opacity .4s}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important}
+}
 `;
 
-function shell(title: string, body: string, script = ""): string {
+const PAGE_STYLE = `
+/* Landing */
+.hero{display:grid;gap:clamp(36px,5vw,72px);padding-block:clamp(28px,6vw,88px) clamp(80px,9vw,140px);align-items:center}
+@media (min-width:1000px){.hero{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}}
+.hero h1{font-size:clamp(2.6rem,1.4rem + 4.4vw,4.75rem)}
+.hero .lead{margin-top:32px;font-size:clamp(1.15rem,1.05rem + .45vw,1.4rem);line-height:1.45;max-width:34ch}
+.hero .act{margin-top:36px;display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px}
+.alert{margin-top:24px;padding:14px 18px;border-radius:14px;background:var(--raised);color:var(--warn);font-weight:500}
+
+/* The live fragment: a working piece of the interview */
+.demo{background:var(--surface);border-radius:28px;padding:clamp(18px,2.4vw,32px);display:grid;gap:22px;border:1px solid var(--border)}
+.demo form{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.demo label{font-size:.875rem;color:var(--muted);flex-basis:100%}
+.demo input{flex:1 1 220px;min-width:0;height:44px;border-radius:var(--r-ctl);border:1px solid var(--control);background:var(--ground);color:var(--ink);font:400 .98rem var(--font);padding:0 18px}
+.demo .stage{display:grid;gap:18px}
+@media (min-width:640px){.demo .stage{grid-template-columns:minmax(0,1fr) minmax(0,1.35fr)}}
+.work{background:var(--ground);border-radius:16px;padding:16px;display:grid;gap:10px;align-content:start;font-size:.875rem;min-width:0}
+.work .kind{color:var(--muted)}
+.work .ttl{font-weight:500;font-size:1rem;line-height:1.3;overflow-wrap:anywhere}
+.work .meta{display:flex;flex-wrap:wrap;gap:4px 12px;color:var(--muted)}
+.work pre{margin:0;background:var(--code);border-radius:10px;font:.75rem/1.55 var(--mono);padding:8px 0;overflow:hidden}
+.work pre span{display:block;padding:0 10px;white-space:pre;overflow:hidden;text-overflow:ellipsis}
+.work pre .a{background:var(--add);color:var(--add-fg)} .work pre .d{background:var(--del);color:var(--del-fg)}
+.asks{display:grid;gap:16px;align-content:start}
+.asks .who{font-size:.875rem;color:var(--muted);display:flex;align-items:center;gap:8px}
+.asks .q{font-size:clamp(1.35rem,1.1rem + .8vw,1.75rem);line-height:1.22;letter-spacing:-.02em;font-weight:500;min-height:3.66em}
+.caret{display:inline-block;width:.08em;height:1em;background:var(--ink);vertical-align:-.12em;margin-left:2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.reply{display:flex;align-items:center;gap:12px;background:var(--ground);border-radius:var(--r-ctl);padding:10px 16px;color:var(--muted);font-size:.95rem}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--live);flex:none;animation:pulse 1.6s var(--ease) infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--live) 45%,transparent)}100%{box-shadow:0 0 0 12px transparent}}
+.demo .note{font-size:.875rem;color:var(--muted)}
+
+/* Sections */
+.sec{padding-block:clamp(72px,10vw,180px)}
+.sec h2{font-size:clamp(2.1rem,1.3rem + 3vw,3.75rem)}
+.sec .say{margin-top:28px;max-width:40ch;font-size:clamp(1.1rem,1rem + .35vw,1.3rem);line-height:1.5}
+.two{display:grid;gap:clamp(40px,6vw,96px);align-items:start}
+@media (min-width:1000px){.two{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}.two.flip{grid-template-columns:minmax(0,7fr) minmax(0,5fr)}.two.flip>:first-child{order:2}}
+
+/* Transcript */
+.talk{list-style:none;margin:0;padding:0;display:grid;gap:22px}
+.talk li{display:grid;gap:6px;max-width:44ch}
+.talk .who{font-size:.875rem;color:var(--muted)}
+.talk .them p{font-size:clamp(1.35rem,1.1rem + .9vw,1.9rem);line-height:1.22;letter-spacing:-.02em;font-weight:500}
+.talk .you{justify-self:end;background:var(--surface);border-radius:22px 22px 6px 22px;padding:16px 20px;border:1px solid var(--border)}
+.talk .flag{display:inline-flex;align-items:center;gap:8px;font-size:.875rem;color:var(--muted);background:var(--raised);border-radius:var(--r-ctl);padding:6px 14px;justify-self:start}
+
+/* The yellow field */
+.field{background:var(--accent);color:var(--accent-ink)}
+.field .say{color:var(--accent-ink)}
+.idea{background:#fffef5;color:#0d2a1c;border-radius:18px;padding:clamp(20px,2.4vw,32px);display:grid;gap:18px;font-size:.98rem;line-height:1.5;box-shadow:0 18px 40px -24px rgba(13,42,28,.45);transform:rotate(-1deg)}
+.idea .t{font-size:1.4rem;font-weight:600;letter-spacing:-.025em;line-height:1.15}
+.idea .lbl{font-size:.8rem;font-weight:600;color:#3d5446}
+.idea .tag{display:inline-flex;align-items:center;gap:8px;font-size:.875rem;background:#eef0e8;border-radius:var(--r-ctl);padding:5px 12px;justify-self:start}
+.idea .tag i{width:9px;height:9px;border-radius:50%;background:#2e8b57}
+.idea ul{margin:0;padding-left:1.1em;display:grid;gap:4px}
+.never{margin-top:40px;font-size:1.05rem;font-weight:500;display:flex;gap:12px;align-items:baseline}
+
+/* Steps */
+.steps{list-style:none;margin:56px 0 0;padding:0;display:grid;gap:36px 28px}
+@media (min-width:720px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:1100px){.steps{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.steps li{display:grid;gap:12px;align-content:start}
+.steps .min{font-size:clamp(2.6rem,1.8rem + 2.6vw,4.25rem);font-weight:600;letter-spacing:-.045em;line-height:.9}
+.steps .min small{font-size:.38em;letter-spacing:-.01em;font-weight:500;margin-left:6px;color:var(--muted)}
+.steps p{max-width:28ch}
+
+/* Kept */
+.kept{display:grid;gap:28px;margin-top:48px}
+@media (min-width:900px){.kept{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.kept div{display:grid;gap:10px;align-content:start}
+.kept h3{font-size:1.3rem;letter-spacing:-.02em;line-height:1.15}
+
+/* Close */
+.foot{background:var(--field);color:var(--field-ink);padding-block:clamp(64px,8vw,120px) 32px}
+.foot .big{font-size:clamp(3rem,14.2vw,13.5rem);white-space:nowrap;font-weight:600;letter-spacing:-.045em;line-height:.88;margin:0}
+.foot .row{display:flex;flex-wrap:wrap;gap:16px 32px;justify-content:space-between;align-items:end;margin-top:48px;font-size:.92rem;color:var(--field-muted)}
+.foot .row a:not(.btn){color:var(--field-ink)}
+.foot .btn{background:var(--accent);color:var(--accent-ink)}
+@media (prefers-color-scheme:dark){.foot .btn{background:var(--field-ink);color:var(--field)}}
+
+/* Privacy */
+.doc{max-width:720px;padding-block:clamp(40px,7vw,96px) 96px;display:grid;gap:22px}
+.doc h1{font-size:clamp(2.6rem,1.6rem + 4vw,4.5rem);margin-bottom:12px}
+.doc h2{font-size:1.6rem;letter-spacing:-.025em;margin-top:28px}
+.doc p{max-width:62ch}
+`;
+
+const MARK = `<svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3C8.8 3 3 8.4 3 15.1c0 3.6 1.7 6.8 4.4 9L6.2 29l5.6-2.8c1.3.4 2.7.6 4.2.6 7.2 0 13-5.4 13-12.1S23.2 3 16 3Z" fill="#f6e016"/><circle cx="16" cy="15" r="4.2" fill="#d7361f"/></svg>`;
+
+const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600&display=swap">`;
+
+function shell(title: string, body: string, opts: { style?: string; script?: string } = {}): string {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>${title}</title>
 <meta name="description" content="A weekly interview about what you built on GitHub. Your answers land in Buffer as Ideas, in your own words.">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&display=swap">
-<style>${STYLE}</style></head><body><main>${body}</main>${script ? `<script>${script}</script>` : ""}</body></html>`;
+<meta name="theme-color" content="#f6f6f3" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#07150e" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,${encodeURIComponent(MARK.replace('class="mark" ', 'xmlns="http://www.w3.org/2000/svg" '))}">
+${FONTS}
+<script>document.documentElement.classList.add("js")</script>
+<style>${STYLE}${opts.style ?? ""}</style></head><body>${body}${opts.script ? `<script>${opts.script}</script>` : ""}</body></html>`;
 }
+
+const NAV = `<header class="wrap nav">
+  <a class="wordmark" href="/">${MARK}The Interviewer</a>
+  <nav aria-label="Main"><ul><li><a href="/#sounds">How it sounds</a></li><li><a href="/#keep">What you keep</a></li><li><a href="/privacy">Privacy</a></li></ul></nav>
+  <a class="btn small" href="/connect">Connect<span class="long">&nbsp;with Buffer</span></a>
+</header>`;
 
 export function landingPage(error?: string): string {
   return shell(
-    "The Interviewer",
+    "The Interviewer · Talk about what you shipped",
     `
-<header style="display:flex;flex-direction:column;gap:14px">
-  <p class="progress">For people building in public</p>
-  <h1>You built something this week. Let's get it out of your head.</h1>
-  <p class="muted">The Interviewer reads what you shipped on GitHub and what you've posted lately, then talks with you about your week, out loud or typed. When you're done, it finds the stories worth telling and saves them to Buffer as Ideas, in your exact words, with a few questions to help you shape each one. You write the posts. It only asks.</p>
-</header>
-${error ? `<p class="error" role="alert">${escapeHtml(error)}</p>` : ""}
-<div class="row"><a class="btn" href="/connect">Connect with Buffer</a><span class="small muted">The only sign-in. Takes about 10 seconds.</span></div>
-<section class="card" aria-label="An example">
-  <p class="progress">How it sounds</p>
-  <p class="sample">"You rebuilt the interview this week so it's one conversation instead of a list of questions. What wasn't working before?"</p>
-  <p class="small muted">Then it follows whatever you say: the reason, the surprise, the person it's for.</p>
+${NAV}
+<main>
+<section class="wrap hero">
+  <div>
+    <h1 class="rise">Talk about what you shipped.</h1>
+    <p class="lead rise" style="--i:1">The Interviewer reads your public GitHub repo, asks about your week out loud or typed, and saves the stories worth telling to Buffer as Ideas, in your exact words.</p>
+    ${error ? `<p class="alert" role="alert">${escapeHtml(error)}</p>` : ""}
+    <div class="act rise" style="--i:2"><a class="btn" href="/connect">Connect with Buffer</a><span class="small muted">Buffer is the only sign-in.</span></div>
+  </div>
+  <div class="demo rise" style="--i:3" data-ui>
+    <form id="try">
+      <label for="tryRepo">See what it would ask about a public repo</label>
+      <input id="tryRepo" name="repo" value="1beebe/build-in-public" autocomplete="off" spellcheck="false">
+      <button class="btn small" type="submit">Ask me</button>
+    </form>
+    <div class="stage">
+      <div class="work" id="tryWork">
+        <span class="kind">Merged pull request</span>
+        <span class="ttl">One live conversation instead of a list of questions</span>
+        <span class="meta"><span>this week</span></span>
+        <pre aria-hidden="true"><span class="d">- askNextQuestion(list)</span><span class="a">+ startConversation(agenda)</span><span>  harvestIdeas(transcript)</span></pre>
+      </div>
+      <div class="asks">
+        <span class="who">${MARK.replace('class="mark"', 'class="mark" style="width:20px;height:20px"')}The Interviewer</span>
+        <p class="q" id="tryQ" aria-live="polite">You swapped the question list for one live conversation. What wasn't working before?</p>
+        <div class="reply"><span class="dot"></span><span>Your answer, out loud or typed</span></div>
+      </div>
+    </div>
+    <p class="note" id="tryNote">An opening question from your latest public work. In the real interview it has read your whole week and your recent posts first.</p>
+  </div>
 </section>
-<section style="display:flex;flex-direction:column;gap:14px">
-  <h2>How it works</h2>
-  <ol class="steps">
-    <li><span>Connect your Buffer account and paste a link to a public GitHub repo.</span></li>
-    <li><span>Pick up to three Buffer tags to use as your content pillars.</span></li>
-    <li><span>Talk for ten minutes about your week. The change you're discussing shows up beside the conversation.</span></li>
-    <li><span>Review the ideas it found, edit or untick any, and save them to Buffer. Then write from your own words.</span></li>
-  </ol>
+
+<section class="sec" id="sounds" style="background:var(--raised)">
+  <div class="wrap two">
+    <div>
+      <h2 class="rise">It follows what you say.</h2>
+      <p class="say rise" style="--i:1">It reads your commits before you start, so it can skip the obvious and ask why. When you get to a change, the change itself opens beside the conversation. When something you say is more interesting than its plan, it follows you.</p>
+    </div>
+    <ol class="talk" aria-label="An example conversation">
+      <li class="them rise"><span class="who">The Interviewer</span><p>You rebuilt how answers get saved. What made the old way feel wrong?</p></li>
+      <li class="you rise" style="--i:1"><span class="who">You</span><p>It was saving tidy summaries. I'd go to write and nothing sounded like me anymore.</p></li>
+      <li class="flag rise" style="--i:2">Opened beside you: the commit that changed it</li>
+      <li class="them rise" style="--i:3"><span class="who">The Interviewer</span><p>Who noticed first, you or someone using it?</p></li>
+    </ol>
+  </div>
 </section>
-<footer>
-  <p>What's stored: your Buffer sign-in (encrypted), your repo link and pillar choices, and your latest conversation until you start a new one, for up to 30 days. Saved ideas live in your own Buffer account. Built for Buffer Commit by Ligaya Beebe. Not made by or affiliated with Buffer. <a href="/privacy">Privacy</a></p>
+
+<section class="sec field" id="keep">
+  <div class="wrap two flip">
+    <div>
+      <h2 class="rise">Your words, kept as you said them.</h2>
+      <p class="say rise" style="--i:1">When you're done it reads the conversation back, finds the few stories worth telling, and shows you each one before anything is saved. Edit, untick, pick a pillar, then send them to your Buffer Ideas.</p>
+      <p class="never rise" style="--i:2">It never writes your posts. It only asks.</p>
+    </div>
+    <article class="idea rise" style="--i:1" aria-label="An Idea as it lands in Buffer">
+      <p class="t">Why the summaries had to go</p>
+      <div><p class="lbl">Q</p><p>You rebuilt how answers get saved. What made the old way feel wrong?</p></div>
+      <div><p class="lbl">Your answer</p><p>"It was saving tidy summaries. I'd go to write and nothing sounded like me anymore."</p></div>
+      <div><p class="lbl">Prompts to develop it</p><ul><li>What did a tidy summary lose that you needed?</li><li>Who is this post for?</li></ul></div>
+      <span class="tag"><i></i>Building</span>
+    </article>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap">
+    <h2 class="rise">Ten minutes, start to Buffer.</h2>
+    <ol class="steps">
+      <li class="rise"><span class="min num">10<small>sec</small></span><p>Connect your Buffer account. Nothing else to sign up for.</p></li>
+      <li class="rise" style="--i:1"><span class="min num">1<small>min</small></span><p>Paste a public GitHub repo and pick up to three Buffer tags as your pillars.</p></li>
+      <li class="rise" style="--i:2"><span class="min num">8<small>min</small></span><p>Talk about your week, out loud or typed. Stop whenever you like.</p></li>
+      <li class="rise" style="--i:3"><span class="min num">1<small>min</small></span><p>Keep the ideas you want. They land in Buffer, ready for you to write.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="sec" style="background:var(--raised)" aria-labelledby="keptH">
+  <div class="wrap">
+    <h2 class="rise" id="keptH">What it keeps, and for how long.</h2>
+    <div class="kept">
+      <div class="rise"><h3>Kept, briefly</h3><p>Your Buffer sign-in, encrypted. Your repo link and pillars. Your latest conversation, until you start a new one. All of it expires 30 days after your last visit.</p></div>
+      <div class="rise" style="--i:1"><h3>Read, not kept</h3><p>Public commits, pull requests and issues in the repo you name. Your Buffer tags and up to 20 recent posts, so it knows who you write for.</p></div>
+      <div class="rise" style="--i:2"><h3>Never</h3><p>No tracking, no analytics, nothing sold or shared. The Ideas you save live in your own Buffer account. <a href="/privacy">Full privacy note</a></p></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p class="big" aria-hidden="true">The Interviewer</p>
+    <div class="row"><a class="btn" href="/connect">Connect with Buffer</a><p>Built for Buffer Commit by Ligaya Beebe. Not made by or affiliated with Buffer. <a href="/privacy">Privacy</a></p></div>
+  </div>
 </footer>`,
+    { style: PAGE_STYLE, script: LANDING_SCRIPT },
   );
 }
+
+// Entrances, and the live fragment: fetch the repo's latest public work from
+// GitHub (unauthenticated, from the visitor's browser) and ask about it.
+const LANDING_SCRIPT = `
+(() => {
+  const io = "IntersectionObserver" in window ? new IntersectionObserver((es) => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), {rootMargin:"0px 0px -8% 0px"}) : null;
+  document.querySelectorAll(".rise").forEach(n => io ? io.observe(n) : n.classList.add("in"));
+  const form = document.getElementById("try"); if (!form) return;
+  const $ = (id) => document.getElementById(id);
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let typing = 0;
+  function type(text){
+    const q = $("tryQ"), run = ++typing;
+    if (still) { q.textContent = text; return; }
+    q.textContent = ""; const c = document.createElement("span"); c.className = "caret"; q.append(c);
+    let i = 0; const step = () => { if (run !== typing) return; if (i >= text.length) { setTimeout(() => c.remove(), 1600); return; } c.before(text[i++]); setTimeout(step, 18 + Math.random() * 30); };
+    step();
+  }
+  const day = (d) => { const t = new Date(d), n = (Date.now() - t) / 864e5; return n < 1 ? "today" : n < 2 ? "yesterday" : n < 7 ? "on " + t.toLocaleDateString(undefined, {weekday:"long"}) : "on " + t.toLocaleDateString(undefined, {month:"short", day:"numeric"}); };
+  const clean = (s) => s.split("\\n")[0].replace(/^(feat|fix|chore|docs|refactor|style|test)(\\(.+?\\))?:\\s*/i, "").replace(/\\.$/, "").trim();
+  const ASK = {
+    pull: ["You merged {t} {d}. What made it worth doing now?", "{t} went in {d}. Who was it for?", "You merged {t} {d}. What almost stopped you?"],
+    commit: ["{d} you committed {t}. What were you trying to fix?", "{d} you pushed {t}. What did you learn doing it?", "You pushed {t} {d}. What would you do differently?"],
+  };
+  function ask(kind, title, when, seed){
+    const set = ASK[kind]; const tpl = set[[...seed].reduce((a, ch) => a + ch.charCodeAt(0), 0) % set.length];
+    const s = tpl.replace("{t}", "\\u201C" + title + "\\u201D").replace("{d}", when);
+    return s[0].toUpperCase() + s.slice(1);
+  }
+  function work(kind, title, meta){
+    const w = $("tryWork"); w.innerHTML = "";
+    const add = (cls, text) => { const s = document.createElement("span"); s.className = cls; s.textContent = text; w.append(s); return s; };
+    add("kind", kind === "pull" ? "Merged pull request" : "Commit"); add("ttl", title);
+    const m = add("meta", ""); meta.forEach(x => { const s = document.createElement("span"); s.textContent = x; m.append(s); });
+  }
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const raw = $("tryRepo").value.trim().replace(/^https?:\\/\\//, "").replace(/^(www\\.)?github\\.com\\//, "").replace(/\\.git$/, "").replace(/\\/$/, "");
+    const m = raw.match(/^([\\w.-]+)\\/([\\w.-]+)/);
+    if (!m) { $("tryNote").textContent = "Paste a public repo like owner/name."; return; }
+    const repo = m[1] + "/" + m[2]; const btn = form.querySelector("button"); btn.disabled = true; $("tryNote").textContent = "Reading " + repo + "…";
+    try {
+      const gh = (p) => fetch("https://api.github.com/repos/" + repo + p, {headers:{Accept:"application/vnd.github+json"}}).then(r => { if (r.status === 404) throw new Error("That repo isn't public, or doesn't exist."); if (!r.ok) throw new Error("GitHub is busy right now. Try again in a minute."); return r.json(); });
+      const pulls = await gh("/pulls?state=closed&sort=updated&direction=desc&per_page=15");
+      const pr = pulls.filter(p => p.merged_at).sort((a, b) => b.merged_at.localeCompare(a.merged_at))[0];
+      let kind, title, when, seed, meta;
+      if (pr) { kind = "pull"; title = clean(pr.title); when = day(pr.merged_at); seed = String(pr.number); meta = ["#" + pr.number, pr.user ? pr.user.login : "", "merged " + when]; }
+      else {
+        const commits = await gh("/commits?per_page=10");
+        const c = commits.find(c => c.parents && c.parents.length < 2) || commits[0];
+        if (!c) throw new Error("No public commits there yet.");
+        kind = "commit"; title = clean(c.commit.message); when = day(c.commit.author.date); seed = c.sha; meta = [c.sha.slice(0, 7), c.author ? c.author.login : c.commit.author.name, when];
+      }
+      work(kind, title, meta.filter(Boolean)); type(ask(kind, title, when, seed));
+      $("tryNote").textContent = "An opening question from " + repo + "'s latest public work. The real interview reads your whole week and your recent posts first.";
+    } catch (x) { $("tryNote").textContent = x.message; }
+    finally { btn.disabled = false; }
+  });
+})();
+`;
 
 export function privacyPage(): string {
   return shell(
     "Privacy · The Interviewer",
     `
+${NAV}
+<main class="wrap"><article class="doc">
 <h1>Privacy</h1>
 <p>The Interviewer stores as little as it can, for as short a time as it can.</p>
 <h2>What's stored</h2>
@@ -132,78 +360,235 @@ export function privacyPage(): string {
 <h2>What isn't</h2>
 <p>Anything after you're done with it. The Ideas you choose go to your own Buffer account. Nothing is sold, shared or used for ads, and there's no tracking or analytics.</p>
 <h2>What's read</h2>
-<p>From Buffer: your organization, tags, recent Ideas and up to 20 posts from the last 30 days, only to aim the questions, understand who you write for, and avoid repeats. From GitHub: public commits, pull requests and issues in the repo you name. That context is sent to MindStudio, which runs the AI model that writes the questions.</p>
+<p>From Buffer: your organization, tags, recent Ideas and up to 20 posts from the last 30 days, only to aim the questions, understand who you write for, and avoid repeats. From GitHub: public commits, pull requests and issues in the repo you name. That context is sent to MindStudio, which runs the AI model that writes the questions. The example on the home page asks GitHub directly from your browser and sends nothing here.</p>
 <h2>Voice</h2>
 <p>A live voice conversation runs directly between your browser and OpenAI's realtime model; this app only hands your browser a key that works for two minutes, and keeps the written transcript for the harvest. If you answer out loud, the recording is held here for at most 10 minutes behind a random link so MindStudio can transcribe it, then deleted. You see the text and can edit it before anything is saved. Questions read aloud are generated by MindStudio from the question text.</p>
 <h2>Contact</h2>
 <p>Ligaya Beebe, L. Beebe, LLC. Not made by or affiliated with Buffer.</p>
-<p><a href="/">Back</a></p>`,
+<p><a href="/">Back to the start</a></p>
+</article></main>`,
   );
 }
+
+const APP_STYLE = `
+body{font-size:1rem}
+.top{position:sticky;top:0;z-index:5;background:var(--ground);border-bottom:1px solid var(--border)}
+.top .wrap{display:flex;align-items:center;gap:16px;min-height:64px}
+.top .scope{color:var(--muted);font-size:.92rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.top form{margin:0 0 0 auto}
+main.app{padding-block:clamp(24px,4vw,48px) 96px}
+.screen{max-width:760px;margin:0 auto;display:grid;gap:28px}
+.screen.wide{max-width:none}
+.screen > header{display:grid;gap:10px}
+.screen h1{font-size:clamp(1.75rem,1.4rem + 1.2vw,2.25rem);letter-spacing:-.03em;line-height:1.05}
+.lede{color:var(--muted);max-width:56ch}
+#msg{background:var(--raised);color:var(--warn);border-radius:14px;padding:12px 16px;font-weight:500;max-width:760px;margin:0 auto 20px}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);padding:clamp(18px,2.4vw,28px);display:grid;gap:20px;min-width:0;align-content:start}
+
+/* Fields */
+.fieldset{display:grid;gap:8px}
+.fieldset > .lbl{font-weight:500;font-size:.95rem}
+.fieldset > .hint{color:var(--muted);font-size:.875rem;max-width:60ch}
+input[type=text],textarea,select{font:inherit;font-size:1rem;color:var(--ink);background:var(--ground);border:1px solid var(--control);border-radius:var(--r-in);padding:12px 14px;width:100%;transition:border-color .15s,background-color .15s}
+input[type=text]:focus,textarea:focus,select:focus{border-color:var(--ink);background:var(--surface);outline:none}
+textarea{resize:vertical;min-height:120px;line-height:1.5}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{position:relative;display:inline-flex;align-items:center;gap:8px;border-radius:var(--r-ctl);padding:8px 14px;cursor:pointer;background:var(--ground);box-shadow:inset 0 0 0 1px var(--control);font-size:.92rem;transition:background-color .15s,box-shadow .15s,transform .15s;user-select:none}
+.chip:hover{background:var(--raised)}
+.chip:active{transform:scale(.97)}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip:has(input:checked){background:var(--ink);color:var(--ground);box-shadow:none}
+.chip:has(input:focus-visible){outline:3px solid var(--ink);outline-offset:2px}
+.chip:has(input:disabled){cursor:default;opacity:.7}
+.chip .swatch{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 0 1.5px var(--surface)}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+
+/* The orb: the interviewer's presence */
+.studio{justify-items:start}
+.startgrid{max-width:1120px}
+@media (min-width:1000px){.startgrid{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);align-items:start}}
+.howgoes{display:grid;gap:28px;padding:clamp(4px,1.6vw,20px)}
+.howgoes div{display:grid;gap:8px}
+.howgoes h2{font-size:1.15rem;letter-spacing:-.02em;line-height:1.2}
+.howgoes p{color:var(--muted);font-size:.95rem}
+.howgoes .chips{display:flex}.howgoes .chip{cursor:default}
+.studio .orb{width:104px;height:104px}
+.orb{--lvl:0;position:relative;width:88px;height:88px;flex:none}
+.orb i{position:absolute;inset:0;border-radius:50%;background:var(--accent);transform:scale(calc(.78 + var(--lvl) * .5));transition:transform .09s linear}
+.orb i + i{background:transparent;box-shadow:inset 0 0 0 2px var(--accent);transform:scale(calc(.9 + var(--lvl) * .9));opacity:calc(.25 + var(--lvl));transition:transform .14s linear,opacity .14s linear}
+.orb b{position:absolute;inset:34%;border-radius:50%;background:var(--ink);transition:transform .3s var(--ease),background-color .3s}
+.orb[data-s=idle] i:first-child,.orb[data-s=connecting] i:first-child{animation:breathe 3.2s ease-in-out infinite}
+.orb[data-s=thinking] b{animation:think 1s ease-in-out infinite}
+.orb[data-s=listening] b{background:var(--live)}
+.orb[data-s=speaking] b{transform:scale(.7)}
+@keyframes breathe{0%,100%{transform:scale(.74)}50%{transform:scale(.86)}}
+@keyframes think{0%,100%{transform:scale(.6)}50%{transform:scale(1)}}
+.busyline{min-height:1.5em;color:var(--muted)}
+.busyline span,#voiceState span{display:inline-block;animation:fadein .5s var(--ease)}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* Talk */
+.split{display:grid;gap:20px;align-items:start}
+.split .convo{order:-1}
+@media (min-width:1000px){.split{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}.split .convo{grid-column:1;grid-row:1}.split .src{grid-column:2;grid-row:1;position:sticky;top:84px;max-height:calc(100vh - 104px);overflow:auto}}
+.convo{gap:18px}
+.convo .head{display:flex;align-items:center;gap:18px}
+.convo .head .orb{width:64px;height:64px}
+.convo .head h1{font-size:1.25rem;letter-spacing:-.02em}
+.convo .head p{color:var(--muted);font-size:.92rem;min-height:1.4em}
+.log{list-style:none;margin:0;padding:4px 2px;display:flex;flex-direction:column;gap:18px;max-height:min(52vh,560px);overflow:auto}
+.log:empty{display:none}
+.log li{display:grid;gap:4px;max-width:92%}
+.log li p{white-space:pre-wrap;overflow-wrap:anywhere}
+.log .who{font-size:.8rem;color:var(--muted)}
+.log .them p{font-size:clamp(1.15rem,1.05rem + .4vw,1.4rem);line-height:1.3;letter-spacing:-.015em;font-weight:500}
+.log .you{align-self:flex-end;background:var(--raised);border-radius:20px 20px 6px 20px;padding:12px 16px}
+.log .new{animation:fadein .45s var(--ease)}
+.typing p{display:flex;gap:6px;height:1.4em;align-items:center}
+.typing p i{width:8px;height:8px;border-radius:50%;background:var(--muted);animation:hop 1.2s var(--ease) infinite}
+.typing p i:nth-child(2){animation-delay:.15s}.typing p i:nth-child(3){animation-delay:.3s}
+@keyframes hop{0%,60%,100%{transform:none;opacity:.4}30%{transform:translateY(-5px);opacity:1}}
+.live{display:flex;flex-wrap:wrap;align-items:center;gap:12px;background:var(--raised);border-radius:var(--r-card);padding:12px 12px 12px 12px}
+.live .state{color:var(--muted);font-size:.92rem;flex:1;min-width:10em}
+#liveBtn{min-width:11em}
+#liveBtn.on{background:var(--ink);color:var(--ground)}
+#liveBtn.on .rec{background:var(--accent);border-radius:2px}
+.composer{display:grid;gap:10px}
+.composer textarea{min-height:88px}
+#micBtn[aria-pressed=true]{background:var(--live);color:#fff;box-shadow:none}
+.done-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding-top:18px;border-top:1px solid var(--border)}
+.topics{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:thin}
+.topics:empty{display:none}
+button.chip{font:inherit;font-size:.86rem;border:0;color:var(--ink);white-space:nowrap;max-width:22em;overflow:hidden;text-overflow:ellipsis;flex:none}
+button.chip.on{background:var(--ink);color:var(--ground);box-shadow:none}
+
+/* The work panel */
+.src{gap:14px}
+.src .kind{color:var(--muted);font-size:.875rem;display:flex;align-items:center;gap:8px}
+.src .kind::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 1px var(--control)}
+.src h3{font-size:1.3rem;line-height:1.2;letter-spacing:-.02em;margin:0;overflow-wrap:anywhere}
+.src h3 a{text-decoration:none}
+.src h3 a:hover{text-decoration:underline}
+.meta{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.875rem;color:var(--muted)}
+.plus{color:var(--add-fg)} .minus{color:var(--del-fg)}
+.src .body{white-space:pre-wrap;overflow-wrap:anywhere;font-size:.92rem;max-height:14em;overflow:auto;color:var(--muted)}
+.file{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface)}
+.file summary{cursor:pointer;padding:10px 12px;font:500 .82rem/1.4 var(--mono);display:flex;gap:10px;justify-content:space-between;overflow-wrap:anywhere;list-style:none}
+.file summary::-webkit-details-marker{display:none}
+.file summary:hover{background:var(--raised)}
+.diff{margin:0;background:var(--code);font:.78rem/1.55 var(--mono);overflow-x:auto;padding:6px 0}
+.diff span{display:block;padding:0 12px;white-space:pre}
+.diff .a{background:var(--add);color:var(--add-fg)} .diff .d{background:var(--del);color:var(--del-fg)} .diff .h{color:var(--muted)}
+.src.swap > *{animation:fadein .4s var(--ease) both}
+.skel{display:grid;gap:10px}.skel i{display:block;height:14px;border-radius:7px;background:var(--raised)}.skel i:nth-child(1){height:24px;width:80%}.skel i:nth-child(2){width:55%}.skel i:nth-child(3){height:120px}
+
+/* Review */
+.drafts{display:grid;gap:18px}
+@media (min-width:1000px){.drafts{grid-template-columns:1fr 1fr}}
+.draft{transition:opacity .2s}
+.draft.off{opacity:.55}
+.draft.later{background:var(--ground);border-style:dashed}
+.draft .title{font:600 1.3rem/1.2 var(--font);letter-spacing:-.02em;border-color:transparent;background:transparent;padding:6px 8px;margin-left:-8px;width:calc(100% + 8px)}
+.draft .title:hover{border-color:var(--border)}
+.draft .lbl{font-size:.8rem;font-weight:600;color:var(--muted);display:block;margin-bottom:6px}
+.draft .text{min-height:150px}
+.draft .prompts{min-height:84px;font-size:.92rem}
+.pick{justify-self:start}
+.savebar{position:sticky;bottom:16px;z-index:4;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;background:var(--ink);color:var(--ground);border-radius:var(--r-ctl);padding:8px 8px 8px 22px;box-shadow:0 18px 36px -18px rgba(0,0,0,.5)}
+.savebar .btn.quiet{color:var(--ground);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--ground) 40%,transparent)}
+.savebar .btn.quiet:hover{background:color-mix(in srgb,var(--ground) 12%,transparent)}
+.savebar .count{font-size:.95rem}
+
+/* Done */
+.done-list{list-style:none;margin:0;padding:0;display:grid;gap:10px;width:100%}
+.done-list li{display:flex;gap:12px;align-items:baseline;background:var(--ground);border-radius:16px;padding:14px 18px;animation:fadein .5s var(--ease) both;animation-delay:calc(var(--i,0) * 110ms)}
+.done-list li::before{content:"";flex:none;width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 1px var(--control);transform:translateY(-1px)}
+@media (max-width:640px){.top .scope{display:none}.savebar{border-radius:20px;padding:12px}.savebar .row{width:100%}.savebar .row .btn{flex:1}}
+`;
 
 export function appPage(): string {
   return shell(
     "The Interviewer",
     `
-<header class="row" style="justify-content:space-between">
-  <h2>The Interviewer</h2>
-  <form method="post" action="/logout"><button class="btn quiet" type="submit">Disconnect</button></form>
-</header>
-<p id="msg" class="error" role="alert" hidden></p>
+<header class="top"><div class="wrap">
+  <a class="wordmark" href="/app">${MARK}<span>The Interviewer</span></a>
+  <span class="scope" id="scope"></span>
+  <form method="post" action="/logout"><button class="btn text" type="submit">Disconnect</button></form>
+</div></header>
+<main class="app wrap">
+<p id="msg" role="alert" hidden></p>
 
-<section id="setup" class="card" hidden>
-  <h2>Set up</h2>
-  <label id="orgWrap" hidden>Buffer organization<select id="org"></select></label>
-  <label>Your public GitHub repo<input id="repo" type="text" placeholder="github.com/you/project" autocomplete="off"></label>
-  <div style="display:flex;flex-direction:column;gap:8px">
-    <span style="font-weight:700;font-size:.95rem">Content pillars <span class="muted small">(pick up to 3 Buffer tags)</span></span>
-    <div id="tags" class="chips"></div>
-    <p id="noTags" class="small muted" hidden>You don't have any tags in Buffer yet. Create one to three in Buffer (for example: what I built, what I learned, who it's for), then reload this page.</p>
+<section id="setup" class="screen" hidden>
+  <header><h1>Set up your interviews</h1><p class="lede">Two things, once. You can change them any time.</p></header>
+  <div class="panel">
+    <label class="fieldset" id="orgWrap" hidden><span class="lbl">Buffer organization</span><select id="org"></select></label>
+    <label class="fieldset"><span class="lbl">Your public GitHub repo</span><span class="hint">It reads this week's commits, merged pull requests and closed issues. No GitHub sign-in, nothing private.</span><input id="repo" type="text" placeholder="github.com/you/project" autocomplete="off" spellcheck="false"></label>
+    <div class="fieldset" role="group" aria-labelledby="pillarsLbl">
+      <span class="lbl" id="pillarsLbl">Content pillars</span>
+      <span class="hint">Pick up to three of your Buffer tags. Each idea gets one, so your week spreads across what you post about.</span>
+      <div id="tags" class="chips"></div>
+      <p id="noTags" class="hint" hidden>You don't have any tags in Buffer yet. Create one to three in Buffer (for example: what I built, what I learned, who it's for), then reload this page.</p>
+    </div>
+    <div class="row"><button id="saveSetup" class="btn" type="button">Save and continue</button></div>
   </div>
-  <div class="row"><button id="saveSetup" class="btn" type="button">Save</button></div>
 </section>
 
-<section id="start" class="card" hidden>
-  <p class="progress" id="repoLine"></p>
-  <label>What did you work on this week? <span class="muted small" style="font-weight:400">Optional, one or two sentences. It helps aim the conversation.</span>
-    <textarea id="weekNote" style="min-height:90px"></textarea></label>
-  <div class="row"><button id="startBtn" class="btn" type="button">Start the interview</button><button id="editSetup" class="btn quiet" type="button">Change repo or pillars</button></div>
+<section id="start" class="screen startgrid" hidden>
+  <div class="panel studio">
+    <div class="orb" data-s="idle" aria-hidden="true"><i></i><i></i><b></b></div>
+    <header style="display:grid;gap:10px"><h1>Ready when you are.</h1><p class="lede" id="repoLine"></p></header>
+    <label class="fieldset" style="width:100%"><span class="lbl">Anything on your mind from this week?</span><span class="hint">Optional. A sentence or two helps aim the first questions.</span>
+      <textarea id="weekNote" style="min-height:96px"></textarea></label>
+    <div class="row"><button id="startBtn" class="btn" type="button"><span class="rec"></span>Start the interview</button><button id="editSetup" class="btn quiet" type="button">Change repo or pillars</button></div>
+    <p class="busyline" id="startBusy" aria-live="polite"></p>
+  </div>
+  <aside class="howgoes" aria-label="How this goes">
+    <div><h2>It has done its reading</h2><p>Before the first question it looks at this week's commits, pull requests and closed issues, and what you've posted lately, so it can skip the obvious.</p></div>
+    <div><h2>It follows you</h2><p>Talk out loud or type. When you get to a change, it opens beside the conversation. Stop whenever you like.</p></div>
+    <div><h2>You keep what you want</h2><p>It finds the stories in what you said and files each under one of your pillars:</p><div class="chips" id="startPillars"></div></div>
+  </aside>
 </section>
 
-<section id="talk" class="split" hidden>
-<aside id="src" class="card src" aria-label="What we're talking about"></aside>
-<div class="card panel">
-  <div class="row" style="justify-content:space-between"><p class="progress" id="talkLine"></p><span id="voiceState" class="small muted"></span></div>
-  <div id="topics" class="chips" aria-label="Topics from your week"></div>
+<section id="talk" class="screen wide split" hidden>
+<aside id="src" class="panel src" aria-label="What we're talking about"></aside>
+<div class="panel convo">
+  <div class="head">
+    <div class="orb" id="orb" data-s="idle" aria-hidden="true"><i></i><i></i><b></b></div>
+    <div><h1>Your interview</h1><p id="voiceState" aria-live="polite"></p></div>
+  </div>
+  <div id="topics" class="topics" aria-label="Topics from your week"></div>
   <ol id="log" class="log" aria-live="polite"></ol>
-  <div class="row live" id="liveBox" hidden><button id="liveBtn" class="btn" type="button">● Start talking</button><span id="liveState" class="small muted" aria-live="polite"></span></div>
-  <label for="say" class="sr">Your answer</label>
-  <textarea id="say" placeholder="Type your answer. Enter sends, Shift+Enter for a new line." style="min-height:96px"></textarea>
-  <div class="row">
-    <button id="sendBtn" class="btn" type="button">Send</button>
-    <button id="micBtn" class="btn quiet small-btn" type="button" aria-pressed="false" hidden>● Talk</button>
-    <label class="chip" id="speakWrap" hidden style="font-weight:400"><input type="checkbox" id="speakOn"> Read questions aloud</label>
-    <span id="micNote" class="small muted"></span>
+  <div class="live" id="liveBox" hidden><button id="liveBtn" class="btn" type="button"><span class="rec"></span><span class="lt">Start talking</span></button><span id="liveState" class="state" aria-live="polite"></span></div>
+  <div class="composer">
+    <label for="say" class="sr">Your answer</label>
+    <textarea id="say" placeholder="Type your answer. Enter sends, Shift+Enter for a new line."></textarea>
+    <div class="row">
+      <button id="sendBtn" class="btn small" type="button">Send</button>
+      <button id="micBtn" class="btn quiet small" type="button" aria-pressed="false" hidden>Answer out loud</button>
+      <label class="chip" id="speakWrap" hidden><input type="checkbox" id="speakOn">Read questions aloud</label>
+      <span id="micNote" class="small muted"></span>
+    </div>
   </div>
-  <div class="row" style="border-top:1px solid var(--line);padding-top:14px"><button id="harvestBtn" class="btn quiet" type="button">I'm done. Find my ideas</button></div>
+  <div class="done-row"><span class="small muted">Stop whenever you like. It finds the stories in what you said.</span><button id="harvestBtn" class="btn quiet" type="button">I'm done. Find my ideas</button></div>
 </div>
 </section>
 
-<section id="review" style="display:flex;flex-direction:column;gap:18px" hidden>
-  <div style="display:flex;flex-direction:column;gap:8px">
-    <h2>Ideas from your interview</h2>
-    <p class="muted">Each title names an angle. Below it are your own words, exactly as you said them, under the question that drew them out, then questions to help you develop it into a post. Edit anything, untick what you don't want, then save.</p>
-  </div>
+<section id="review" class="screen wide" hidden>
+  <header><h1>Ideas from your interview</h1><p class="lede">Each title names an angle. Under it are your own words, exactly as you said them, and a few questions to help you shape a post. Edit anything, untick what you don't want, then save.</p></header>
   <div id="drafts" class="drafts"></div>
-  <div class="row"><button id="saveAll" class="btn" type="button">Save to Buffer</button><button id="backTalk" class="btn quiet" type="button">Back to the conversation</button></div>
+  <div class="savebar"><span class="count" id="saveCount"></span><div class="row"><button id="backTalk" class="btn quiet small" type="button">Back to the conversation</button><button id="saveAll" class="btn" type="button">Save to Buffer</button></div></div>
 </section>
 
-<section id="done" class="card" hidden>
-  <h2>That's this week.</h2>
-  <p id="doneLine"></p>
-  <div class="row"><a class="btn" href="https://publish.buffer.com" target="_blank" rel="noopener">Open Buffer</a><button id="again" class="btn quiet" type="button">Start a new interview</button></div>
-</section>`,
-    APP_SCRIPT,
+<section id="done" class="screen" hidden>
+  <div class="panel studio">
+    <div class="orb" data-s="idle" aria-hidden="true"><i></i><i></i><b></b></div>
+    <header style="display:grid;gap:10px"><h1>That's this week.</h1><p class="lede" id="doneLine"></p></header>
+    <ul class="done-list" id="doneList"></ul>
+    <div class="row"><a class="btn" href="https://publish.buffer.com" target="_blank" rel="noopener">Open Buffer</a><button id="again" class="btn quiet" type="button">Start a new interview</button></div>
+  </div>
+</section>
+</main>`,
+    { style: APP_STYLE, script: APP_SCRIPT },
   );
 }
 
@@ -211,8 +596,8 @@ const APP_SCRIPT = `
 const $ = (id) => document.getElementById(id);
 let state = null, shown = null, busy = false;
 const SCREENS = ["setup","start","talk","review","done"];
-function show(id){ for (const s of SCREENS) $(s).hidden = s !== id; document.querySelector("main").classList.toggle("wide", id === "talk" || id === "review"); }
-function err(m){ $("msg").textContent = m || ""; $("msg").hidden = !m; }
+function show(id){ for (const s of SCREENS) $(s).hidden = s !== id; $("scope").textContent = state && state.repo ? state.repo : ""; }
+function err(m){ $("msg").textContent = m || ""; $("msg").hidden = !m; if (m) $("msg").scrollIntoView({block:"nearest", behavior:"smooth"}); }
 function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 async function api(path, body){
   const res = await fetch(path, body ? {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)} : {});
@@ -223,12 +608,43 @@ async function api(path, body){
 }
 function chip(tag, name, type, checked){
   const l = document.createElement("label"); l.className = "chip";
-  l.innerHTML = '<input type="'+type+'" name="'+name+'"><span class="dot"></span><span></span>';
+  l.innerHTML = '<input type="'+type+'" name="'+name+'"><span class="swatch"></span><span></span>';
   l.querySelector("input").value = tag.id; l.querySelector("input").checked = checked;
-  l.querySelector(".dot").style.background = tag.color; l.querySelector("span:last-child").textContent = tag.name;
+  l.querySelector(".swatch").style.background = tag.color; l.querySelector("span:last-child").textContent = tag.name;
   return l;
 }
 const pillars = () => (state.tags||[]).filter(t => (state.pillarTagIds||[]).includes(t.id));
+
+// The orb: breathes when idle, pulses while thinking, and follows the real
+// level of whichever voice is speaking.
+const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function orbState(s){ for (const o of document.querySelectorAll(".orb")) o.dataset.s = s; }
+let actx = null, meters = [], rafId = 0;
+function meter(stream){
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === "suspended") actx.resume();
+    const an = actx.createAnalyser(); an.fftSize = 512; actx.createMediaStreamSource(stream).connect(an);
+    meters.push({an, buf: new Uint8Array(an.fftSize)});
+    if (!rafId && !still) loop();
+  } catch {}
+}
+function loop(){
+  let lvl = 0;
+  for (const m of meters) { m.an.getByteTimeDomainData(m.buf); let s = 0; for (const v of m.buf) { const x = (v - 128) / 128; s += x * x; } lvl = Math.max(lvl, Math.sqrt(s / m.buf.length)); }
+  $("orb").style.setProperty("--lvl", Math.min(1, lvl * 4).toFixed(3));
+  rafId = meters.length ? requestAnimationFrame(loop) : 0;
+}
+function stopMeters(){ meters = []; cancelAnimationFrame(rafId); rafId = 0; $("orb").style.setProperty("--lvl", 0); }
+
+// Waiting lines: what the server is really doing while a slow call runs.
+let busyTimer = null;
+function busyLines(target, lines){
+  clearInterval(busyTimer); let k = 0;
+  const put = () => $(target).replaceChildren(el("span", "", lines[k++]));
+  put(); busyTimer = setInterval(() => { if (k < lines.length) put(); }, 2800);
+}
+function busyDone(target){ clearInterval(busyTimer); $(target).replaceChildren(); }
 
 // Setup
 function renderSetup(){
@@ -249,24 +665,25 @@ async function renderSource(about){
   const q = (state.questions||[])[about];
   if (shown === about && $("src").childNodes.length) return;
   shown = about;
-  const box = $("src"); box.innerHTML = "";
-  if (!q || !q.ref) { box.append(el("p", "progress", "Your week"), el("p", "muted", state.repo || "")); return; }
-  box.append(el("p", "progress", KIND[q.ref.kind]), el("p", "muted small", "Reading it…"));
+  const box = $("src"); box.innerHTML = ""; box.classList.remove("swap"); void box.offsetWidth; box.classList.add("swap");
+  if (!q || !q.ref) { box.append(el("p", "kind", "Your week"), el("h3", "", state.repo || ""), el("p", "small muted", "When the conversation gets to a specific change, it opens here.")); return; }
+  const sk = el("div", "skel"); sk.append(el("i"), el("i"), el("i"));
+  box.append(el("p", "kind", KIND[q.ref.kind]), sk);
   let src = sources.get(q.id);
-  if (!src) { try { src = await api("/api/source?q=" + encodeURIComponent(q.id)); sources.set(q.id, src); } catch(e) { box.lastChild.textContent = e.message; return; } }
+  if (!src) { try { src = await api("/api/source?q=" + encodeURIComponent(q.id)); sources.set(q.id, src); } catch(e) { sk.replaceWith(el("p", "small muted", e.message)); return; } }
   if (shown !== about) return;
   box.innerHTML = "";
-  box.append(el("p", "progress", KIND[src.kind]));
+  box.append(el("p", "kind", KIND[src.kind]));
   const h = el("h3"); if (src.url) { const a = el("a", "", src.title); a.href = src.url; a.target = "_blank"; a.rel = "noopener"; h.append(a); } else h.textContent = src.title; box.append(h);
   const meta = el("div", "meta");
   if (src.who) meta.append(el("span", "", src.who));
   if (src.when) meta.append(el("span", "", new Date(src.when).toLocaleDateString(undefined, {weekday:"short", month:"short", day:"numeric"})));
-  if (src.stats) meta.append(el("span", "plus", "+" + src.stats.additions), el("span", "minus", "−" + src.stats.deletions), el("span", "", src.stats.files + (src.stats.files === 1 ? " file" : " files")));
+  if (src.stats) meta.append(el("span", "plus num", "+" + src.stats.additions), el("span", "minus num", "−" + src.stats.deletions), el("span", "num", src.stats.files + (src.stats.files === 1 ? " file" : " files")));
   if (meta.childNodes.length) box.append(meta);
   if (src.body) box.append(el("div", "body", src.body));
   src.files.forEach((f, k) => {
     const d = el("details", "file"); if (k < 2 && f.patch) d.open = true;
-    const sum = el("summary"); sum.append(el("span", "", f.name)); const n = el("span"); n.append(el("span", "plus", "+" + f.additions), " ", el("span", "minus", "−" + f.deletions)); sum.append(n); d.append(sum);
+    const sum = el("summary"); sum.append(el("span", "", f.name)); const n = el("span", "num"); n.append(el("span", "plus", "+" + f.additions), " ", el("span", "minus", "−" + f.deletions)); sum.append(n); d.append(sum);
     if (f.patch) { const pre = el("pre", "diff"); for (const line of f.patch.split("\\\\n")) pre.append(el("span", line.startsWith("@@") ? "h" : line[0] === "+" ? "a" : line[0] === "-" ? "d" : "", line || " ")); d.append(pre); }
     else { const none = el("p", "small muted", f.status === "removed" ? "File removed." : "No preview for this file."); none.style.padding = "0 12px 10px"; d.append(none); }
     box.append(d);
@@ -274,9 +691,9 @@ async function renderSource(about){
 }
 
 // The conversation
+let drawn = 0;
 function currentAbout(){ const t = [...(state.turns||[])].reverse().find(t => t.about != null); return t ? t.about : null; }
 function renderTalk(){
-  $("talkLine").textContent = "Interview · " + (state.repo || "");
   const about = currentAbout();
   $("topics").innerHTML = "";
   (state.questions||[]).forEach((q, k) => {
@@ -285,16 +702,18 @@ function renderTalk(){
     $("topics").append(b);
   });
   const log = $("log"); log.innerHTML = "";
-  for (const t of state.turns || []) {
-    const li = el("li", t.who === "you" ? "you" : "them");
-    li.append(el("span", "who", t.who === "you" ? "You" : "Interviewer"), el("p", "", t.text));
+  const turns = state.turns || [];
+  turns.forEach((t, k) => {
+    const li = el("li", (t.who === "you" ? "you" : "them") + (k >= drawn ? " new" : ""));
+    li.append(el("span", "who", t.who === "you" ? "You" : "The Interviewer"), el("p", "", t.text));
     log.append(li);
-  }
-  if (busy) { const li = el("li", "them typing"); li.append(el("span", "who", "Interviewer"), el("p", "", "…")); log.append(li); }
-  log.scrollTop = log.scrollHeight;
+  });
+  drawn = turns.length;
+  if (busy) { const li = el("li", "them typing new"), p = el("p"); p.append(el("i"), el("i"), el("i")); p.setAttribute("aria-label", "Thinking"); li.append(el("span", "who", "The Interviewer"), p); log.append(li); }
   $("liveBox").hidden = !state.live || !window.RTCPeerConnection;
   $("micBtn").hidden = $("speakWrap").hidden = !state.voice || !window.MediaRecorder || !$("liveBox").hidden;
-  show("talk");
+  if (!liveOn()) { orbState(busy ? "thinking" : "idle"); if (!$("liveBox").hidden && !$("liveState").textContent) setLive(""); }
+  show("talk"); log.scrollTop = log.scrollHeight;
   if (about != null && about !== shown) renderSource(about).then(markTopics); else if (shown == null) renderSource(null);
   markTopics();
 }
@@ -309,7 +728,7 @@ async function say(){
   err(""); busy = true; $("sendBtn").disabled = true;
   state.turns = [...(state.turns||[]), {who:"you", text}]; $("say").value = ""; renderTalk();
   try { state = await api("/api/say", {text}); busy = false; renderTalk(); speakLatest(); }
-  catch(e){ busy = false; state.turns.pop(); $("say").value = text; renderTalk(); err(e.message); }
+  catch(e){ busy = false; state.turns.pop(); drawn = state.turns.length; $("say").value = text; renderTalk(); err(e.message); }
   finally { $("sendBtn").disabled = false; $("say").focus(); }
 }
 $("sendBtn").onclick = say;
@@ -319,8 +738,8 @@ $("say").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftK
 let player = null;
 async function speakLatest(){
   if (!$("speakOn").checked) return;
-  try { $("voiceState").textContent = "…"; const { audioUrl } = await api("/api/speak", {}); if (player) player.pause(); player = new Audio(audioUrl); player.onended = () => { $("voiceState").textContent = ""; }; $("voiceState").textContent = "Speaking"; await player.play(); }
-  catch(e){ $("voiceState").textContent = ""; }
+  try { $("voiceState").textContent = "Getting ready to read it aloud…"; const { audioUrl } = await api("/api/speak", {}); if (player) player.pause(); player = new Audio(audioUrl); player.onended = () => { $("voiceState").textContent = ""; orbState("idle"); }; $("voiceState").textContent = "Reading the question aloud"; orbState("speaking"); await player.play(); }
+  catch(e){ $("voiceState").textContent = ""; orbState("idle"); }
 }
 $("speakOn").onchange = () => { if ($("speakOn").checked) speakLatest(); else if (player) player.pause(); };
 let rec = null, chunks = [];
@@ -329,11 +748,11 @@ $("micBtn").onclick = async () => {
   if (rec && rec.state === "recording") { rec.stop(); return; }
   if (player) player.pause();
   let stream; try { stream = await navigator.mediaDevices.getUserMedia({audio:true}); } catch { return err("The browser didn't allow the microphone. You can type instead."); }
-  chunks = []; rec = new MediaRecorder(stream);
+  chunks = []; rec = new MediaRecorder(stream); meter(stream); orbState("listening");
   rec.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
   rec.onstop = async () => {
-    stream.getTracks().forEach(t => t.stop());
-    $("micBtn").setAttribute("aria-pressed", "false"); $("micBtn").textContent = "● Talk"; $("micBtn").disabled = true; $("micNote").textContent = "Writing down what you said…";
+    stream.getTracks().forEach(t => t.stop()); stopMeters(); orbState("thinking");
+    $("micBtn").setAttribute("aria-pressed", "false"); $("micBtn").textContent = "Answer out loud"; $("micBtn").disabled = true; $("micNote").textContent = "Writing down what you said…";
     try {
       const blob = new Blob(chunks, {type: rec.mimeType || "audio/webm"});
       const res = await fetch("/api/transcribe", {method:"POST", headers:{"Content-Type": blob.type}, body: blob});
@@ -341,16 +760,21 @@ $("micBtn").onclick = async () => {
       if (!res.ok) throw new Error(json.error || "Couldn't write that down. Try again or type it.");
       const a = $("say"); a.value = (a.value.trim() ? a.value.trim() + " " : "") + json.text; a.focus();
       $("micNote").textContent = "Check it, then send.";
-    } catch(e){ err(e.message); $("micNote").textContent = ""; } finally { $("micBtn").disabled = false; }
+    } catch(e){ err(e.message); $("micNote").textContent = ""; } finally { $("micBtn").disabled = false; orbState("idle"); }
   };
-  rec.start(); $("micBtn").setAttribute("aria-pressed", "true"); $("micBtn").textContent = "■ Stop"; $("micNote").textContent = "Listening…";
+  rec.start(); $("micBtn").setAttribute("aria-pressed", "true"); $("micBtn").textContent = "Stop and write it down"; $("micNote").textContent = "Listening…";
 };
 
 // Live voice: the browser talks to OpenAI's realtime model directly over
 // WebRTC, with a short-lived key from our server. The transcript is synced back
 // so the harvest can read it.
 let pc = null, dc = null, mic = null, liveTurns = null, liveAbout = null, liveTimer = null, syncTimer = null, items = {};
-function setLive(s){ $("liveState").textContent = s || ""; }
+const LIVE_LOOK = {"Connecting…":"connecting", "Connected":"thinking", "Listening":"listening", "Thinking":"thinking", "Speaking":"speaking", "Your turn":"listening"};
+const LIVE_SAY = {"Connected":"Connected. It's about to ask.", "Your turn":"Your turn. Just talk."};
+function setLive(s){
+  $("liveState").textContent = s ? (LIVE_SAY[s] || s) : "Talk it through out loud. You can type below too.";
+  orbState(s ? (LIVE_LOOK[s] || "idle") : "idle");
+}
 function liveOn(){ return pc && pc.connectionState !== "closed"; }
 function ensureItem(id, who){
   if (!items[id]) { const t = {who, text:"", about: who === "interviewer" ? liveAbout : undefined}; items[id] = t; liveTurns.push(t); }
@@ -401,15 +825,17 @@ function onLiveEvent(ev){
     case "error": console.warn("realtime", ev.error || ev); break;
   }
 }
+function liveLabel(on){ $("liveBtn").querySelector(".lt").textContent = on ? "Pause" : "Start talking"; $("liveBtn").classList.toggle("on", on); }
 async function startLive(){
   err(""); $("liveBtn").disabled = true; setLive("Connecting…");
   try {
     mic = await navigator.mediaDevices.getUserMedia({audio:true});
+    meter(mic);
     const { key } = await api("/api/voice", {});
     items = {}; liveTurns = (state.turns || []).some(t => t.who === "you") ? state.turns.map(t => ({...t})) : []; liveAbout = currentAbout();
     pc = new RTCPeerConnection();
     const out = new Audio(); out.autoplay = true;
-    pc.ontrack = (e) => { out.srcObject = e.streams[0]; };
+    pc.ontrack = (e) => { out.srcObject = e.streams[0]; meter(e.streams[0]); };
     mic.getTracks().forEach(t => pc.addTrack(t, mic));
     dc = pc.createDataChannel("oai-events");
     dc.onmessage = (e) => { try { onLiveEvent(JSON.parse(e.data)); } catch (x) { console.warn(x); } };
@@ -419,7 +845,7 @@ async function startLive(){
     const r = await fetch("https://api.openai.com/v1/realtime/calls", {method:"POST", body: offer.sdp, headers:{Authorization: "Bearer " + key, "Content-Type": "application/sdp"}});
     if (!r.ok) throw new Error("The voice service didn't connect (" + r.status + "). Try again, or type.");
     await pc.setRemoteDescription({type:"answer", sdp: await r.text()});
-    $("liveBtn").textContent = "■ Pause"; $("liveBtn").classList.add("on");
+    liveLabel(true);
     liveTimer = setTimeout(() => { stopLive(); err("Paused after 20 minutes. Start talking again to keep going, or find your ideas."); }, 20 * 60 * 1000);
   } catch (e) { stopLive(); err(e.message === "Permission denied" ? "The browser didn't allow the microphone. You can type instead." : e.message); }
   finally { $("liveBtn").disabled = false; }
@@ -429,8 +855,9 @@ async function stopLive(){
   if (dc) try { dc.close(); } catch {}
   if (pc) try { pc.close(); } catch {}
   if (mic) mic.getTracks().forEach(t => t.stop());
+  stopMeters();
   const was = !!liveTurns; pc = dc = mic = null; liveTurns = null;
-  $("liveBtn").textContent = "● Start talking"; $("liveBtn").classList.remove("on"); setLive("");
+  liveLabel(false); setLive("");
   if (was) await syncLive(true);
 }
 $("liveBtn").onclick = () => liveOn() ? stopLive() : startLive();
@@ -438,25 +865,37 @@ $("liveBtn").onclick = () => liveOn() ? stopLive() : startLive();
 // Harvest and review
 $("harvestBtn").onclick = async () => {
   err(""); $("harvestBtn").disabled = true; $("harvestBtn").textContent = "Reading the conversation…";
-  try { if (liveTurns) await stopLive(); state = await api("/api/harvest", {}); renderReview(); }
-  catch(e){ err(e.message); } finally { $("harvestBtn").disabled = false; $("harvestBtn").textContent = "I'm done. Find my ideas"; }
+  try {
+    if (liveTurns) await stopLive();
+    orbState("thinking"); busyLines("voiceState", ["Reading the conversation back", "Finding the stories worth telling", "Keeping your exact words", "Writing a few questions for each one"]);
+    state = await api("/api/harvest", {}); renderReview(); window.scrollTo({top:0});
+  }
+  catch(e){ err(e.message); } finally { busyDone("voiceState"); orbState("idle"); $("harvestBtn").disabled = false; $("harvestBtn").textContent = "I'm done. Find my ideas"; }
 };
+function countPicked(){
+  const cards = [...document.querySelectorAll(".draft")];
+  cards.forEach(c => c.classList.toggle("off", !c.querySelector(".pick input").checked));
+  const n = cards.filter(c => c.querySelector(".pick input").checked).length;
+  $("saveCount").textContent = n ? n + (n === 1 ? " idea" : " ideas") + " ticked" : "Nothing ticked yet";
+  $("saveAll").textContent = n ? "Save " + n + " to Buffer" : "Save to Buffer";
+}
 function renderReview(){
   const box = $("drafts"); box.innerHTML = "";
   for (const d of state.drafts || []) {
-    const card = el("div", "card draft" + (d.later ? " later" : "")); card.dataset.id = d.id;
+    const card = el("article", "panel draft" + (d.later ? " later" : "")); card.dataset.id = d.id;
     const top = el("label", "chip pick"); const cb = el("input"); cb.type = "checkbox"; cb.checked = !d.later; top.append(cb, el("span", "", d.later ? "Save to answer later" : "Save this idea")); card.append(top);
     if ((state.saved||[]).includes(d.id)) { cb.checked = false; cb.disabled = true; top.lastChild.textContent = "Saved"; }
+    cb.onchange = countPicked;
     const t = el("input", "title"); t.type = "text"; t.value = d.title; t.setAttribute("aria-label", "Idea title"); card.append(t);
-    const x = el("textarea", "text"); x.value = d.text; x.setAttribute("aria-label", "Idea text, in your words"); card.append(x);
+    const words = el("div"); words.append(el("span", "lbl", d.later ? "A question for later" : "Your words")); const x = el("textarea", "text"); x.value = d.text; x.setAttribute("aria-label", "Idea text, in your words"); words.append(x); card.append(words);
     if ((d.prompts||[]).length) {
-      card.append(el("p", "small muted", "Prompts to develop it (one per line):"));
-      const pr = el("textarea", "prompts"); pr.value = d.prompts.join("\\n"); pr.setAttribute("aria-label", "Shaping questions, one per line"); card.append(pr);
+      const pw = el("div"); pw.append(el("span", "lbl", "Prompts to develop it, one per line"));
+      const pr = el("textarea", "prompts"); pr.value = d.prompts.join("\\n"); pr.setAttribute("aria-label", "Shaping questions, one per line"); pw.append(pr); card.append(pw);
     }
-    const chips = el("div", "chips"); pillars().forEach((p, k) => chips.append(chip(p, "pl-" + d.id, "radio", d.tagId ? d.tagId === p.id : k === 0))); card.append(chips);
+    const chips = el("div", "chips"); chips.setAttribute("aria-label", "Pillar"); pillars().forEach((p, k) => chips.append(chip(p, "pl-" + d.id, "radio", d.tagId ? d.tagId === p.id : k === 0))); card.append(chips);
     box.append(card);
   }
-  show("review");
+  show("review"); countPicked();
 }
 $("backTalk").onclick = renderTalk;
 $("saveAll").onclick = async () => {
@@ -467,22 +906,26 @@ $("saveAll").onclick = async () => {
     tagId: (c.querySelector('.chips input:checked') || {}).value,
   }));
   if (!drafts.length) return err("Tick at least one idea to save.");
-  $("saveAll").disabled = true; $("saveAll").textContent = "Saving…";
+  $("saveAll").disabled = true; $("saveAll").textContent = "Saving to Buffer…";
   try { state = await api("/api/save", {drafts}); renderDone(); }
   catch(e){ err(e.message); try { state = await api("/api/state"); renderReview(); } catch {} }
-  finally { $("saveAll").disabled = false; $("saveAll").textContent = "Save to Buffer"; }
+  finally { $("saveAll").disabled = false; if (!$("review").hidden) countPicked(); }
 };
 function renderDone(){
   const n = (state.saved||[]).length;
-  $("doneLine").textContent = n + (n === 1 ? " idea" : " ideas") + " saved to your Buffer Ideas, in your own words.";
-  show("done");
+  $("doneLine").textContent = n + (n === 1 ? " idea is" : " ideas are") + " in your Buffer Ideas, in your own words. Write from them whenever you're ready.";
+  const list = $("doneList"); list.innerHTML = "";
+  (state.drafts||[]).filter(d => (state.saved||[]).includes(d.id)).forEach((d, k) => { const li = el("li", "", d.title); li.style.setProperty("--i", k); list.append(li); });
+  show("done"); window.scrollTo({top:0});
 }
 
 function route(){
   if (!state.repo || !(state.pillarTagIds||[]).length) return renderSetup();
   if ((state.drafts||[]).length) return (state.saved||[]).length ? renderDone() : renderReview();
   if ((state.turns||[]).length) return renderTalk();
-  $("repoLine").textContent = state.repo; show("start");
+  $("repoLine").textContent = "This week in " + state.repo + ". Out loud or typed, about ten minutes.";
+  $("startPillars").replaceChildren(...pillars().map(p => { const c = el("span", "chip"), d = el("span", "swatch"); d.style.background = p.color; c.append(d, p.name); return c; }));
+  show("start");
 }
 async function load(){ try { state = await api("/api/state"); route(); } catch(e){ err(e.message); } }
 $("saveSetup").onclick = async () => {
@@ -493,11 +936,12 @@ $("saveSetup").onclick = async () => {
 };
 $("editSetup").onclick = renderSetup;
 $("startBtn").onclick = async () => {
-  err(""); $("startBtn").disabled = true; $("startBtn").textContent = "Reading your week…";
-  try { state = await api("/api/start", {weekNote:$("weekNote").value}); shown = null; renderTalk(); speakLatest(); $("say").focus({preventScroll:true}); }
-  catch(e){ err(e.message); } finally { $("startBtn").disabled = false; $("startBtn").textContent = "Start the interview"; }
+  err(""); $("startBtn").disabled = true; $("editSetup").disabled = true; orbState("thinking");
+  busyLines("startBusy", ["Reading this week's commits and pull requests", "Looking at what you've posted lately", "Planning a few threads to pull on", "Almost ready"]);
+  try { state = await api("/api/start", {weekNote:$("weekNote").value}); shown = null; drawn = 0; renderTalk(); speakLatest(); $("say").focus({preventScroll:true}); }
+  catch(e){ err(e.message); } finally { busyDone("startBusy"); if ($("talk").hidden) orbState("idle"); $("startBtn").disabled = false; $("editSetup").disabled = false; }
 };
-$("again").onclick = async () => { try { state = await api("/api/reset", {}); shown = null; sources.clear(); route(); } catch(e){ err(e.message); } };
+$("again").onclick = async () => { try { state = await api("/api/reset", {}); shown = null; drawn = 0; sources.clear(); route(); } catch(e){ err(e.message); } };
 load();
 `;
 
