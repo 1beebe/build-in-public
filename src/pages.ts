@@ -207,7 +207,7 @@ ${NAV}
 <section class="wrap hero">
   <div>
     <h1 class="rise">Talk about what you shipped.</h1>
-    <p class="lead rise" style="--i:1">The Interviewer reads your public GitHub repo, asks about your week out loud or typed, and saves the stories worth telling to Buffer as Ideas, in your exact words.</p>
+    <p class="lead rise" style="--i:1">Everyone says build in public. Hardly anyone tells you where to start. The Interviewer reads your public GitHub repo, asks about your week out loud or typed, and saves the stories worth telling to Buffer as Ideas, in your exact words.</p>
     ${error ? `<p class="alert" role="alert">${escapeHtml(error)}</p>` : ""}
     <div class="act rise" style="--i:2"><a class="btn" href="/connect">Connect with Buffer</a><span class="small muted">Buffer is the only sign-in.</span></div>
   </div>
@@ -235,6 +235,16 @@ ${NAV}
 </section>
 
 <figure class="band" aria-hidden="true"><img src="/img/desk.webp" alt="" width="1600" height="1067" loading="lazy" decoding="async"></figure>
+
+<section class="sec" aria-labelledby="startH">
+  <div class="wrap two">
+    <h2 class="rise" id="startH">You know you should share it. You just don't know what to say.</h2>
+    <div>
+      <p class="say rise" style="--i:1">Build in public is everywhere as advice and almost nowhere as instructions. Friday comes, you open a blank post, the week's work feels too small or too technical to talk about, and nothing gets written.</p>
+      <p class="say rise" style="--i:2">The stories are already there, in what you decided, what broke, and who you built it for. They just need someone to ask. Ten minutes of good questions about your real commits, and you walk away with a few stories you can start telling.</p>
+    </div>
+  </div>
+</section>
 
 <section class="sec" id="sounds" style="background:var(--raised)">
   <div class="wrap two">
