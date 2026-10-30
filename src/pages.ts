@@ -176,33 +176,11 @@ const PAGE_STYLE = `
 .where li{display:grid;grid-template-columns:2.2rem 1fr;gap:12px;align-items:baseline;counter-increment:w;font-size:clamp(1.1rem,1rem + .35vw,1.3rem);line-height:1.45}
 .where li::before{content:counter(w);font-weight:600;font-size:1.6em;line-height:1;letter-spacing:-.04em}
 .where b{font-weight:600}
-.bmock{margin:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);overflow:hidden;font-size:.9rem}
-.bm-app{display:grid;grid-template-columns:8.5rem minmax(0,1fr)}
-.bm-side{display:grid;gap:4px;align-content:start;padding:16px 10px;border-right:1px solid var(--border)}
-.bm-logo{width:26px;height:26px;border-radius:8px;background:var(--ink);margin:0 0 10px 8px}
-.bm-nav{padding:6px 10px;color:var(--muted);font-weight:500}
-.bm-create,.bm-ideas{border-radius:var(--r-ctl);padding:6px 10px;font-weight:600}
-.bm-create{background:var(--accent);color:var(--accent-ink)}
-.bm-main{padding:14px 18px 18px;display:grid;gap:14px;align-content:start;min-width:0}
-.bm-tabs{display:flex;gap:4px;align-items:center;border-bottom:1px solid var(--border);padding-bottom:10px}
-.bm-ideas{background:var(--ink);color:var(--ground)}
-.bm-col{display:grid;gap:10px;align-content:start}
-.bm-head{font-weight:600;font-size:.875rem}
-.bm-card{background:var(--ground);border-radius:14px;padding:12px 14px;display:grid;gap:8px;align-content:start}
-.bm-card b{font-weight:600;line-height:1.3}
-.bm-pre{display:block;font-weight:500;font-size:.8125rem;color:var(--muted);letter-spacing:.01em}
-.bm-card i{height:8px;width:80%;border-radius:4px;background:var(--raised)}
-.bmock figcaption{padding:0 18px 14px;color:var(--muted);font-size:.875rem}
-@media (max-width:560px){.bm-app{grid-template-columns:6.5rem minmax(0,1fr)}.bm-side .bm-nav:last-child,.bm-feeds{display:none}.bm-main{padding:12px}}
-.js .bmock.in .bm-create{animation:bm-create 9s var(--ease) infinite}
-.js .bmock.in .bm-ideas{animation:bm-ideas 9s var(--ease) infinite}
-.js .bmock.in .bm-card{animation:bm-card 9s var(--ease) infinite}
-.js .bmock.in .bm-card:nth-child(2){animation-name:bm-card2}.js .bmock.in .bm-card:nth-child(3){animation-name:bm-card3}
-@keyframes bm-create{0%,6%{background:var(--raised);color:var(--ink);transform:none}12%{transform:scale(.94)}16%,100%{background:var(--accent);color:var(--accent-ink);transform:none}}
-@keyframes bm-ideas{0%,26%{background:transparent;color:var(--muted)}30%{transform:scale(.94)}34%,100%{background:var(--ink);color:var(--ground);transform:none}}
-@keyframes bm-card{0%,40%{opacity:0;transform:translateY(12px)}48%,92%{opacity:1;transform:none}100%{opacity:0}}
-@keyframes bm-card2{0%,46%{opacity:0;transform:translateY(12px)}54%,92%{opacity:1;transform:none}100%{opacity:0}}
-@keyframes bm-card3{0%,52%{opacity:0;transform:translateY(12px)}60%,92%{opacity:1;transform:none}100%{opacity:0}}
+.buffer-shot{margin:0;background:#f3a08f;border-radius:var(--r-card);overflow:hidden;border:1px solid var(--border)}
+.buffer-shot a{display:block;padding:clamp(14px,2.2vw,28px);background:#f3a08f}
+.buffer-shot img{display:block;width:100%;height:auto;border-radius:10px;box-shadow:0 16px 36px -20px rgba(0,0,0,.45)}
+.buffer-shot figcaption{padding:12px 18px 16px;background:var(--surface);color:var(--muted);font-size:.875rem}
+.buffer-shot figcaption a{display:inline;padding:0;background:none;text-decoration:underline}
 @media (min-width:900px){.keptwrap .kept{grid-template-columns:1fr}}
 .kept{display:grid;gap:28px;margin-top:48px}
 @media (min-width:900px){.kept{grid-template-columns:repeat(3,minmax(0,1fr))}}
@@ -316,7 +294,7 @@ ${NAV}
   <div class="wrap two flip">
     <div>
       <h2 class="rise" id="keepH">Your stories, saved in your own words.</h2>
-      <p class="say rise" style="--i:1">When you're done, it reads the conversation back and finds the few stories worth telling. For each one, it gathers what you meant into a short paragraph in your voice, dropping the ums, false starts, and repetition. You check every card before anything is saved. Edit it, drop it, or add a Buffer tag, then send the ones you like.</p>
+      <p class="say rise" style="--i:1">When you're done, it reads the conversation back and finds the few stories worth telling. For each one, it gathers what you meant into a short paragraph in your voice, dropping the ums, false starts, and repetition. It also suggests a few specific questions you can answer if you want to flesh the idea out further. You check every card before anything is saved. Edit it, drop it, or add a Buffer tag, then send the ones you like.</p>
     </div>
     <article class="idea rise" style="--i:1" aria-label="An Idea as it lands in Buffer">
       <p class="t">Why I let people in before they sign up</p>
@@ -379,19 +357,9 @@ ${NAV}
         <li><p>When you're ready to write, open a card and click <b>Create Post</b>.</p></li>
       </ol>
     </div>
-    <figure class="bmock rise" style="--i:2" aria-hidden="true">
-      <div class="bm-app">
-        <div class="bm-side"><span class="bm-logo"></span><span class="bm-nav">Home</span><span class="bm-create">Create</span><span class="bm-nav">Publish</span><span class="bm-nav">Insights</span></div>
-        <div class="bm-main">
-          <div class="bm-tabs"><span class="bm-ideas">Ideas</span><span class="bm-nav">Templates</span><span class="bm-nav bm-feeds">Feeds</span></div>
-          <div class="bm-col"><span class="bm-head">Unassigned</span>
-            <div class="bm-card"><b><span class="bm-pre">INTERVIEW | Building |</span> Why I let people in before they sign up</b><i></i></div>
-            <div class="bm-card"><b><span class="bm-pre">INTERVIEW | Lessons |</span> The bug that only showed up on Fridays</b><i></i></div>
-            <div class="bm-card"><b><span class="bm-pre">INTERVIEW | Customers |</span> Who I'm really building this for</b><i></i></div>
-          </div>
-        </div>
-      </div>
-      <figcaption>A simplified sketch of Buffer</figcaption>
+    <figure class="buffer-shot rise" style="--i:2">
+      <a href="https://publish.buffer.com/create" target="_blank" rel="noopener"><img src="https://buffer.com/cdn-cgi/image/width=1920,quality=75,format=auto/img/feature-pages/create/create-hero.webp" alt="Buffer's Create board showing Ideas organized into Unassigned, Review, and Done columns" width="832" height="612" loading="lazy" decoding="async"></a>
+      <figcaption>Buffer’s actual Create board. Ideas first appear in Unassigned, ready to organize or turn into a post. <a href="https://support.buffer.com/articles/creating-ideas-in-buffer-7gu7n0Hyyq" target="_blank" rel="noopener">See Buffer’s guide</a>.</figcaption>
     </figure>
   </div>
 </section>

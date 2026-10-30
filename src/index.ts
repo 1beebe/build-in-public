@@ -32,7 +32,7 @@ const SECURITY_HEADERS: Record<string, string> = {
     "script-src 'self' 'unsafe-inline'",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com data:",
-    "img-src 'self' data:",
+    "img-src 'self' data: https://buffer.com",
     "connect-src 'self' https://api.github.com https://api.openai.com",
     "media-src 'self' blob:",
     "worker-src 'self' blob:",
