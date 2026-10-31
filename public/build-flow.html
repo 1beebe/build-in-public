@@ -10,13 +10,39 @@ body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--display);fo
 .wrap{max-width:100%;margin:auto;display:flex;flex-direction:column;gap:18px}
 header{display:flex;flex-direction:column;gap:6px;max-width:78ch}h1{font-size:1.7rem;margin:0;letter-spacing:-.01em}header p{margin:0;color:var(--muted)}
 .legend{display:flex;flex-wrap:wrap;gap:8px 16px;font:11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.legend span{display:inline-flex;align-items:center;gap:6px}.legend i{width:10px;height:10px;border-radius:3px}
-.scroller{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background-color:var(--canvas);background-image:radial-gradient(var(--dot) 1.2px,transparent 1.2px);background-size:20px 20px}
+
 .canvas{position:relative;width:2460px;height:860px}.wires{position:absolute;inset:0;width:100%;height:100%;overflow:visible}.wires path{fill:none;stroke:var(--wire);stroke-width:2}.wires path.loop{stroke-dasharray:6 6}.wires circle{fill:var(--wire)}.wires text{fill:var(--muted);font:11px var(--mono)}
 .lane{position:absolute;left:24px;font:11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .node{position:absolute;width:240px;height:156px;background:var(--node);border:1px solid var(--line);border-radius:10px;box-shadow:0 1px 2px #0000000f,0 4px 14px #0000000d;display:flex;flex-direction:column;overflow:hidden}.node.ai-call{border:2px solid var(--ai);box-shadow:0 0 0 3px color-mix(in srgb,var(--ai) 15%,transparent),0 4px 14px #00000012}.node.ai-call:after{content:"AI CALL";position:absolute;right:8px;top:7px;font:10px var(--mono);letter-spacing:.06em;color:var(--ai);background:var(--node);padding:1px 5px;border:1px solid var(--ai);border-radius:99px}.node.later{border-style:dashed;box-shadow:none;opacity:.92}.node .hd{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line)}.node .hd b{width:9px;height:9px;border-radius:50%;background:var(--c)}.node .hd span{font:10.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--c)}.node .bd{padding:10px 12px;display:flex;flex-direction:column;gap:4px}.node h3{margin:0;font-size:15px;line-height:1.3}.node p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.42}.node .model{font:500 10.5px var(--mono);color:var(--ai);letter-spacing:.02em}.badge{position:absolute;right:10px;top:7px;font:10px var(--mono);padding:1px 6px;border-radius:99px;border:1px solid var(--c);color:var(--c)}
 .t-trigger{--c:var(--trigger)}.t-input{--c:var(--input)}.t-buffer{--c:var(--buffer)}.t-github{--c:var(--github)}.t-code{--c:var(--code)}.t-ai{--c:var(--ai)}.t-human{--c:var(--human)}.t-later{--c:var(--later)}
 .notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}.notes div{border-top:2px solid var(--line);padding-top:10px}.notes h4{margin:0 0 4px;font:500 13px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}.notes p{margin:0;font-size:14px;max-width:65ch}.hint{font-size:12px;color:var(--muted);margin:0}
 .links{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:5px}.links a{color:var(--fg);font:500 12px var(--mono);text-underline-offset:3px}
+
+.views{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.seg{display:inline-flex;background:var(--node);border:1px solid var(--line);border-radius:10px;padding:3px}
+.seg button,.zoom button{font:600 14px var(--display);color:var(--fg);background:none;border:0;border-radius:8px;min-height:40px;min-width:44px;padding:0 14px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+.seg button:focus-visible,.zoom button:focus-visible,.viewport:focus-visible{outline:2px solid var(--trigger);outline-offset:2px}
+.zoom{display:inline-flex;align-items:center;gap:2px;background:var(--node);border:1px solid var(--line);border-radius:10px;padding:3px}
+.zoom output{font:500 12px var(--mono);color:var(--muted);min-width:4.5ch;text-align:center}
+.zoom button{font-size:18px;padding:0 10px}.zoom button.txt{font-size:13px}
+.viewport{position:relative;overflow:hidden;height:min(72vh,680px);min-height:360px;border:1px solid var(--line);border-radius:12px;background-color:var(--canvas);background-image:radial-gradient(var(--dot) 1.2px,transparent 1.2px);background-size:20px 20px;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+.viewport.drag{cursor:grabbing}
+.viewport .canvas{transform-origin:0 0;will-change:transform}
+.steps{display:flex;flex-direction:column;gap:22px}
+.steps section{display:flex;flex-direction:column;gap:10px}
+.steps h2{margin:0;font:11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.steps ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0}
+.steps li{position:relative;display:flex;gap:12px;padding:0 0 14px}
+.steps li:not(:last-child):before{content:"";position:absolute;left:13px;top:30px;bottom:0;width:2px;background:var(--line)}
+.steps .n{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font:600 12px var(--mono);color:#fff;background:var(--c)}
+.steps .card{flex:1;min-width:0;background:var(--node);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.steps .card.ai-call{border:2px solid var(--ai)}.steps .card.later{border-style:dashed}
+.steps .k{font:10.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--c)}
+.steps h3{margin:0;font-size:16px;line-height:1.3}.steps p{margin:0;font-size:14px;color:var(--muted)}.steps .model{font:500 11px var(--mono);color:var(--ai)}
+.steps .tagai{align-self:flex-start;font:10px var(--mono);letter-spacing:.06em;color:var(--ai);border:1px solid var(--ai);border-radius:99px;padding:1px 6px}
+[hidden]{display:none!important}
+@media(max-width:700px){.viewport{height:58vh;min-height:320px}}
 </style></head><body>
 <div class="wrap">
   <header>
@@ -29,7 +55,11 @@ header{display:flex;flex-direction:column;gap:6px;max-width:78ch}h1{font-size:1.
     <span><i style="background:var(--trigger)"></i>Entry</span><span><i style="background:var(--input)"></i>User action</span><span><i style="background:var(--buffer)"></i>Buffer API / OAuth</span><span><i style="background:var(--github)"></i>GitHub public read</span><span><i style="background:var(--code)"></i>App logic</span><span><i style="background:var(--ai)"></i>AI</span><span><i style="background:var(--human)"></i>Human decision</span><span><i style="background:var(--later)"></i>Later</span><span style="color:var(--ai);border:1px solid var(--ai);border-radius:99px;padding:2px 8px">Orange outline = AI call</span>
   </div>
 
-  <div class="scroller"><div class="canvas">
+  <div class="views">
+    <div class="seg" role="group" aria-label="View"><button type="button" id="vDiagram" aria-pressed="true">Diagram</button><button type="button" id="vSteps" aria-pressed="false">Step by step</button></div>
+    <div class="zoom" id="zoomBar" role="group" aria-label="Zoom"><button type="button" id="zOut" aria-label="Zoom out">−</button><output id="zLvl" aria-live="polite">100%</output><button type="button" id="zIn" aria-label="Zoom in">+</button><button type="button" class="txt" id="zFit">Fit</button></div>
+  </div>
+  <div class="viewport" id="vp" tabindex="0" aria-label="Workflow diagram. Drag to move, pinch or use the zoom buttons to zoom."><div class="canvas" id="cv">
     <svg class="wires" viewBox="0 0 2460 860" aria-hidden="true">
       <path d="M264 146 H324"/><circle cx="264" cy="146" r="4"/><circle cx="324" cy="146" r="4"/>
       <path d="M444 224 C444 296,144 286,144 346"/><circle cx="444" cy="224" r="4"/><circle cx="144" cy="346" r="4"/><text x="240" y="286">one sign-in, then one weekly flow</text>
@@ -58,7 +88,8 @@ header{display:flex;flex-direction:column;gap:6px;max-width:78ch}h1{font-size:1.
     <div class="node later t-later" style="left:624px;top:688px"><span class="badge">Removed</span><div class="hd"><b></b><span>Not in V2</span></div><div class="bd"><h3>Parallel voice modes</h3><p>No classic voice switch, recorded-answer transcription, read-aloud toggle, or separate voice setup.</p></div></div>
     <div class="node later t-later" style="left:924px;top:688px"><span class="badge">Removed</span><div class="hd"><b></b><span>Not in V2</span></div><div class="bd"><h3>Pillars before value</h3><p>No required tags or content taxonomy before the interview. Classification moves to optional review-time metadata.</p></div></div>
   </div></div>
-  <p class="hint">Scroll sideways to see the full workflow on a small screen.</p>
+  <div class="steps" id="steps" hidden></div>
+  <p class="hint" id="hint">Drag to move around. Pinch, use the buttons, or hold Ctrl and scroll to zoom.</p>
 
   <div class="notes">
     <div><h4>V2 mental model</h4><p>Give it context → have one conversation → keep the useful thoughts. Configuration appears only when it is needed.</p></div>
@@ -68,4 +99,85 @@ header{display:flex;flex-direction:column;gap:6px;max-width:78ch}h1{font-size:1.
     <div><h4>Authorship boundary</h4><p>The harvest may remove fillers, join and reorder the builder's thoughts, but it cannot invent a claim, feeling or detail. The builder reviews every card and writes the eventual post.</p></div>
   </div>
 </div>
+<script>
+(() => {
+  const vp = document.getElementById("vp"), cv = document.getElementById("cv"), lvl = document.getElementById("zLvl");
+  const W = 2460, H = 860, MIN = 0.15, MAX = 2;
+  let s = 1, x = 0, y = 0;
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  function bound() {
+    const vw = vp.clientWidth, vh = vp.clientHeight, cw = W * s, ch = H * s, pad = 40;
+    x = cw <= vw ? (vw - cw) / 2 : clamp(x, vw - cw - pad, pad);
+    y = ch <= vh ? (vh - ch) / 2 : clamp(y, vh - ch - pad, pad);
+  }
+  function draw() { bound(); cv.style.transform = `translate(${x}px,${y}px) scale(${s})`; lvl.textContent = Math.round(s * 100) + "%"; }
+  function zoomAt(ns, cx, cy) { ns = clamp(ns, MIN, MAX); const k = ns / s; x = cx - (cx - x) * k; y = cy - (cy - y) * k; s = ns; draw(); }
+  const center = () => [vp.clientWidth / 2, vp.clientHeight / 2];
+  function fit() { s = clamp(Math.min(vp.clientWidth / W, vp.clientHeight / H) * 0.96, MIN, MAX); x = 0; y = 0; draw(); }
+  function start() {
+    // Phones open on the readable start of the flow; wider screens see the whole thing.
+    if (vp.clientWidth < 700) { s = 0.6; x = 8; y = 8; draw(); } else fit();
+  }
+  document.getElementById("zIn").onclick = () => zoomAt(s * 1.25, ...center());
+  document.getElementById("zOut").onclick = () => zoomAt(s / 1.25, ...center());
+  document.getElementById("zFit").onclick = fit;
+  vp.addEventListener("wheel", (e) => {
+    const r = vp.getBoundingClientRect();
+    if (e.ctrlKey || e.metaKey) { e.preventDefault(); zoomAt(s * Math.exp(-e.deltaY * 0.01), e.clientX - r.left, e.clientY - r.top); }
+  }, { passive: false });
+  vp.addEventListener("keydown", (e) => {
+    const m = { ArrowLeft: [60, 0], ArrowRight: [-60, 0], ArrowUp: [0, 60], ArrowDown: [0, -60] }[e.key];
+    if (m) { e.preventDefault(); x += m[0]; y += m[1]; draw(); }
+    else if (e.key === "+" || e.key === "=") zoomAt(s * 1.25, ...center());
+    else if (e.key === "-") zoomAt(s / 1.25, ...center());
+    else if (e.key === "0") fit();
+  });
+  const pts = new Map(); let last = null;
+  const mid = () => { const [a, b] = [...pts.values()]; return { cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2, d: Math.hypot(a.x - b.x, a.y - b.y) }; };
+  vp.addEventListener("pointerdown", (e) => { vp.setPointerCapture(e.pointerId); pts.set(e.pointerId, { x: e.clientX, y: e.clientY }); last = pts.size === 2 ? mid() : null; vp.classList.add("drag"); });
+  vp.addEventListener("pointermove", (e) => {
+    if (!pts.has(e.pointerId)) return;
+    const p = pts.get(e.pointerId), dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
+    if (pts.size === 1) { x += dx; y += dy; draw(); }
+    else if (pts.size === 2) { const m = mid(), r = vp.getBoundingClientRect(); if (last && last.d) { x += m.cx - last.cx; y += m.cy - last.cy; zoomAt(s * m.d / last.d, m.cx - r.left, m.cy - r.top); } last = m; }
+  });
+  const up = (e) => { pts.delete(e.pointerId); last = pts.size === 2 ? mid() : null; if (!pts.size) vp.classList.remove("drag"); };
+  vp.addEventListener("pointerup", up); vp.addEventListener("pointercancel", up);
+  vp.addEventListener("dblclick", (e) => { const r = vp.getBoundingClientRect(); zoomAt(s * 1.6, e.clientX - r.left, e.clientY - r.top); });
+
+  // Step-by-step view, built from the diagram's own nodes so both stay in sync.
+  const steps = document.getElementById("steps");
+  const lanes = [...cv.querySelectorAll(".lane")].map((l) => ({ top: parseFloat(l.style.top), name: l.textContent }));
+  const nodes = [...cv.querySelectorAll(".node")].map((n) => ({ n, top: parseFloat(n.style.top), left: parseFloat(n.style.left) })).sort((a, b) => a.top - b.top || a.left - b.left);
+  let i = 0;
+  for (const [li, lane] of lanes.entries()) {
+    const next = lanes[li + 1] ? lanes[li + 1].top : Infinity;
+    const group = nodes.filter((o) => o.top >= lane.top && o.top < next); if (!group.length) continue;
+    const sec = document.createElement("section"), h = document.createElement("h2"), ol = document.createElement("ol");
+    h.textContent = lane.name; sec.append(h, ol);
+    for (const { n } of group) {
+      const item = document.createElement("li"); item.className = [...n.classList].filter((c) => c.startsWith("t-")).join(" ");
+      const num = document.createElement("span"); num.className = "n"; num.textContent = n.classList.contains("later") ? "·" : ++i;
+      const card = document.createElement("div"); card.className = "card" + (n.classList.contains("ai-call") ? " ai-call" : "") + (n.classList.contains("later") ? " later" : "");
+      const k = document.createElement("span"); k.className = "k"; k.textContent = (n.querySelector(".hd span") || {}).textContent || ""; card.append(k);
+      if (n.classList.contains("ai-call")) { const t = document.createElement("span"); t.className = "tagai"; t.textContent = "AI CALL"; card.append(t); }
+      const b = n.querySelector(".badge"); if (b) { const t = document.createElement("span"); t.className = "tagai"; t.style.color = t.style.borderColor = "var(--later)"; t.textContent = b.textContent; card.append(t); }
+      for (const c of n.querySelector(".bd").children) card.append(c.cloneNode(true));
+      item.append(num, card); ol.append(item);
+    }
+    steps.append(sec);
+  }
+  const bD = document.getElementById("vDiagram"), bS = document.getElementById("vSteps"), zb = document.getElementById("zoomBar"), hint = document.getElementById("hint");
+  function show(v) {
+    const d = v === "diagram"; bD.setAttribute("aria-pressed", d); bS.setAttribute("aria-pressed", !d);
+    vp.hidden = !d; zb.hidden = !d; hint.hidden = !d; steps.hidden = d;
+    if (d) requestAnimationFrame(start);
+    try { localStorage.setItem("flowView", v); } catch (e) {}
+  }
+  bD.onclick = () => show("diagram"); bS.onclick = () => show("steps");
+  let saved = null; try { saved = localStorage.getItem("flowView"); } catch (e) {}
+  show(saved || (matchMedia("(max-width:700px)").matches ? "steps" : "diagram"));
+  let rw = vp.clientWidth; addEventListener("resize", () => { if (!vp.hidden && Math.abs(vp.clientWidth - rw) > 40) { rw = vp.clientWidth; start(); } });
+})();
+</script>
 </body></html>
