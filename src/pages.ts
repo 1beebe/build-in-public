@@ -245,7 +245,7 @@ const FEEDBACK_SCRIPT = `(() => {
 function shell(title: string, body: string, opts: { style?: string; script?: string } = {}): string {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>${title}</title>
-<meta name="description" content="Talk through what you built, find the ideas worth developing, and save them to Buffer in your own words. A thinking scaffold for building in public—not an AI ghostwriter.">
+<meta name="description" content="Talk through what you built, find the stories worth telling, and save them to Buffer in your own words. A thinking scaffold for building in public, not an AI ghostwriter.">
 <meta name="theme-color" content="#f6f6f3" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#07150e" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,${encodeURIComponent(MARK.replace('class="mark" ', 'xmlns="http://www.w3.org/2000/svg" '))}">
 ${FONTS}
@@ -318,11 +318,11 @@ ${NAV}
   <div class="wrap two flip">
     <div>
       <h2 class="rise" id="keepH">Your stories, saved in your own words.</h2>
-      <p class="say rise" style="--i:1">It never makes things up. It finds your real stories, helps you articulate your insights, and shapes each one for the channels you post on. Choose your own path: a draft built from your words, an outline so you can write the draft yourself, or a transcript you can pull to work on with your own tools. </p>
+      <p class="say rise" style="--i:1">It finds your real stories, helps you articulate your insights, and shapes each one for the channels you post on. Choose your own path: a draft built from your words with a light editor's touch, an outline so you can write the draft yourself, or a transcript you can pull to work on with your own tools. </p>
     </div>
     <article class="idea rise" style="--i:1" aria-label="An Idea as it lands in Buffer">
       <p class="t">Why I let people in before they sign up</p>
-      <div><p class="lbl">The story, in your words</p><p>Half the people who found it would hit the sign-up screen and leave. Why would they give their email to something they hadn't seen work? I wouldn't. So now you try it first and sign up after.</p></div>
+      <div><p class="lbl">Draft, from your words, lightly edited</p><p>Half the people who found it would hit the sign-up screen and leave. Why would they give their email to something they hadn't seen work? I wouldn't. So now you try it first and sign up after.</p></div>
       <div><p class="lbl">Questions to help you write it</p><ul><li>What did you worry you'd lose by letting people in free?</li><li>Who was the first person to try it this way?</li></ul></div>
       <p class="tag">Tag: Building</p>
     </article>
@@ -331,8 +331,8 @@ ${NAV}
 
 <section class="sec ink" aria-labelledby="whyH">
   <div class="wrap two">
-    <h2 class="rise" id="whyH">It won't write your posts. On purpose.</h2>
-    <p class="say rise" style="--i:1">Writing is thinking. Your words are powerful. The Interviewer is a scaffold, not a ghostwriter: it helps you find a stronger place to start, then leaves the writing—and your voice—to you.</p>
+    <h2 class="rise" id="whyH">It won't make things up.</h2>
+    <p class="say rise" style="--i:1">Writing is thinking. Your words are powerful. The Interviewer is a scaffold, not a ghostwriter: it helps you find a stronger place to start. Drafts keep your sentences and add only what a good editor would, a transition here, a tighter line there, never a new claim. Outlines are all you. The final word, and your voice, stay with you.</p>
   </div>
 </section>
 
@@ -340,14 +340,14 @@ ${NAV}
   <div class="wrap">
     <div class="two">
       <h2 class="rise" id="hoodH">A peek under the hood.</h2>
-      <p class="say rise" style="--i:1">See exactly where AI is—and is not—used. The models only hold the conversation and organize your Ideas.</p>
+      <p class="say rise" style="--i:1">See exactly where AI is used, and where it isn't. The models hold the conversation, then shape your stories from what you said.</p>
     </div>
     <ol class="flow-mini" aria-label="A simplified technical workflow">
       <li class="rise"><span class="k">No AI</span><b>Read context</b><p>Public GitHub work and recent Buffer posts.</p></li>
       <li class="rise" style="--i:1"><span class="k">App logic</span><b>Rank threads</b><p>Deterministic rules choose useful starting points.</p></li>
       <li class="rise ai" style="--i:2"><span class="k">AI call</span><b>Hold the interview</b><p>GPT-Live 1 for voice; DeepSeek Flash for typed follow-ups.</p></li>
-      <li class="rise ai" style="--i:3"><span class="k">AI call</span><b>Find the Ideas</b><p>Claude Sonnet 5.5 organizes meaning and drops speech debris.</p></li>
-      <li class="rise" style="--i:4"><span class="k">Human decision</span><b>Review and save</b><p>You edit, choose, optionally tag, and write the eventual post.</p></li>
+      <li class="rise ai" style="--i:3"><span class="k">AI call</span><b>Find the stories</b><p>Claude Sonnet 5.5 finds your stories, shapes each for your channels, and lightly edits drafts. No new claims.</p></li>
+      <li class="rise" style="--i:4"><span class="k">Human decision</span><b>Review and save</b><p>You edit, choose, optionally tag, and finish the post.</p></li>
     </ol>
     <div class="hood-links rise" style="--i:5"><a class="btn" href="/build-flow">Explore the full workflow</a><a class="btn quiet" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Browse the source on GitHub</a></div>
   </div>
@@ -376,9 +376,9 @@ ${NAV}
     <div class="keptwrap">
     <figure class="pic rise"><img src="/img/couch.webp" alt="Someone on a couch at night with a laptop, talking and smiling" width="960" height="1190" loading="lazy" decoding="async"></figure>
     <div class="kept">
-      <div class="rise"><h3>Buffer</h3><p>It reads your tags and recent work so its questions fit. It only writes the Ideas you approve—never posts.</p></div>
+      <div class="rise"><h3>Buffer</h3><p>It reads your tags and recent work so its questions fit. It only writes the Ideas you approve, never posts.</p></div>
       <div class="rise" style="--i:1"><h3>GitHub</h3><p>It reads one week of public commits, pull requests, and issues. There is no GitHub sign-in or access to private code.</p></div>
-      <div class="rise" style="--i:2"><h3>Your interview</h3><p>Your current conversation and sign-in are encrypted, expire after 30 days of inactivity, and disappear when you disconnect.</p></div>
+      <div class="rise" style="--i:2"><h3>Your interview</h3><p>Your current conversation and sign-in are encrypted, expire after 30 days of inactivity, and disappear when you disconnect. If you leave the box ticked at setup, Ligaya can read that transcript for 14 days to improve the interviewer.</p></div>
       <div class="rise" style="--i:3"><h3>Your privacy</h3><p>No third-party trackers, ads, or data sales. Anonymous funnel counts show what works. <a href="/privacy">The full privacy note</a> has the details.</p></div>
 </div>
     </div>
@@ -479,7 +479,7 @@ ${NAV}
 <h2>Which AI does what</h2>
 <p>Each service gets only what its step needs: your week on GitHub, a summary of your recent posts, the questions and your answers. None of them ever sees your Buffer sign-in.</p>
 <ul>
-<li><b>Claude Sonnet 5.5</b>, by Anthropic, through MindStudio: at the end, finds the stories in the conversation and shapes each one for your channels, using only your words. If you ask for the transcript instead, no model is called.</li>
+<li><b>Claude Sonnet 5.5</b>, by Anthropic, through MindStudio: at the end, finds the stories in the conversation and shapes each one for your channels from your words. Drafts get a light edit for flow and grammar, never a new claim; outlines use only your sentences. If you ask for the transcript instead, no model is called.</li>
 <li><b>DeepSeek Flash</b>, through MindStudio: asks the next question when you type your answers.</li>
 <li><b>OpenAI GPT-Live</b>: holds the live spoken conversation.</li>
 </ul>
@@ -710,7 +710,7 @@ export function appPage(): string {
   </div>
   <div class="done-row">
     <div class="handback"><span class="lbl">When you stop, hand me back</span><div class="chips" id="modes" role="radiogroup" aria-label="What to hand back">
-      <label class="chip"><input type="radio" name="mode" value="draft"><span>Story drafts from my words</span></label>
+      <label class="chip"><input type="radio" name="mode" value="draft"><span>Drafts from my words, lightly edited</span></label>
       <label class="chip"><input type="radio" name="mode" value="outline"><span>An outline. I'll write it</span></label>
       <label class="chip"><input type="radio" name="mode" value="transcript"><span>Just the transcript</span></label>
     </div></div>

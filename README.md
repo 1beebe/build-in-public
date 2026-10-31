@@ -1,6 +1,6 @@
 # The Interviewer
 
-A weekly interview about what you built. Sign in with Buffer, paste a public GitHub repo or describe your week, and talk for ten minutes with an interviewer who already knows what you shipped and what you've posted lately. When you're done it pulls out the stories worth telling, lightly cleans the speech debris while preserving your meaning and voice, adds a few questions to help you shape each one, and saves the ones you choose to Buffer as Ideas. You write the posts. The AI only asks.
+A weekly interview about what you built. Sign in with Buffer, paste a public GitHub repo or describe your week, and talk for ten minutes with an interviewer who already knows what you shipped and what you've posted lately. When you're done it pulls out the stories worth telling, shapes each one into a lightly edited draft or an outline in only your words, adds a few questions to help you shape it, and saves the ones you choose to Buffer as Ideas. It won't make things up, and you finish the posts.
 
 Built by Ligaya Beebe for Buffer Commit 2026. Not made by or affiliated with Buffer.
 
