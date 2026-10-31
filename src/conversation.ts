@@ -335,7 +335,8 @@ function shape(parsed: (Proposed & { pillar?: string })[], all: Sentence[], chan
     const flags: string[] = [];
     if (!shaped) flags.push(KEPT_CLOSE);
     const { text, softened } = soften(shaped ?? cleanSpoken(picked));
-    if (softened) flags.push(SOFTENED);
+    // The model may already have swapped a swear word for a milder one.
+    if (softened || soften(picked.map((x) => x.text).join(" ")).softened) flags.push(SOFTENED);
     const prompts = (d.prompts ?? []).map((q) => String(q).trim()).filter((q) => q.endsWith("?") && q.length < 200).slice(0, 3);
     out.push({
       id: randomToken(6),

@@ -815,7 +815,7 @@ function renderSetup(){
     l.append(i, el("span", "", c.label)); l.title = c.name; $("chans").append(l);
   }
   $("chanWrap").hidden = !seen.size;
-  const main = chans.filter(c => picked.has(c.service)).map(c => c.label).filter((v, k, a) => a.indexOf(v) === k);
+  const main = (state.targets || []).map(t => (chans.find(c => c.service === t) || {}).label).filter(Boolean);
   $("chanHint").textContent = main.length ? "Looks like you post mostly on " + main.join(" and ") + ". Change it if you like." : "Pick where you'd like to post these stories.";
   show("setup");
 }
