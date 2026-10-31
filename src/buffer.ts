@@ -8,7 +8,9 @@ const API_URL = "https://api.buffer.com";
 // The narrowest set the app needs: read the account and its tags and posts,
 // create Ideas, and create a draft post linked to an Idea. offline_access gives
 // a refresh token so people stay connected between weekly interviews.
-export const SCOPES = "account:read ideas:read ideas:write posts:read offline_access";
+export const SCOPES = "account:read ideas:read ideas:write posts:read posts:write offline_access";
+// Bumped when SCOPES grows, so older sign-ins are asked to connect again.
+export const SCOPE_VERSION = 2;
 
 // Stop starting new work when the 15-minute window gets this low, so one busy
 // person can't use up the quota every other connected person shares.
@@ -246,6 +248,48 @@ export async function getChannels(client: BufferClient, organizationId: string):
     .filter((c) => !c.isDisconnected && c.service)
     .slice(0, 20)
     .map((c) => ({ id: c.id, service: c.service, name: (c.displayName || c.name || c.service).slice(0, 80), posts: counts.get(c.id) ?? 0 }));
+}
+
+// A post saved to the channel's Drafts, never scheduled or published. Threads
+// go in as real thread items on the services that support them.
+const THREADED = new Set(["twitter", "threads", "bluesky", "mastodon"]);
+export async function createDraft(
+  client: BufferClient,
+  draft: { channelId: string; service: string; text: string; format?: string; tagIds: string[] },
+): Promise<string> {
+  let text = draft.text;
+  const metadata: Record<string, unknown> = {};
+  if (draft.format === "Thread" && THREADED.has(draft.service)) {
+    const parts = draft.text.split(/\n\s*\n/).map((p) => p.replace(/^\s*\d+\s*\/\s*/, "").trim()).filter(Boolean);
+    if (parts.length > 1) {
+      text = parts[0];
+      metadata[draft.service] = { thread: parts.map((t) => ({ text: t })) };
+    }
+  }
+  if (draft.service === "facebook") metadata.facebook = { type: "post" };
+  if (draft.service === "googlebusiness") metadata.google = { type: "whats_new" };
+  const data = await client.query<{ createPost: { post?: { id: string }; message?: string } }>(
+    `mutation Draft($input: CreatePostInput!) {
+      createPost(input: $input) {
+        ... on PostActionSuccess { post { id } }
+        ... on MutationError { message }
+      }
+    }`,
+    {
+      input: {
+        channelId: draft.channelId,
+        text,
+        schedulingType: "automatic",
+        mode: "addToQueue",
+        saveToDraft: true,
+        ...(draft.tagIds.length ? { tagIds: draft.tagIds } : {}),
+        ...(Object.keys(metadata).length ? { metadata } : {}),
+      },
+    },
+  );
+  const id = data.createPost.post?.id;
+  if (!id) throw new Error(`Buffer didn't save the draft: ${data.createPost.message ?? "unknown error"}`);
+  return id;
 }
 
 export async function createIdea(

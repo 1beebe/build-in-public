@@ -5,7 +5,9 @@ import {
   NeedsReconnect,
   RateLimited,
   authorizeUrl,
+  createDraft,
   createIdea,
+  SCOPE_VERSION,
   exchangeCode,
   getChannels,
   getRecent,
@@ -222,10 +224,10 @@ async function callback(req: Request, env: Env, url: URL): Promise<Response> {
   const tokens = await exchangeCode(env, code, verifier);
   // Signing in again keeps their setup and any interview in progress.
   const existing = await loadSession(req, env);
-  const session: Session = existing ? { ...existing.data, tokens } : { tokens };
+  const session: Session = existing ? { ...existing.data, tokens, scopeVersion: SCOPE_VERSION } : { tokens, scopeVersion: SCOPE_VERSION };
   const { orgs } = await getStart(new BufferClient(env, session));
   if (!orgs.some((o) => o.id === session.organizationId)) {
-    Object.assign(session, { organizationId: undefined, organizationName: undefined, repo: undefined, questions: [], turns: [], drafts: [], saved: [] });
+    Object.assign(session, { organizationId: undefined, organizationName: undefined, repo: undefined, questions: [], turns: [], drafts: [], saved: [], savedAsIdeas: [] });
   }
   if (orgs.length === 1 && !session.organizationId) Object.assign(session, { organizationId: orgs[0].id, organizationName: orgs[0].name });
   const headers = responseHeaders({ "Cache-Control": "no-store", Location: "/app" });
@@ -277,6 +279,9 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
   if (req.method === "POST" && length > MAX_BODY_BYTES) return json({ error: "That request is too large." }, 413);
   const loaded = await loadSession(req, env);
   if (!loaded) return json({ error: "Not connected" }, 401);
+  // Saving drafts needs a permission older sign-ins didn't grant. Connecting
+  // again keeps their setup and interview.
+  if (loaded.data.scopeVersion !== SCOPE_VERSION) return json({ error: "Connect Buffer again." }, 401);
   const { id, data: s } = loaded;
   const client = new BufferClient(env, s);
   let body: Record<string, unknown> = {};
@@ -313,7 +318,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         // The channels to shape stories for, from the ones they have connected.
         const connected = new Set((s.channels ?? []).map((c) => c.service));
         const targets = Array.isArray(body.targets) ? [...new Set(body.targets.map(String))].filter((t) => connected.has(t)).slice(0, 6) : undefined;
-        Object.assign(s, { repo, noRepo, weekNote: repo ? undefined : work, targets, keepLog: body.keepLog !== false, questions: [], turns: [], drafts: [], saved: [], harvestMode: undefined });
+        Object.assign(s, { repo, noRepo, weekNote: repo ? undefined : work, targets, keepLog: body.keepLog !== false, questions: [], turns: [], drafts: [], saved: [], savedAsIdeas: [], harvestMode: undefined });
         result = await view(env, client, s, true);
         break;
       }
@@ -339,7 +344,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           `Their recent posts, newest first. They show who they are and who they write for; don't steer back to these topics:`,
           ...recent.posts.slice(0, 8).map((p) => `- ${p.slice(0, 200)}`),
         ].join("\n");
-        Object.assign(s, { turns: [opening(s.questions)], drafts: [], saved: [], voice: undefined });
+        Object.assign(s, { turns: [opening(s.questions)], drafts: [], saved: [], savedAsIdeas: [], voice: undefined });
         beginRun(s);
         await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: `started with ${s.questions?.length ?? 0} threads` }));
         await countInterview(env);
@@ -429,6 +434,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           drafts: (s.drafts ?? []).map(({ title, channel, format, flags, text, later }) => ({ title, channel, format, flags, text, later })),
         }));
         s.saved = [];
+        s.savedAsIdeas = [];
         result = await view(env, client, s);
         break;
       }
@@ -436,7 +442,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         // The reviewed drafts, as edited on the page. Saved one by one, so a
         // rate limit part way through keeps what's done and says so.
         const picked = Array.isArray(body.drafts) ? (body.drafts as Record<string, unknown>[]).slice(0, 12) : [];
-        if (!picked.length) throw new UserError("Pick at least one idea to save.");
+        if (!picked.length) throw new UserError("Pick at least one story to save.");
         const savedBefore = s.saved?.length ?? 0;
         for (const d of picked) {
           const draft = s.drafts?.find((x) => x.id === d.id);
@@ -458,13 +464,37 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
                 prompts.length ? `QUESTIONS TO FINISH OR ADAPT IT\n${prompts.map((q) => `- ${q}`).join("\n")}` : "",
               ].filter(Boolean).join("\n\n");
           if (client.nearLimit) throw new RateLimited(60);
-          await createIdea(client, s.organizationId!, {
-            title: draft.later || /^INTERVIEW \|/.test(title) ? title : `INTERVIEW | ${where ? `${where} | ` : ""}${title}`,
-            text,
-            tags,
-            services: draft.channel ? [draft.channel] : undefined,
-            aiAssisted: true, // their words, but the AI chose and arranged them
-          });
+          const ideaTitle = draft.later || /^INTERVIEW \|/.test(title) ? title : `INTERVIEW | ${where ? `${where} | ` : ""}${title}`;
+          // Each story goes to its channel's Drafts in Buffer, ready to edit and
+          // schedule. Outlines carry their questions; drafts stay clean to post.
+          const channel = (s.channels ?? []).find((c) => c.service === draft.channel) ??
+            (s.channels ?? []).find((c) => c.service === (s.targets ?? [])[0]) ?? (s.channels ?? [])[0];
+          const draftText = draft.later
+            ? `${title}\n\n${words}`
+            : s.harvestMode === "outline" && prompts.length
+              ? `${words}\n\nQuestions to finish it:\n${prompts.map((q) => `- ${q}`).join("\n")}`
+              : words;
+          let asDraft = false;
+          if (channel) {
+            try {
+              await createDraft(client, { channelId: channel.id, service: channel.service, text: draftText, format: draft.format, tagIds: tags.map((t) => t.id) });
+              asDraft = true;
+            } catch (err) {
+              if (err instanceof RateLimited || err instanceof NeedsReconnect) throw err;
+              console.error("draft refused, saving as an Idea", err);
+              await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: `draft refused for ${channel.service}, saved as Idea: ${String(err).slice(0, 160)}` }));
+            }
+          }
+          if (!asDraft) {
+            await createIdea(client, s.organizationId!, {
+              title: ideaTitle,
+              text,
+              tags,
+              services: draft.channel ? [draft.channel] : undefined,
+              aiAssisted: true, // their words, but the AI chose and arranged them
+            });
+            (s.savedAsIdeas ??= []).push(draft.id);
+          }
           (s.saved ??= []).push(draft.id);
           await saveSession(env, id, s);
         }
@@ -482,7 +512,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         return json(await source(env, s.repo, q.ref)); // read-only: the session doesn't change
       }
       case "/api/reset":
-        Object.assign(s, { questions: [], turns: [], drafts: [], saved: [], brief: undefined, voice: undefined, harvestMode: undefined, runKey: undefined });
+        Object.assign(s, { questions: [], turns: [], drafts: [], saved: [], savedAsIdeas: [], brief: undefined, voice: undefined, harvestMode: undefined, runKey: undefined });
         result = await view(env, client, s);
         break;
       default:
@@ -558,6 +588,7 @@ async function view(env: Env, client: BufferClient, s: Session, refresh = false)
     turns: s.turns ?? [],
     drafts: s.drafts ?? [],
     saved: s.saved ?? [],
+    savedAsIdeas: s.savedAsIdeas ?? [],
     live: Boolean(openaiKey(env)),
   };
 }

@@ -52,6 +52,7 @@ export interface Channel {
 
 export interface Session {
   tokens: Tokens;
+  scopeVersion?: number; // which permission set the tokens were granted
   organizationId?: string;
   organizationName?: string;
   repo?: string; // "owner/name"
@@ -62,6 +63,7 @@ export interface Session {
   turns?: Turn[]; // the conversation, kept only until it's saved or reset
   drafts?: Draft[];
   saved?: string[]; // draft ids already sent to Buffer
+  savedAsIdeas?: string[]; // of those, the ones Buffer wouldn't take as drafts, saved as Ideas instead
   voiceStarts?: number[]; // when live voice sessions began, for a per-hour cap
   typedStarts?: number[]; // typed model calls, for a per-hour cap
   harvestStarts?: number[]; // harvest calls, for a daily cap
