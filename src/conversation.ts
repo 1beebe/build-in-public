@@ -188,7 +188,7 @@ Their words only. Build every line from their own words and phrases: keep their 
 Structure and visual directions go in square brackets, and only there: "[Slide 2]", "[Image: the setup screen before and after]", "[On screen: the error message]". Brackets say what to show or where a break goes. They never contain words for the reader.
 
 Formats:
-- Text post: short paragraphs, the story in order: the moment, the tension, the turn, what it means.
+- Text post: 60 to 150 words in short paragraphs. Edit it the way a thread forces you to: open on their sentence that carries the tension or surprise, never on background or a description of what they built; keep only the strongest four to six beats; cut anything a reader doesn't need to feel the turn; end on their line about what it means or what changed.
 - Thread: three to six parts separated by a blank line, each starting "1/", "2/"...; each part stands on its own.
 - Carousel outline: five to eight slides, each starting "[Slide N]" then their words for that slide.
 - Pair with an image: the post text, then one line "[Image: ...]" saying what picture would carry it.
