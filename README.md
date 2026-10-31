@@ -14,7 +14,7 @@ Built by Ligaya Beebe for Buffer Commit 2026. Not made by or affiliated with Buf
 
 ## Buffer API use
 
-- Scopes: `account:read ideas:read ideas:write posts:read offline_access`.
+- Scopes: `account:read ideas:read ideas:write posts:read posts:write offline_access`. `posts:write` only saves drafts; nothing is ever scheduled or published.
 - Every call goes through one client (`src/buffer.ts`) that reads the `RateLimit` headers on each response, stops starting new saves when the 15-minute window is nearly spent, and honors `Retry-After` on a 429 (a short wait is retried once; a long one is shown to the person as a plain message, and nothing is lost).
 - Requests ask only for the fields they use, and related reads are combined into one GraphQL request. Tags are cached in the session, so saving an answer costs one Buffer request.
 - Refresh tokens are single-use, so a rotated token is saved before anything else happens, including when the request then fails.
@@ -61,7 +61,7 @@ npm run dev     # local, needs a .dev.vars file with the secrets below
 - Harvest is idempotent: repeating the request returns the existing cards instead of paying for another model call.
 - Model input is capped at 40,000 characters. Typed output is capped at 500 tokens and harvest output at 8,000 tokens.
 - Repository text, recent posts, notes and transcripts are serialized as untrusted JSON and the system prompts explicitly forbid following instructions found inside them.
-- Saving to Buffer caps Idea text at 10,000 characters and shaping prompts at 200 characters each.
+- Saving to Buffer caps draft (or fallback Idea) text at 10,000 characters and shaping prompts at 200 characters each.
 
 ## Later
 
