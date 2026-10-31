@@ -113,7 +113,6 @@ const PAGE_STYLE = `
 .asks .q{font-size:clamp(1.35rem,1.1rem + .8vw,1.75rem);line-height:1.28;letter-spacing:-.02em;font-weight:500;min-height:3.84em}
 .caret{display:inline-block;width:.08em;height:1em;background:var(--ink);vertical-align:-.12em;margin-left:2px}
 .reply{display:flex;align-items:center;gap:12px;background:var(--ground);border-radius:var(--r-ctl);padding:10px 16px;color:var(--muted);font-size:.95rem}
-.dot{width:10px;height:10px;border-radius:50%;background:var(--live);flex:none}
 .demo .note{font-size:.95rem;color:var(--muted);max-width:62ch}
 
 /* Sections */
@@ -145,8 +144,7 @@ const PAGE_STYLE = `
 .idea{background:#fffef5;color:#0d2a1c;border-radius:18px;padding:clamp(20px,2.4vw,32px);display:grid;gap:18px;font-size:.98rem;line-height:1.5;box-shadow:0 18px 40px -24px rgba(13,42,28,.45);transform:rotate(-1deg)}
 .idea .t{font-size:1.4rem;font-weight:600;letter-spacing:-.025em;line-height:1.15}
 .idea .lbl{font-size:.875rem;font-weight:600;color:#3d5446}
-.idea .tag{display:inline-flex;align-items:center;gap:8px;font-size:.875rem;background:#eef0e8;border-radius:var(--r-ctl);padding:5px 12px;justify-self:start}
-.idea .tag i{width:9px;height:9px;border-radius:50%;background:#2e8b57}
+.idea .tag{font-size:.875rem;color:#3d5446;margin:0}
 .idea ul{margin:0;padding-left:1.1em;display:grid;gap:4px}
 
 /* Steps */
@@ -290,7 +288,7 @@ ${NAV}
       <div class="asks">
         <span class="who">${MARK.replace('class="mark"', 'class="mark" style="width:20px;height:20px"')}The Interviewer</span>
         <p class="q" id="tryQ" aria-live="polite">You let people try it before signing up. What were you seeing that made you change it?</p>
-        <div class="reply"><span class="dot"></span><span>Your answer, out loud or typed</span></div>
+        <div class="reply"><span>Your answer, out loud or typed</span></div>
       </div>
     </div>
     <p class="note" id="tryNote">An example opening question. Paste a public repo above to see one about your own latest work.</p>
@@ -326,7 +324,7 @@ ${NAV}
       <p class="t">Why I let people in before they sign up</p>
       <div><p class="lbl">The story, in your words</p><p>Half the people who found it would hit the sign-up screen and leave. Why would they give their email to something they hadn't seen work? I wouldn't. So now you try it first and sign up after.</p></div>
       <div><p class="lbl">Questions to help you write it</p><ul><li>What did you worry you'd lose by letting people in free?</li><li>Who was the first person to try it this way?</li></ul></div>
-      <span class="tag"><i></i>Building</span>
+      <p class="tag">Tag: Building</p>
     </article>
   </div>
 </section>
@@ -585,8 +583,7 @@ button.chip.on{background:var(--ink);color:var(--ground);box-shadow:none}
 
 /* The work panel */
 .src{gap:14px}
-.src .kind{color:var(--muted);font-size:.875rem;display:flex;align-items:center;gap:8px}
-.src .kind::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 1px var(--control)}
+.src .kind{color:var(--muted);font-size:.875rem}
 .src h3{font-size:1.3rem;line-height:1.2;letter-spacing:-.02em;margin:0;overflow-wrap:anywhere}
 .src h3 a{text-decoration:none}
 .src h3 a:hover{text-decoration:underline}
@@ -632,7 +629,6 @@ button.chip.on{background:var(--ink);color:var(--ground);box-shadow:none}
 /* Done */
 .done-list{list-style:none;margin:0;padding:0;display:grid;gap:10px;width:100%}
 .done-list li{display:flex;gap:12px;align-items:baseline;background:var(--ground);border-radius:16px;padding:14px 18px;animation:fadein .5s var(--ease) both;animation-delay:calc(var(--i,0) * 110ms)}
-.done-list li::before{content:"";flex:none;width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 1px var(--control);transform:translateY(-1px)}
 @media (max-width:640px){
   .top .wrap{min-height:56px;gap:8px}
   .top .scope{display:none}
