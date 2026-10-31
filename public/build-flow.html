@@ -46,7 +46,7 @@ header{display:flex;flex-direction:column;gap:6px;max-width:78ch}h1{font-size:1.
 <div class="wrap">
   <header>
     <h1>The Interviewer V2, as a workflow</h1>
-    <p>For builders who have something to share but stall at the blank page. V2 asks for the work in one field, holds one conversation, then hands back what they choose: drafts built from their words with a light edit, outlines in only their words, or the raw transcript. Only the Ideas they approve are saved. Orange-outlined nodes make every AI call explicit; all other nodes use ordinary code, APIs, or human judgment.</p>
+    <p>For builders who have something to share but stall at the blank page. V2 asks for the work in one field, holds one conversation, then hands back what they choose: drafts built from their words with a light edit, outlines in only their words, or the raw transcript. Only the drafts they approve are saved. Orange-outlined nodes make every AI call explicit; all other nodes use ordinary code, APIs, or human judgment.</p>
     <div class="links"><a href="/">Open The Interviewer</a><a href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Browse the public source on GitHub</a></div>
   </header>
 
@@ -68,7 +68,7 @@ header{display:flex;flex-direction:column;gap:6px;max-width:78ch}h1{font-size:1.
     <div class="lane" style="top:30px">Connect · once per person</div><div class="lane" style="top:312px">One weekly flow</div><div class="lane" style="top:650px">Later · deliberately out of V2</div>
 
     <div class="node t-trigger" style="left:24px;top:68px"><div class="hd"><span>Entry</span></div><div class="bd"><h3>Landing page</h3><p>Explains the blank-page problem, shows a real repo question, and offers one action: Connect with Buffer.</p></div></div>
-    <div class="node t-buffer" style="left:324px;top:68px"><div class="hd"><span>Buffer OAuth</span></div><div class="bd"><h3>One sign-in</h3><p>Authorization Code with PKCE. Buffer supplies recent posts, available tags, and the final destination for approved Ideas.</p></div></div>
+    <div class="node t-buffer" style="left:324px;top:68px"><div class="hd"><span>Buffer OAuth</span></div><div class="bd"><h3>One sign-in</h3><p>Authorization Code with PKCE. Buffer supplies recent posts, available tags, and the final destination for approved drafts.</p></div></div>
 
     <div class="node t-input" style="left:24px;top:346px"><div class="hd"><span>User action</span></div><div class="bd"><h3>Name the work</h3><p>One field: paste a public GitHub repo or describe the week in a sentence or two. One button starts the interview.</p></div></div>
     <div class="node t-github" style="left:324px;top:346px"><div class="hd"><span>Read context · no AI</span></div><div class="bd"><h3>Public work + recent posts</h3><p>Ordinary API fetches only. GitHub supplies seven days of public work; Buffer supplies recent posts. Nothing is sent to a model yet.</p></div></div>
@@ -76,7 +76,7 @@ header{display:flex;flex-direction:column;gap:6px;max-width:78ch}h1{font-size:1.
     <div class="node t-ai ai-call" style="left:924px;top:346px"><div class="hd"><span>Conversation</span></div><div class="bd"><h3>Talk or type</h3><span class="model">VOICE · OpenAI GPT-Live 1</span><span class="model">TYPED · DeepSeek Flash via MindStudio</span><p>GPT-Live gets one live session; typed mode calls the explicitly selected Flash model once per answer.</p></div></div>
     <div class="node t-ai ai-call" style="left:1224px;top:346px"><div class="hd"><span>Organize</span></div><div class="bd"><h3>Find the stories</h3><span class="model">HARVEST · Claude Sonnet 5.5 via MindStudio</span><p>One call at the end. Claude finds the stories and shapes each for the builder's channels. Drafts get a light edit (transitions, tightening, grammar); outlines stay in their words. Code rejects invented claims.</p></div></div>
     <div class="node t-human" style="left:1524px;top:346px"><div class="hd"><span>Human review</span></div><div class="bd"><h3>Edit, drop, optionally tag</h3><p>Nothing saves automatically. Each card can be edited, unticked, or given one existing Buffer tag after the story exists.</p></div></div>
-    <div class="node t-buffer" style="left:1824px;top:346px"><div class="hd"><span>Buffer · create</span></div><div class="bd"><h3>Save approved Ideas</h3><p>Selected cards land under Buffer Ideas as INTERVIEW notes, marked as drafts or outlines built from the interview, ready for the builder to finish.</p></div></div>
+    <div class="node t-buffer" style="left:1824px;top:346px"><div class="hd"><span>Buffer · create</span></div><div class="bd"><h3>Save approved drafts</h3><p>Selected cards land in Buffer Drafts, one per channel, never published or scheduled, ready for the builder to finish.</p></div></div>
     <div class="node t-human" style="left:2124px;top:346px"><div class="hd"><span>Human only</span></div><div class="bd"><h3>They finish the post</h3><p>In Buffer, in their own voice. The AI asks, listens and shapes; authorship stays with the builder.</p></div></div>
 
     <div class="node later t-later" style="left:24px;top:688px"><span class="badge">Later</span><div class="hd"><span>Personal agent</span></div><div class="bd"><h3>Interviewer skill</h3><p>The same method inside a personal agent with its own Buffer and GitHub connectors and broader context.</p></div></div>
