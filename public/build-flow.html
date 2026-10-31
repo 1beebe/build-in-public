@@ -9,7 +9,6 @@
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--display);font-size:15px;line-height:1.5;padding:28px max(16px,env(safe-area-inset-right)) 40px max(16px,env(safe-area-inset-left))}
 .wrap{max-width:100%;margin:auto;display:flex;flex-direction:column;gap:18px}
 header{display:flex;flex-direction:column;gap:6px;max-width:78ch}h1{font-size:1.7rem;margin:0;letter-spacing:-.01em}header p{margin:0;color:var(--muted)}
-.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font:11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.legend span{display:inline-flex;align-items:center;gap:6px}.legend i{width:10px;height:10px;border-radius:3px}
 
 .canvas{position:relative;width:2460px;height:860px}.wires{position:absolute;inset:0;width:100%;height:100%;overflow:visible}.wires path{fill:none;stroke:var(--wire);stroke-width:2}.wires path.loop{stroke-dasharray:6 6}.wires text{fill:var(--muted);font:11px var(--mono)}
 .lane{position:absolute;left:24px;font:11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
@@ -51,9 +50,6 @@ header{display:flex;flex-direction:column;gap:6px;max-width:78ch}h1{font-size:1.
     <div class="links"><a href="/">Open The Interviewer</a><a href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Browse the public source on GitHub</a></div>
   </header>
 
-  <div class="legend">
-    <span><i style="background:var(--trigger)"></i>Entry</span><span><i style="background:var(--input)"></i>User action</span><span><i style="background:var(--buffer)"></i>Buffer API / OAuth</span><span><i style="background:var(--github)"></i>GitHub public read</span><span><i style="background:var(--code)"></i>App logic</span><span><i style="background:var(--ai)"></i>AI</span><span><i style="background:var(--human)"></i>Human decision</span><span><i style="background:var(--later)"></i>Later</span><span style="color:var(--ai);border:1px solid var(--ai);border-radius:99px;padding:2px 8px">Orange outline = AI call</span>
-  </div>
 
   <div class="views">
     <div class="seg" role="group" aria-label="View"><button type="button" id="vDiagram" aria-pressed="true">Diagram</button><button type="button" id="vSteps" aria-pressed="false">Step by step</button></div>
