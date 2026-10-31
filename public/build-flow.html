@@ -115,8 +115,8 @@ header{display:flex;flex-direction:column;gap:6px;max-width:78ch}h1{font-size:1.
   const center = () => [vp.clientWidth / 2, vp.clientHeight / 2];
   function fit() { s = clamp(Math.min(vp.clientWidth / W, vp.clientHeight / H) * 0.96, MIN, MAX); x = 0; y = 0; draw(); }
   function start() {
-    // Phones open on the readable start of the flow; wider screens see the whole thing.
-    if (vp.clientWidth < 700) { s = 0.6; x = 8; y = 8; draw(); } else fit();
+    // Open at reading size on the start of the flow; Fit or zoom out shows the whole thing.
+    s = 1; x = 8; y = 8; draw();
   }
   document.getElementById("zIn").onclick = () => zoomAt(s * 1.25, ...center());
   document.getElementById("zOut").onclick = () => zoomAt(s / 1.25, ...center());
