@@ -720,7 +720,7 @@ export function appPage(): string {
 </section>
 
 <section id="review" class="screen wide" hidden>
-  <header><h1>Stories from your interview</h1><p class="lede" id="reviewLede">Each card is one post, shaped for where you publish and built only from what you said. Edit anything, untick what you don't want, and save them to Buffer as Ideas.</p></header>
+  <header><h1>Stories from your interview</h1><p class="lede" id="reviewLede">Each card is one post, shaped for where you publish, built from what you said and tidied by an editor. Edit anything, untick what you don't want, and save them to Buffer as Ideas.</p></header>
   <div id="drafts" class="drafts"></div>
   <div class="more-row"><button id="showMore" class="btn quiet small" type="button" hidden></button></div>
   <div class="savebar"><span class="count" id="saveCount"></span><div class="row"><button id="backTalk" class="btn quiet small" type="button">Back to the conversation</button><button id="getTranscript" class="btn quiet small" type="button">Transcript</button><button id="saveAll" class="btn" type="button">Save to Buffer</button></div></div>
@@ -1055,7 +1055,7 @@ function renderReview(){
   const outline = state.harvestMode === "outline";
   $("reviewLede").textContent = outline
     ? "Each card is one post, outlined in your words for where you publish. Write it your way, untick what you don't want, and save them to Buffer as Ideas."
-    : "Each card is one post, shaped for where you publish and built only from what you said. Edit anything, untick what you don't want, and save them to Buffer as Ideas.";
+    : "Each card is one post, shaped for where you publish, built from what you said and tidied by an editor. Edit anything, untick what you don't want, and save them to Buffer as Ideas.";
   const extra = (state.drafts || []).filter(d => d.extra && !(state.saved||[]).includes(d.id));
   for (const d of state.drafts || []) {
     const card = el("article", "panel draft" + (d.later ? " later" : "")); card.dataset.id = d.id;
@@ -1068,7 +1068,7 @@ function renderReview(){
       if (d.why) card.append(el("p", "why", d.why));
     }
     const t = el("input", "title"); t.type = "text"; t.maxLength = 200; t.value = d.title; t.setAttribute("aria-label", "Story title"); card.append(t);
-    const words = el("div"); words.append(el("span", "lbl", d.later ? "A question for later" : outline ? "Outline, in your words" : "Draft, from your words"));
+    const words = el("div"); words.append(el("span", "lbl", d.later ? "A question for later" : outline ? "Outline, in your words" : "Draft, from your words, lightly edited"));
     const x = el("textarea", "text"); x.maxLength = 10000; x.value = d.text; x.setAttribute("aria-label", "Post text"); words.append(x); card.append(words);
     for (const f of d.flags || []) card.append(el("p", "flag", f));
     if ((d.prompts||[]).length) {

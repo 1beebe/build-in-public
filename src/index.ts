@@ -452,7 +452,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           const text = draft.later
             ? words
             : [
-                `INTERVIEW ${day} | ${s.harvestMode === "outline" ? "outline in your words" : "story draft from your words"}${where ? ` | ${where}` : ""}`,
+                `INTERVIEW ${day} | ${s.harvestMode === "outline" ? "outline in your words" : "story draft from your words, lightly edited"}${where ? ` | ${where}` : ""}`,
                 draft.why ? `WHY THIS SHAPE: ${draft.why}` : "",
                 words,
                 prompts.length ? `QUESTIONS TO FINISH OR ADAPT IT\n${prompts.map((q) => `- ${q}`).join("\n")}` : "",
