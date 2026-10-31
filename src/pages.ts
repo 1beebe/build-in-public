@@ -188,11 +188,6 @@ const PAGE_STYLE = `
 .where li{display:grid;grid-template-columns:2.2rem 1fr;gap:12px;align-items:baseline;counter-increment:w;font-size:clamp(1.1rem,1rem + .35vw,1.3rem);line-height:1.45}
 .where li::before{content:counter(w);font-weight:600;font-size:1.6em;line-height:1;letter-spacing:-.04em}
 .where b{font-weight:600}
-.buffer-shot{margin:0;background:#f3a08f;border-radius:var(--r-card);overflow:hidden;border:1px solid var(--border)}
-.buffer-shot a{display:block;padding:clamp(14px,2.2vw,28px);background:#f3a08f}
-.buffer-shot img{display:block;width:100%;height:auto;border-radius:10px;box-shadow:0 16px 36px -20px rgba(0,0,0,.45)}
-.buffer-shot figcaption{padding:12px 18px 16px;background:var(--surface);color:var(--muted);font-size:.875rem}
-.buffer-shot figcaption a{display:inline;padding:0;background:none;text-decoration:underline}
 @media (min-width:900px){.keptwrap .kept{grid-template-columns:1fr}}
 .kept{display:grid;gap:28px;margin-top:48px}
 @media (min-width:900px){.kept{grid-template-columns:repeat(3,minmax(0,1fr))}}
@@ -354,19 +349,14 @@ ${NAV}
 </section>
 
 <section class="sec land" aria-labelledby="landH">
-  <div class="wrap two">
-    <div>
-      <h2 class="rise" id="landH">Where your ideas land.</h2>
-      <ol class="where rise" style="--i:1">
-        <li><p>Open Buffer and click <b>Create</b> in the left sidebar.</p></li>
-        <li><p>Your cards appear under <b>Ideas → Unassigned</b>, with any tag you chose.</p></li>
-        <li><p>When you're ready to write, open a card and click <b>Create Post</b>.</p></li>
-      </ol>
-    </div>
-    <figure class="buffer-shot rise" style="--i:2">
-      <a href="https://publish.buffer.com/create" target="_blank" rel="noopener"><img src="https://buffer.com/cdn-cgi/image/width=1920,quality=75,format=auto/img/feature-pages/create/create-hero.webp" alt="Buffer's Create board showing Ideas organized into Unassigned, Review, and Done columns" width="832" height="612" loading="lazy" decoding="async"></a>
-      <figcaption>Buffer’s Create board. <a href="https://support.buffer.com/articles/creating-ideas-in-buffer-7gu7n0Hyyq" target="_blank" rel="noopener">See Buffer’s guide</a>.</figcaption>
-    </figure>
+  <div class="wrap">
+    <h2 class="rise" id="landH">Where your drafts land.</h2>
+    <ol class="where rise" style="--i:1">
+      <li><p>Open Buffer and click <b>Publish</b> in the left sidebar.</p></li>
+      <li><p>Switch to the <b>Drafts</b> tab. There's one draft for each channel you picked, with any tag you chose.</p></li>
+      <li><p>Open one with <b>Edit draft</b>, finish it in your voice, and schedule it when it's ready.</p></li>
+    </ol>
+    <p class="rise" style="--i:2;margin-top:28px"><a class="btn quiet" href="https://publish.buffer.com/schedule?tab=drafts" target="_blank" rel="noopener">Open your drafts in Buffer</a></p>
   </div>
 </section>
 
@@ -376,7 +366,7 @@ ${NAV}
     <div class="keptwrap">
     <figure class="pic rise"><img src="/img/couch.webp" alt="Someone on a couch at night with a laptop, talking and smiling" width="960" height="1190" loading="lazy" decoding="async"></figure>
     <div class="kept">
-      <div class="rise"><h3>Buffer</h3><p>It reads your tags and recent work so its questions fit. It only writes the Ideas you approve, never posts.</p></div>
+      <div class="rise"><h3>Buffer</h3><p>It reads your tags and recent work so its questions fit. It only saves the drafts you approve. It never publishes or schedules anything.</p></div>
       <div class="rise" style="--i:1"><h3>GitHub</h3><p>It reads one week of public commits, pull requests, and issues. There is no GitHub sign-in or access to private code.</p></div>
       <div class="rise" style="--i:2"><h3>Your interview</h3><p>Your current conversation and sign-in are encrypted, expire after 30 days of inactivity, and disappear when you disconnect. If you leave the box ticked at setup, Ligaya can read that transcript for 14 days to improve the interviewer.</p></div>
       <div class="rise" style="--i:3"><h3>Your privacy</h3><p>No third-party trackers, ads, or data sales. Anonymous funnel counts show what works. <a href="/privacy">The full privacy note</a> has the details.</p></div>
@@ -467,11 +457,11 @@ ${NAV}
 <h2>What's stored</h2>
 <p>Your Buffer sign-in tokens, encrypted with AES-GCM, plus the public GitHub repo link or week note and the current interview: its topics and the conversation, encrypted the same way. Starting a new interview clears the last one. All of it expires 30 days after your last visit. Disconnecting deletes it straight away.</p>
 <h2>What isn't</h2>
-<p>Anything after you're done with it, unless you leave the transcript box ticked (below). The Ideas you choose go to your own Buffer account. Nothing is sold, shared or used for ads.</p>
+<p>Anything after you're done with it, unless you leave the transcript box ticked (below). The drafts you choose go to your own Buffer account. Nothing is sold, shared or used for ads.</p>
 <h2 id="kept">Transcripts you let us keep</h2>
 <p>The setup screen has a box, ticked by default, that says "Keep this transcript for 14 days so Ligaya can improve the interviewer." While it's ticked, the app keeps a copy of that interview: your repo link or note, the channels you picked, the conversation, the stories it found, the titles you saved, and timings and errors. It's encrypted at rest, only Ligaya can read it, and it deletes itself 14 days after your last activity in that interview. It never includes your Buffer sign-in or your Buffer posts. Untick the box before you start and nothing is kept. To have a kept transcript deleted sooner, send a note through the feedback button.</p>
 <h2>Lightweight telemetry</h2>
-<p>The app keeps anonymous daily counts of homepage visits, Buffer connection attempts and completions, interviews started, Ideas saved, and feedback sent. These counts contain no name, account, IP address, repo, interview text, or cross-site identifier, and expire after 120 days. There are no third-party analytics scripts.</p>
+<p>The app keeps anonymous daily counts of homepage visits, Buffer connection attempts and completions, interviews started, stories saved, and feedback sent. These counts contain no name, account, IP address, repo, interview text, or cross-site identifier, and expire after 120 days. There are no third-party analytics scripts.</p>
 <h2>Feedback</h2>
 <p>If you send feedback or a bug report, the message, optional contact detail, page path, and time are encrypted at rest and kept for up to 180 days. A one-way daily hash of your IP address is used only to limit spam and expires within two days; the IP itself is never stored.</p>
 <h2>What's read</h2>
@@ -720,7 +710,7 @@ export function appPage(): string {
 </section>
 
 <section id="review" class="screen wide" hidden>
-  <header><h1>Stories from your interview</h1><p class="lede" id="reviewLede">Each card is one post, shaped for where you publish, built from what you said and tidied by an editor. Edit anything, untick what you don't want, and save them to Buffer as Ideas.</p></header>
+  <header><h1>Stories from your interview</h1><p class="lede" id="reviewLede">Each card is one post, shaped for where you publish, built from what you said and tidied by an editor. Edit anything, untick what you don't want, and save them to Buffer as drafts.</p></header>
   <div id="drafts" class="drafts"></div>
   <div class="more-row"><button id="showMore" class="btn quiet small" type="button" hidden></button></div>
   <div class="savebar"><span class="count" id="saveCount"></span><div class="row"><button id="backTalk" class="btn quiet small" type="button">Back to the conversation</button><button id="getTranscript" class="btn quiet small" type="button">Transcript</button><button id="saveAll" class="btn" type="button">Save to Buffer</button></div></div>
@@ -739,8 +729,9 @@ export function appPage(): string {
     <div class="orb" data-s="idle" aria-hidden="true"><i></i><i></i><b></b></div>
     <header style="display:grid;gap:10px"><h1>That's this week.</h1><p class="lede" id="doneLine"></p></header>
     <ul class="done-list" id="doneList"></ul>
-    <p class="muted" style="max-width:62ch">In Buffer, click <b>Create</b> in the left sidebar. They're under <b>Ideas</b>, in the <b>Unassigned</b> column, each titled INTERVIEW. Open one and click <b>Create Post</b> when you're ready to write.</p>
-    <div class="row"><a class="btn" href="https://publish.buffer.com/create" target="_blank" rel="noopener">Open my Ideas in Buffer</a><button id="again" class="btn quiet" type="button">Start a new interview</button></div>
+    <p class="muted" id="ideaNote" style="max-width:62ch" hidden></p>
+    <p class="muted" style="max-width:62ch">In Buffer, click <b>Publish</b> in the left sidebar, then the <b>Drafts</b> tab. There's one draft for each channel. Open one with <b>Edit draft</b> when you're ready to finish it.</p>
+    <div class="row"><a class="btn" href="https://publish.buffer.com/schedule?tab=drafts" target="_blank" rel="noopener">Open my drafts in Buffer</a><button id="again" class="btn quiet" type="button">Start a new interview</button></div>
   </div>
 </section>
 </main>`,
@@ -1048,14 +1039,14 @@ function countPicked(){
   cards.forEach(c => c.classList.toggle("off", !c.querySelector(".pick input").checked));
   const n = cards.filter(c => c.querySelector(".pick input").checked).length;
   $("saveCount").textContent = n ? n + (n === 1 ? " story" : " stories") + " ticked" : "Nothing ticked yet";
-  $("saveAll").textContent = n ? "Save " + n + " to Buffer" : "Save to Buffer";
+  $("saveAll").textContent = n ? "Save " + n + (n === 1 ? " draft" : " drafts") + " to Buffer" : "Save drafts to Buffer";
 }
 function renderReview(){
   const box = $("drafts"); box.innerHTML = "";
   const outline = state.harvestMode === "outline";
   $("reviewLede").textContent = outline
-    ? "Each card is one post, outlined in your words for where you publish. Write it your way, untick what you don't want, and save them to Buffer as Ideas."
-    : "Each card is one post, shaped for where you publish, built from what you said and tidied by an editor. Edit anything, untick what you don't want, and save them to Buffer as Ideas.";
+    ? "Each card is one post, outlined in your words for where you publish. Write it your way, untick what you don't want, and save them to Buffer as drafts."
+    : "Each card is one post, shaped for where you publish, built from what you said and tidied by an editor. Edit anything, untick what you don't want, and save them to Buffer as drafts.";
   const extra = (state.drafts || []).filter(d => d.extra && !(state.saved||[]).includes(d.id));
   for (const d of state.drafts || []) {
     const card = el("article", "panel draft" + (d.later ? " later" : "")); card.dataset.id = d.id;
@@ -1102,10 +1093,12 @@ $("saveAll").onclick = async () => {
   finally { $("saveAll").disabled = false; if (!$("review").hidden) countPicked(); }
 };
 function renderDone(){
-  const n = (state.saved||[]).length;
-  $("doneLine").textContent = n + (n === 1 ? " story is" : " stories are") + " in your Buffer Ideas, built from your own words. Finish them whenever you're ready.";
+  const n = (state.saved||[]).length, asIdeas = state.savedAsIdeas || [];
+  $("doneLine").textContent = n + (n === 1 ? " story is" : " stories are") + " in your Buffer, built from your own words. Finish them whenever you're ready.";
   const list = $("doneList"); list.innerHTML = "";
-  (state.drafts||[]).filter(d => (state.saved||[]).includes(d.id)).forEach((d, k) => { const li = el("li", "", d.title); li.style.setProperty("--i", k); list.append(li); });
+  (state.drafts||[]).filter(d => (state.saved||[]).includes(d.id)).forEach((d, k) => { const li = el("li", "", d.title + (asIdeas.includes(d.id) ? " (saved as an Idea)" : "")); li.style.setProperty("--i", k); list.append(li); });
+  const m = asIdeas.length; $("ideaNote").hidden = !m;
+  if (m) $("ideaNote").textContent = "Buffer wouldn't take " + (m === 1 ? "one of these" : m + " of these") + " as a draft. Some channels need an image or video, and plans have a draft limit. " + (m === 1 ? "It's" : "They're") + " in Create, under Ideas, instead.";
   show("done"); window.scrollTo({top:0});
 }
 

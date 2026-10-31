@@ -153,7 +153,7 @@ export default {
         return html(
           landingPage(
             error === "reconnect"
-              ? "Your Buffer connection expired. Connect again to keep going."
+              ? "Buffer needs you to connect again. Your interview is kept."
               : error === "denied"
                 ? "No problem. Nothing was connected."
                 : error
