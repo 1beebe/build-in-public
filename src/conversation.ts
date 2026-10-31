@@ -49,7 +49,7 @@ export async function reply(env: Env, agenda: Question[], turns: Turn[], context
         25_000,
         500,
       );
-      const out = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1)) as { say: string; about?: number; wrapUp?: boolean };
+      const out = parseTurn(text);
       if (out.say?.trim()) {
         const about = out.about && out.about > 0 && out.about <= agenda.length ? out.about - 1 : lastAbout(turns);
         return { who: "interviewer", text: out.say.trim().slice(0, 600), about, wrapUp: Boolean(out.wrapUp) };
@@ -65,6 +65,24 @@ export async function reply(env: Env, agenda: Question[], turns: Turn[], context
     return { who: "interviewer", text: "That's everything I had. Anything else on your mind? When you're ready, I'll pull your ideas together.", wrapUp: true };
   }
   return { who: "interviewer", text: agenda[next].text, about: next };
+}
+
+// The model's turn as JSON. Fast models sometimes wrap it in prose, cut it off
+// or skip the JSON altogether; salvage the question rather than dropping to
+// the canned agenda mid-conversation.
+function parseTurn(text: string): { say: string; about?: number; wrapUp?: boolean } {
+  try {
+    return JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1));
+  } catch {
+    const said = text.match(/"say"\s*:\s*"((?:[^"\\]|\\.)*)/);
+    if (said) {
+      const about = text.match(/"about"\s*:\s*(\d+)/);
+      return { say: JSON.parse(`"${said[1].replace(/\\$/, "")}"`), about: about ? Number(about[1]) : undefined };
+    }
+    const plain = text.trim();
+    if (plain && !plain.includes("{") && plain.length < 600) return { say: plain };
+    throw new Error(`unparseable turn: ${plain.slice(0, 120)}`);
+  }
 }
 
 function lastAbout(turns: Turn[]): number | undefined {
