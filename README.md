@@ -2,7 +2,11 @@
 
 A weekly interview about what you built. Sign in with Buffer, paste a public GitHub repo or describe your week, and talk for ten minutes with an interviewer who already knows what you shipped and what you've posted lately. When you're done it pulls out the stories worth telling, shapes each one into a lightly edited draft or an outline in only your words, adds a few questions to help you shape it, and saves the ones you choose to Buffer as drafts, one per channel. It won't make things up, and you finish the posts.
 
+**Try it at [interviewer.lbeebe.com](https://interviewer.lbeebe.com).** There's nothing to install: sign in with your Buffer account and start talking.
+
 Built by Ligaya Beebe for Buffer Commit 2026. Not made by or affiliated with Buffer.
+
+This README is for people reviewing how it works (the Buffer API use is below) and for builders who want to run their own copy. If you just want to use it, the link above is all you need.
 
 ## How it works
 
@@ -10,19 +14,20 @@ Built by Ligaya Beebe for Buffer Commit 2026. Not made by or affiliated with Buf
 2. **Name the work.** One field accepts either a public GitHub repo or a sentence about what you're working on. GitHub needs no sign-in and private code stays out of reach.
 3. **Talk.** One live conversation, not a form. GPT-Live 1 handles spoken conversations; DeepSeek Flash (through MindStudio) handles typed turns. The app ranks a few useful threads from the week's work and recent posts. When a question points to a concrete pull request, commit, issue or post, an evidence panel appears with technical details tucked away; otherwise the conversation uses the full width.
 4. **Harvest.** When you stop, you choose what comes back: story drafts from your words, an outline you'll write yourself, or just the transcript (built in the browser, no model call). For drafts and outlines, Claude Sonnet 5.5 finds the stories that have a tension and a turn, picks a channel and format for each from the channels you post on (text post, thread, carousel outline, image pairing, video script, infographic brief), and prepares every post the material supports. Outlines are built only from your sentences; drafts get a light editor's pass (transitions, tightening, grammar) but no new claims. A check confirms at least 80% (outlines) or 65% (drafts) of the words are yours, with structure and visual directions in [brackets], or it falls back to your cleaned-up words. Swear words are masked and flagged. The top three show first; the rest sit behind "Show more". With `CHALLENGER=on`, DeepSeek reviews each post once and keeps, revises or drops it.
-5. **Save.** You edit and untick, optionally choose a Buffer tag on each card, then save the ones you keep (`aiAssisted: true`, since the AI chose and arranged the words).
+5. **Save.** You edit and untick, optionally choose a Buffer tag on each card, then save the ones you keep. Each becomes a draft on its channel in Buffer (Publish, then Drafts), never scheduled or published. X, Threads, Bluesky and Mastodon threads go in as real thread items. If Buffer won't take a draft (a plan limit, or a channel like Instagram that needs media), that story is saved as an Idea instead and the done screen says so.
 
 ## Buffer API use
 
 - Scopes: `account:read ideas:read ideas:write posts:read posts:write offline_access`. `posts:write` only saves drafts; nothing is ever scheduled or published.
 - Every call goes through one client (`src/buffer.ts`) that reads the `RateLimit` headers on each response, stops starting new saves when the 15-minute window is nearly spent, and honors `Retry-After` on a 429 (a short wait is retried once; a long one is shown to the person as a plain message, and nothing is lost).
-- Requests ask only for the fields they use, and related reads are combined into one GraphQL request. Tags are cached in the session, so saving an answer costs one Buffer request.
+- Requests ask only for the fields they use, and related reads are combined into one GraphQL request. Tags and channels are cached in the session, so saving a story costs one Buffer request.
+- Mutations used: `createPost` with `saveToDraft: true` (one per story, on the channel it was shaped for) and `createIdea` as the fallback.
 - Refresh tokens are single-use, so a rotated token is saved before anything else happens, including when the request then fails.
 - Tokens are encrypted with AES-GCM before they're stored in Workers KV, and sessions expire after 30 days.
 
-## Run it
+## Run your own copy
 
-Cloudflare Workers, TypeScript, no framework.
+Everything below is only for builders hosting their own instance. Cloudflare Workers, TypeScript, no framework. Swap in your own domain, Buffer app client and Buffer organization wherever the hosted values appear in `wrangler.toml` (`APP_URL`, `BUFFER_CLIENT_ID`, `OWNER_ORG_ID`, and the KV namespace id).
 
 ```sh
 npm install
@@ -33,9 +38,9 @@ npm run dev     # local, needs a .dev.vars file with the secrets below
 ### One-time setup
 
 1. **KV namespace.** In Cloudflare, go to Storage & Databases, then KV, and create a namespace called `interviewer-sessions`. Put its ID in `wrangler.toml` under `[[kv_namespaces]]`.
-2. **Deploy from GitHub.** In Cloudflare, go to Workers & Pages, then Create, then Import a repository, and pick this repo. Every push to `main` deploys.
-3. **Domain.** In the Worker's Settings, go to Domains & Routes and add `interviewer.lbeebe.com` as a custom domain.
-4. **Buffer app client.** In Buffer, go to Settings, then API, then App Clients, then New Client. Choose a private client, enable the scopes above, and set the redirect URI to `https://interviewer.lbeebe.com/callback`. Put the client ID in `wrangler.toml` as `BUFFER_CLIENT_ID`.
+2. **Deploy from GitHub.** In Cloudflare, go to Workers & Pages, then Create, then Import a repository, and pick your fork. Builds run from the Worker's Deployments page (or on push, if you turn that on), or deploy from your machine with `npx wrangler deploy`.
+3. **Domain.** In the Worker's Settings, go to Domains & Routes and add your own custom domain, then set `APP_URL` in `wrangler.toml` to it. The default `*.workers.dev` address works too.
+4. **Buffer app client.** In Buffer, go to Settings, then API, then App Clients, then New Client. Enable the scopes above and set the redirect URI to `<your APP_URL>/callback`. Put the client ID in `wrangler.toml` as `BUFFER_CLIENT_ID`, and your Buffer organization id as `OWNER_ORG_ID` if you want the private `/stats` and `/runs` pages.
 5. **Secrets.** In the Worker's Settings, under Variables and Secrets, add:
    - `BUFFER_CLIENT_SECRET`: from step 4.
    - `TOKEN_KEY`: 32 random bytes, base64 (`openssl rand -base64 32`).
@@ -49,7 +54,7 @@ npm run dev     # local, needs a .dev.vars file with the secrets below
 
 - Every page includes a small feedback/bug form. Messages and optional reply details are encrypted at rest, expire after 180 days, and appear only on the owner's private `/stats` page.
 - A daily, one-way IP hash limits feedback spam without storing the IP itself; it expires within two days.
-- First-party funnel telemetry counts homepage visits, Buffer connection attempts and completions, interviews started, Ideas saved and feedback sent. It contains no user or content identifiers and expires after 120 days. No third-party analytics script is loaded.
+- First-party funnel telemetry counts homepage visits, Buffer connection attempts and completions, interviews started, stories saved and feedback sent. It contains no user or content identifiers and expires after 120 days. No third-party analytics script is loaded.
 
 ## Abuse and cost boundaries
 
@@ -65,6 +70,5 @@ npm run dev     # local, needs a .dev.vars file with the secrets below
 
 ## Later
 
-- A "Start a draft" button that turns a saved answer into a Buffer draft linked to its Idea.
 - Search across past answers.
 - A skill so a personal agent can run the interview with more context.
