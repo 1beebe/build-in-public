@@ -57,6 +57,7 @@ npm run dev     # local, needs a .dev.vars file with the secrets below
 - Work notes are capped at 500 characters; typed answers at 1,500 characters.
 - An interview holds at most 32 turns and 24,000 transcript characters. Live transcript sync is clamped to the same limits server-side.
 - Each session gets at most 20 typed model calls and four voice starts per hour, and six harvests per day.
+- Run log (opt-out): a setup checkbox, ticked by default, keeps that interview's transcript, harvest output, flags, timings and errors, sealed with `TOKEN_KEY`, for 14 days. Only the owner (`OWNER_ORG_ID`) can read them at `/runs`. Unticked, nothing is kept.
 - Harvest is idempotent: repeating the request returns the existing cards instead of paying for another model call.
 - Model input is capped at 40,000 characters. Typed output is capped at 500 tokens and harvest output at 8,000 tokens.
 - Repository text, recent posts, notes and transcripts are serialized as untrusted JSON and the system prompts explicitly forbid following instructions found inside them.

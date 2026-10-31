@@ -71,6 +71,9 @@ export interface Session {
   channels?: Channel[]; // connected Buffer channels, read at setup
   targets?: string[]; // services they want stories shaped for
   harvestMode?: HarvestMode; // what the current drafts were made as
+  keepLog?: boolean; // false if they unticked "keep this transcript" at setup
+  runKey?: string; // where this interview's run log lives, when kept
+  runLoggedAt?: number; // last voice transcript copy to the run log
 }
 
 const SESSION_TTL = 60 * 60 * 24 * 30; // 30 days, matches a refresh token's useful life for us

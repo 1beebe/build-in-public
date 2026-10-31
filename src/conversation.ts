@@ -35,7 +35,8 @@ export function opening(agenda: Question[]): Turn {
 }
 
 // The interviewer's next turn in typed mode.
-export async function reply(env: Env, agenda: Question[], turns: Turn[], context: string): Promise<Turn & { wrapUp?: boolean }> {
+export async function reply(env: Env, agenda: Question[], turns: Turn[], context: string): Promise<Turn & { wrapUp?: boolean; fallback?: boolean }> {
+  let fallback = false;
   if (hasModel(env)) {
     try {
       const text = await complete(
@@ -57,14 +58,15 @@ export async function reply(env: Env, agenda: Question[], turns: Turn[], context
     } catch (err) {
       console.error("interviewer reply failed, using the agenda", err);
     }
+    fallback = true;
   }
   // Without a model: work through the agenda in order.
   const asked = new Set(turns.filter((t) => t.who === "interviewer").map((t) => t.about));
   const next = agenda.findIndex((_, i) => !asked.has(i));
   if (next === -1) {
-    return { who: "interviewer", text: "That's everything I had. Anything else on your mind? When you're ready, I'll pull your ideas together.", wrapUp: true };
+    return { who: "interviewer", text: "That's everything I had. Anything else on your mind? When you're ready, I'll pull your ideas together.", wrapUp: true, fallback };
   }
-  return { who: "interviewer", text: agenda[next].text, about: next };
+  return { who: "interviewer", text: agenda[next].text, about: next, fallback };
 }
 
 // The model's turn as JSON. Fast models sometimes wrap it in prose, cut it off

@@ -467,7 +467,9 @@ ${NAV}
 <h2>What's stored</h2>
 <p>Your Buffer sign-in tokens, encrypted with AES-GCM, plus the public GitHub repo link or week note and the current interview: its topics and the conversation, encrypted the same way. Starting a new interview clears the last one. All of it expires 30 days after your last visit. Disconnecting deletes it straight away.</p>
 <h2>What isn't</h2>
-<p>Anything after you're done with it. The Ideas you choose go to your own Buffer account. Nothing is sold, shared or used for ads.</p>
+<p>Anything after you're done with it, unless you leave the transcript box ticked (below). The Ideas you choose go to your own Buffer account. Nothing is sold, shared or used for ads.</p>
+<h2 id="kept">Transcripts you let us keep</h2>
+<p>The setup screen has a box, ticked by default, that says "Keep this transcript for 14 days so Ligaya can improve the interviewer." While it's ticked, the app keeps a copy of that interview: your repo link or note, the channels you picked, the conversation, the stories it found, the titles you saved, and timings and errors. It's encrypted at rest, only Ligaya can read it, and it deletes itself 14 days after your last activity in that interview. It never includes your Buffer sign-in or your Buffer posts. Untick the box before you start and nothing is kept. To have a kept transcript deleted sooner, send a note through the feedback button.</p>
 <h2>Lightweight telemetry</h2>
 <p>The app keeps anonymous daily counts of homepage visits, Buffer connection attempts and completions, interviews started, Ideas saved, and feedback sent. These counts contain no name, account, IP address, repo, interview text, or cross-site identifier, and expire after 120 days. There are no third-party analytics scripts.</p>
 <h2>Feedback</h2>
@@ -620,6 +622,8 @@ button.chip.on{background:var(--ink);color:var(--ground);box-shadow:none}
 .handback{display:grid;gap:8px}
 .handback .lbl{font-size:.875rem;font-weight:600;color:var(--muted)}
 .note-more summary{cursor:pointer;margin-top:6px}
+.keep{display:flex;gap:10px;align-items:flex-start;font-size:.92rem;color:var(--muted);max-width:60ch;cursor:pointer}
+.keep input{margin-top:4px;width:18px;height:18px;flex:none;accent-color:var(--ink)}
 .transcript{min-height:320px;font-size:.92rem}
 .savebar{position:sticky;bottom:16px;z-index:4;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;background:var(--ink);color:var(--ground);border-radius:var(--r-ctl);padding:8px 8px 8px 22px;box-shadow:0 18px 36px -18px rgba(0,0,0,.5)}
 .savebar .btn.quiet{color:var(--ground);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--ground) 40%,transparent)}
@@ -681,6 +685,7 @@ export function appPage(): string {
     <label class="fieldset" id="orgWrap" hidden><span class="lbl">Buffer organization</span><select id="org"></select></label>
     <label class="fieldset"><span class="lbl">A repo or a quick note</span><span class="hint">With a repo, it reads this week's public commits, pull requests and issues. Otherwise it starts from what you write here. 500 characters maximum.</span><textarea id="work" maxlength="500" placeholder="github.com/you/project — or — I rebuilt the onboarding for…"></textarea></label>
     <div class="fieldset" id="chanWrap" hidden><span class="lbl">Shape stories for</span><span class="hint" id="chanHint"></span><div class="chips" id="chans" aria-label="Channels to shape stories for"></div></div>
+    <label class="keep"><input type="checkbox" id="keepLog" checked><span>Keep this transcript for 14 days so Ligaya can improve the interviewer. Only she can read it. <a href="/privacy#kept" target="_blank" rel="noopener">What's kept</a></span></label>
     <div class="row"><button id="saveSetup" class="btn" type="button"><span class="rec"></span>Start the interview</button></div>
     <p class="busyline" id="setupBusy" aria-live="polite"></p>
   </div>
@@ -811,6 +816,7 @@ function renderSetup(){
     l.append(i, el("span", "", c.label)); l.title = c.name; $("chans").append(l);
   }
   $("chanWrap").hidden = !seen.size;
+  $("keepLog").checked = state.keepLog !== false;
   const main = (state.targets || []).map(t => (chans.find(c => c.service === t) || {}).label).filter(Boolean);
   $("chanHint").textContent = main.length ? "Looks like you post mostly on " + main.join(" and ") + ". Change it if you like." : "Pick where you'd like to post these stories.";
   show("setup");
@@ -1115,7 +1121,7 @@ $("saveSetup").onclick = async () => {
   busyLines("setupBusy", ["Reading this week's public work", "Looking at what you've posted lately", "Choosing a few threads to pull on", "Almost ready"]);
   try {
     const targets = [...document.querySelectorAll("#chans input:checked")].map(i => i.value);
-    state = await api("/api/setup", {organizationId:$("org").value, work:$("work").value, targets: $("chanWrap").hidden ? undefined : targets});
+    state = await api("/api/setup", {organizationId:$("org").value, work:$("work").value, targets: $("chanWrap").hidden ? undefined : targets, keepLog: $("keepLog").checked});
     state = await api("/api/start", {}); shown = null; drawn = 0; renderTalk(); $("say").focus({preventScroll:true});
   }
   catch(e){ err(e.message); }

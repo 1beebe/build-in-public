@@ -20,6 +20,7 @@ import { channelLabel, harvest, opening, reply } from "./conversation";
 import { gptLiveSession, openaiKey } from "./realtime";
 import { MindStudioError } from "./mindstudio";
 import { storeFeedback } from "./feedback";
+import { beginRun, logRun, runsPage } from "./runs";
 import { appPage, landingPage, privacyPage } from "./pages";
 import { SpendCapError, countFunnel, countInterview, modelAllowedToday, statsPage, tickVoice, voiceAllowedToday } from "./spend";
 import { cookie, createSession, destroySession, loadSession, readCookie, saveSession, type Channel, type HarvestMode, type Session } from "./session";
@@ -160,20 +161,10 @@ export default {
         );
       }
       if (req.method === "GET" && url.pathname === "/privacy") return html(privacyPage());
-      if (req.method === "GET" && url.pathname === "/stats") {
-        // Never trust the organization id cached in the session for admin
-        // access. Re-read the organizations this Buffer grant can actually see.
-        const loaded = await loadSession(req, env);
-        if (!env.OWNER_ORG_ID || !loaded) return textResponse("Not found", 404);
-        try {
-          const client = new BufferClient(env, loaded.data);
-          const { orgs } = await getStart(client);
-          if (client.sessionChanged) await saveSession(env, loaded.id, loaded.data);
-          if (!orgs.some((org) => org.id === env.OWNER_ORG_ID)) return textResponse("Not found", 404);
-        } catch {
-          return textResponse("Not found", 404);
-        }
-        return html(await statsPage(env), { headers: { "Cache-Control": "no-store" } });
+      if (req.method === "GET" && (url.pathname === "/stats" || url.pathname === "/runs")) {
+        if (!(await isOwner(req, env))) return textResponse("Not found", 404);
+        const page = url.pathname === "/stats" ? await statsPage(env) : await runsPage(env);
+        return html(page, { headers: { "Cache-Control": "no-store" } });
       }
       if (req.method === "GET" && url.pathname === "/connect") return connect(env);
       if (req.method === "GET" && url.pathname === "/callback") return callback(req, env, url);
@@ -192,6 +183,21 @@ export default {
     }
   },
 } satisfies ExportedHandler<Env>;
+
+// Never trust the organization id cached in the session for admin access.
+// Re-read the organizations this Buffer grant can actually see.
+async function isOwner(req: Request, env: Env): Promise<boolean> {
+  const loaded = await loadSession(req, env);
+  if (!env.OWNER_ORG_ID || !loaded) return false;
+  try {
+    const client = new BufferClient(env, loaded.data);
+    const { orgs } = await getStart(client);
+    if (client.sessionChanged) await saveSession(env, loaded.id, loaded.data);
+    return orgs.some((org) => org.id === env.OWNER_ORG_ID);
+  } catch {
+    return false;
+  }
+}
 
 async function connect(env: Env): Promise<Response> {
   await countFunnel(env, "connectStart");
@@ -307,7 +313,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         // The channels to shape stories for, from the ones they have connected.
         const connected = new Set((s.channels ?? []).map((c) => c.service));
         const targets = Array.isArray(body.targets) ? [...new Set(body.targets.map(String))].filter((t) => connected.has(t)).slice(0, 6) : undefined;
-        Object.assign(s, { repo, noRepo, weekNote: repo ? undefined : work, targets, questions: [], turns: [], drafts: [], saved: [], harvestMode: undefined });
+        Object.assign(s, { repo, noRepo, weekNote: repo ? undefined : work, targets, keepLog: body.keepLog !== false, questions: [], turns: [], drafts: [], saved: [], harvestMode: undefined });
         result = await view(env, client, s, true);
         break;
       }
@@ -334,6 +340,8 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           ...recent.posts.slice(0, 8).map((p) => `- ${p.slice(0, 200)}`),
         ].join("\n");
         Object.assign(s, { turns: [opening(s.questions)], drafts: [], saved: [], voice: undefined });
+        beginRun(s);
+        await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: `started with ${s.questions?.length ?? 0} threads` }));
         await countInterview(env);
         result = await view(env, client, s);
         break;
@@ -348,6 +356,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         // Last words typed before "Find my stories": keep them, no reply needed.
         if (body.final === true) {
           s.turns.push({ who: "you", text });
+          await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: "kept unsent words before finding stories" }));
           result = await view(env, client, s);
           break;
         }
@@ -357,7 +366,10 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           await saveSession(env, id, s); // reserve before the paid call
         }
         s.turns.push({ who: "you", text });
-        s.turns.push(await reply(env, s.questions, s.turns, s.brief ?? ""));
+        const asked = Date.now();
+        const { fallback, ...next } = await reply(env, s.questions, s.turns, s.brief ?? "");
+        s.turns.push(next);
+        await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: fallback ? "typed reply FAILED, used the canned agenda question" : "typed reply", ms: Date.now() - asked }));
         result = await view(env, client, s);
         break;
       }
@@ -373,6 +385,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         await saveSession(env, id, s); // reserve before the paid session
         result = await gptLiveSession(env, s, sdp);
         s.voice = { kind: "gpt-live", startedAt: now, counted: 0 };
+        await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: "voice started" }));
         break;
       }
       case "/api/voice-turns": {
@@ -381,6 +394,11 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const agendaSize = s.questions?.length ?? 0;
         s.turns = boundedTurns(body.turns, agendaSize);
         await tickVoice(env, s.voice);
+        // The page sends these often; keep the run's copy at most a minute behind.
+        if (!s.runLoggedAt || Date.now() - s.runLoggedAt > 60_000) {
+          s.runLoggedAt = Date.now();
+          await logRun(env, s, () => {});
+        }
         result = { ok: true };
         break;
       }
@@ -401,8 +419,15 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const pillars = s.tags ?? [];
         await tickVoice(env, s.voice);
         s.voice = undefined; // the conversation's over; stop the meter
+        const began = Date.now();
         s.drafts = await harvest(env, s.questions ?? [], s.turns, pillars, s.posts, s.targets ?? [], mode);
         s.harvestMode = mode;
+        await logRun(env, s, (r) => r.harvests.push({
+          at: new Date().toISOString(),
+          mode,
+          ms: Date.now() - began,
+          drafts: (s.drafts ?? []).map(({ title, channel, format, flags, text, later }) => ({ title, channel, format, flags, text, later })),
+        }));
         s.saved = [];
         result = await view(env, client, s);
         break;
@@ -443,7 +468,11 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           (s.saved ??= []).push(draft.id);
           await saveSession(env, id, s);
         }
-        if ((s.saved?.length ?? 0) > savedBefore) await countFunnel(env, "save");
+        if ((s.saved?.length ?? 0) > savedBefore) {
+          await countFunnel(env, "save");
+          const titles = (s.drafts ?? []).filter((d) => s.saved?.includes(d.id)).map((d) => d.title);
+          await logRun(env, s, (r) => (r.saved = titles));
+        }
         result = await view(env, client, s);
         break;
       }
@@ -453,7 +482,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         return json(await source(env, s.repo, q.ref)); // read-only: the session doesn't change
       }
       case "/api/reset":
-        Object.assign(s, { questions: [], turns: [], drafts: [], saved: [], brief: undefined, voice: undefined, harvestMode: undefined });
+        Object.assign(s, { questions: [], turns: [], drafts: [], saved: [], brief: undefined, voice: undefined, harvestMode: undefined, runKey: undefined });
         result = await view(env, client, s);
         break;
       default:
@@ -521,6 +550,7 @@ async function view(env: Env, client: BufferClient, s: Session, refresh = false)
     noRepo: Boolean(s.noRepo),
     tags,
     weekNote: s.weekNote ?? "",
+    keepLog: s.keepLog !== false,
     channels: channels.map((c) => ({ service: c.service, name: c.name, label: channelLabel(c.service) })),
     targets: s.targets ?? mainServices(channels),
     harvestMode: s.harvestMode ?? "draft",
