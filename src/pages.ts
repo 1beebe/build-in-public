@@ -267,8 +267,8 @@ ${NAV}
 <main>
 <section class="wrap hero">
   <div>
-    <h1 class="rise">If you can talk about it, you can write about it.</h1>
-    <p class="lead rise" style="--i:1">Talk through this week's work, out loud or typed. The Interviewer teases out the ideas worth developing and saves them to Buffer in your words.</p>
+    <h1 class="rise">Unblock your stories.</h1>
+    <p class="lead rise" style="--i:1">The Interviewer asks you thoughtful questions, grounded in your actual work, to help you develop stories in your own words. Then edit, draft, and schedule your posts in Buffer.</p>
     ${error ? `<p class="alert" role="alert">${escapeHtml(error)}</p>` : ""}
     <div class="act rise" style="--i:2"><a class="btn" href="/connect">Connect with Buffer</a><span class="small muted">Signs in with Buffer, the social media planner. New to it? <a href="https://buffer.com" target="_blank" rel="noopener">The free plan</a> works.</span></div>
   </div>
@@ -300,8 +300,8 @@ ${NAV}
 <section class="sec" id="sounds" style="background:var(--raised)">
   <div class="wrap two">
     <div>
-      <h2 class="rise" id="soundsH">It follows what you say.</h2>
-      <p class="say rise" style="--i:1">It reads your week first, asks what led you there, and follows the interesting parts of your answer.</p>
+      <h2 class="rise" id="soundsH">Centered on your work and words</h2>
+      <p class="say rise" style="--i:1">It reads about your week first, then asks you questions to help you turn your scattered thoughts into a polished narrative arc.</p>
       <figure class="pic rise" style="--i:2"><img src="/img/cafe.webp" alt="Two people talking across a small cafe table, one laughing mid-story" width="960" height="1190" loading="lazy" decoding="async"></figure>
     </div>
     <ol class="talk" aria-label="An example conversation">
@@ -318,7 +318,7 @@ ${NAV}
   <div class="wrap two flip">
     <div>
       <h2 class="rise" id="keepH">Your stories, saved in your own words.</h2>
-      <p class="say rise" style="--i:1">It never makes things up. It finds the stories with a real turn in them and shapes each one for the channels you post on, as a draft built from your words, an outline you write yourself, or just the transcript. Nothing is saved until you choose it.</p>
+      <p class="say rise" style="--i:1">It never makes things up. It finds your real stories, helps you articulate your insights, and shapes each one for the channels you post on. Choose your own path: a draft built from your words, an outline so you can write the draft yourself, or a transcript you can pull to work on with your own tools. </p>
     </div>
     <article class="idea rise" style="--i:1" aria-label="An Idea as it lands in Buffer">
       <p class="t">Why I let people in before they sign up</p>
@@ -332,7 +332,7 @@ ${NAV}
 <section class="sec ink" aria-labelledby="whyH">
   <div class="wrap two">
     <h2 class="rise" id="whyH">It won't write your posts. On purpose.</h2>
-    <p class="say rise" style="--i:1">Writing and talking are thinking. The Interviewer is a scaffold, not a ghostwriter: it helps you find a stronger place to start, then leaves the writing—and your voice—to you.</p>
+    <p class="say rise" style="--i:1">Writing is thinking. Your words are powerful. The Interviewer is a scaffold, not a ghostwriter: it helps you find a stronger place to start, then leaves the writing—and your voice—to you.</p>
   </div>
 </section>
 
