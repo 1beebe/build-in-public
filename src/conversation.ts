@@ -24,7 +24,7 @@ How you work:
 - They likely built with AI agents, so focus on why, for whom, and what it meant, not how the code works. If they ask what a change does, tell them in a sentence, then ask your question.
 - Talk like a person: plain words, no dashes (you may be spoken aloud). Change topics with a short, natural bridge.
 
-Never write or suggest wording for their posts, and never mention your list. When it feels like you've got the good stuff, ask once if there's anything else on their mind, then thank them warmly and let them pull their ideas together. If they say they're done, don't ask anything more: just thank them and say goodbye. Never ask two "anything else" questions in a row.`;
+Never write or suggest wording for their posts, and never mention your list. When it feels like you've got the good stuff, ask once if there's anything else on their mind, then thank them warmly and let them pull their ideas together. If they say they're done or ask you to draft, don't ask anything more and don't summarize: thank them in a line and tell them to tap "I'm done. Find my stories" below, which turns their words into drafts. Set wrapUp to true on that turn. Never ask two "anything else" questions in a row.`;
 
 export function agendaBrief(agenda: Question[]): string {
   return agenda.map((q, i) => `${i + 1}. ${q.source} (a starting question: ${q.text})`).join("\n");
@@ -48,15 +48,15 @@ export async function reply(env: Env, agenda: Question[], turns: Turn[], context
           conversation: turns.map((t) => ({ speaker: t.who === "you" ? "THEM" : "YOU", text: t.text })),
         })}\n\nWrite your next interviewer turn. Reply with JSON only: {"say": "...", "about": <thread number or 0>, "wrapUp": <boolean>}`,
         25_000,
-        500,
+        1200,
       );
       const out = parseTurn(text);
       if (out.say?.trim()) {
         const about = out.about && out.about > 0 && out.about <= agenda.length ? out.about - 1 : lastAbout(turns);
-        return { who: "interviewer", text: out.say.trim().slice(0, 600), about, wrapUp: Boolean(out.wrapUp) };
+        return { who: "interviewer", text: wholeSentences(out.say.trim(), 600), about, wrapUp: Boolean(out.wrapUp) };
       }
     } catch (err) {
-      console.error("interviewer reply failed, using the agenda", err);
+      console.error(`interviewer reply failed, using the agenda: ${err instanceof Error ? err.message : String(err)}`);
     }
     fallback = true;
   }
@@ -64,9 +64,18 @@ export async function reply(env: Env, agenda: Question[], turns: Turn[], context
   const asked = new Set(turns.filter((t) => t.who === "interviewer").map((t) => t.about));
   const next = agenda.findIndex((_, i) => !asked.has(i));
   if (next === -1) {
-    return { who: "interviewer", text: "That's everything I had. Anything else on your mind? When you're ready, I'll pull your ideas together.", wrapUp: true, fallback };
+    return { who: "interviewer", text: "That's everything I had. Anything else on your mind? When you're ready, tap \"I'm done. Find my stories\" below.", wrapUp: true, fallback };
   }
   return { who: "interviewer", text: agenda[next].text, about: next, fallback };
+}
+
+// A cut-off turn (token limit, salvaged JSON) ends mid-sentence, like "...drive the tools,".
+// Keep only whole sentences; if there are none, keep the text as it is.
+function wholeSentences(text: string, max: number): string {
+  const cut = text.slice(0, max);
+  if (/[.!?]["'”’)]*$/.test(cut)) return cut;
+  const end = Math.max(...[...cut.matchAll(/[.!?]["'”’)]*(?=\s)/g)].map((m) => (m.index ?? 0) + m[0].length), -1);
+  return end > 0 ? cut.slice(0, end) : cut;
 }
 
 // The model's turn as JSON. Fast models sometimes wrap it in prose, cut it off
