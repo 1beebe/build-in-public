@@ -610,6 +610,8 @@ button.chip.on{background:var(--ink);color:var(--ground);box-shadow:none}
 .pick input{width:22px;height:22px;margin:0;accent-color:var(--ink);cursor:pointer}
 .draft .same{font-size:.875rem;color:var(--muted);margin:0}
 .review-foot{display:flex;justify-content:center}
+.few{display:grid;gap:14px}
+.few p{margin:0;max-width:62ch;font-size:1.05rem}
 .log .wrap-go{margin-top:10px}
 #harvestBtn.nudge{background:var(--accent);color:var(--accent-ink);box-shadow:none;animation:nudge 1.6s ease-in-out 3}
 @keyframes nudge{50%{transform:scale(1.04)}}
@@ -726,6 +728,7 @@ export function appPage(): string {
 
 <section id="review" class="screen wide" hidden>
   <header><h1>Stories from your interview</h1><p class="lede" id="reviewLede"></p></header>
+  <div class="panel few" id="fewNote" hidden><p id="fewText"></p><div class="row"><button id="moreBtn" class="btn quiet" type="button">Keep talking to find more</button></div></div>
   <div id="drafts" class="drafts"></div>
   <div class="more-row"><button id="showMore" class="btn quiet small" type="button" hidden></button></div>
   <div class="review-foot"><button class="btn text" type="button" data-feedback-open>Feedback or bug</button></div>
@@ -1073,6 +1076,11 @@ function renderReview(){
     ? "Each card is one post for one channel, outlined in your words. Write it your way and untick what you don't want. Nothing goes to Buffer until you press Save at the bottom."
     : "Each card is one post for one channel, built from what you said and tidied by an editor. Edit anything and untick what you don't want. Nothing goes to Buffer until you press Save at the bottom.";
   const extra = (state.drafts || []).filter(d => d.extra && !(state.saved||[]).includes(d.id));
+  const real = (state.drafts || []).filter(d => !d.later).length;
+  $("fewNote").hidden = real >= 2; $("backTalk").hidden = real < 2;
+  $("fewText").textContent = real === 0
+    ? "I didn't find a full story in this one yet. Talk a bit more and I'll look again."
+    : "I found one story so far. Talk a bit more and I'll look again.";
   const seen = {};
   for (const d of state.drafts || []) {
     const card = el("article", "panel draft" + (d.later ? " later" : "")); card.dataset.id = d.id;
@@ -1110,6 +1118,12 @@ function grow(t){ if (!t.offsetParent) return; t.style.height = "auto"; t.style.
 function channelName(service){ const c = (state.channels||[]).find(c => c.service === service); return c ? c.label : service ? service : "Any channel"; }
 $("showMore").onclick = () => { document.querySelectorAll(".draft.extra").forEach(c => { c.hidden = false; c.querySelectorAll("textarea").forEach(grow); }); $("showMore").hidden = true; };
 $("backTalk").onclick = renderTalk;
+$("moreBtn").onclick = async () => {
+  err(""); const b = $("moreBtn"); b.disabled = true; b.textContent = "Finding a new question…";
+  try { state = await api("/api/more", {}); drawn = Math.max(0, (state.turns||[]).length - 1); renderTalk(); window.scrollTo({top:0}); $("say").focus({preventScroll:true}); }
+  catch(e){ err(e.message); }
+  finally { b.disabled = false; b.textContent = "Keep talking to find more"; }
+};
 $("saveAll").onclick = async () => {
   err("");
   const drafts = [...document.querySelectorAll(".draft")].filter(c => c.querySelector(".pick input").checked).map(c => ({
