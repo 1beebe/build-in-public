@@ -19,7 +19,7 @@ import {
 import { RepoError, getSource, parseRepo, whatShipped, type Shipped, type Source } from "./github";
 import { hasModel, planQuestions } from "./interview";
 import { channelLabel, harvest, opening, reply } from "./conversation";
-import { gptLiveSession, openaiKey } from "./realtime";
+import { gptLiveSession, openaiKey, VoiceError } from "./realtime";
 import { MindStudioError } from "./mindstudio";
 import { storeFeedback } from "./feedback";
 import { beginRun, logRun, runsPage } from "./runs";
@@ -533,12 +533,18 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
       console.error("OpenAI spend limit reached", err.message);
       return json({ error: VOICE_RESTING }, 503);
     }
+    // Log the message on its own line: Workers logs can split a stack from its message.
+    console.error(`${req.method} ${new URL(req.url).pathname} failed: ${err instanceof Error ? err.message : String(err)}`);
+    if (err instanceof VoiceError) {
+      console.error(err);
+      return json({ error: "The voice connection didn't start. Try again, or type your answer below." }, 502);
+    }
     if (err instanceof MindStudioError) {
       console.error(err);
-      return json({ error: "The voice service didn't answer. Try again, or type your answer." }, 502);
+      return json({ error: "The Interviewer didn't answer. Try again, or type your answer." }, 502);
     }
     console.error(err);
-    return json({ error: "Something went wrong talking to Buffer. Try again." }, 502);
+    return json({ error: "Something went wrong on our side. Try again." }, 502);
   }
 }
 

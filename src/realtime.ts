@@ -45,6 +45,9 @@ export function liveOpening(s: Session): string {
     : "Speak first, in English: say hi in a few words and ask your first question about the first thread, in your own words. Then listen.";
 }
 
+/** The voice provider refused or failed to open a session. */
+export class VoiceError extends Error {}
+
 export async function gptLiveSession(env: Env, s: Session, sdp: string): Promise<{ sdp: string; model: string; opening: string }> {
   const model = env.LIVE_MODEL || LIVE_MODEL;
   const res = await fetch("https://api.openai.com/v1/live/sessions", {
@@ -65,9 +68,9 @@ export async function gptLiveSession(env: Env, s: Session, sdp: string): Promise
   if (!res.ok) {
     const body = (await res.text()).slice(0, 300);
     if (isSpendCap(res.status, body)) throw new SpendCapError(body);
-    throw new Error(`gpt-live ${res.status}: ${body}`);
+    throw new VoiceError(`gpt-live ${res.status}: ${body}`);
   }
   const json = (await res.json()) as { transport?: { sdp?: string } };
-  if (!json.transport?.sdp) throw new Error("gpt-live: no SDP answer");
+  if (!json.transport?.sdp) throw new VoiceError("gpt-live: no SDP answer");
   return { sdp: json.transport.sdp, model, opening: liveOpening(s) };
 }
