@@ -390,7 +390,13 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         s.voiceStarts = reserveWindow(s.voiceStarts, 3600_000, VOICE_STARTS_PER_HOUR, "That's a lot of voice sessions in one hour. Type for now, or come back in a bit.");
         if (!(await voiceAllowedToday(env))) throw new UserError(VOICE_RESTING);
         await saveSession(env, id, s); // reserve before the paid session
-        result = await gptLiveSession(env, s, offer);
+        try {
+          result = await gptLiveSession(env, s, offer);
+        } catch (err) {
+          // OpenAI refused before any audio, so nothing was spent: give the start back.
+          if (err instanceof VoiceError) { s.voiceStarts = s.voiceStarts?.slice(0, -1); await saveSession(env, id, s); }
+          throw err;
+        }
         s.voice = { kind: "gpt-live", startedAt: now, counted: 0 };
         await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: "voice started" }));
         break;
