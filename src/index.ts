@@ -420,7 +420,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         // A story draft or an outline they'll write themselves. The transcript
         // option never reaches here: the page builds it.
         const mode: HarvestMode = body.mode === "outline" ? "outline" : "draft";
-        if (s.drafts?.length && (s.harvestMode ?? "draft") === mode) {
+        if (s.drafts?.length && (s.harvestMode ?? "draft") === mode && (s.harvestedTurns ?? s.turns.length) === s.turns.length) {
           result = await view(env, client, s); // idempotent: never pay twice for the same transcript
           break;
         }
@@ -435,6 +435,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const began = Date.now();
         s.drafts = await harvest(env, s.questions ?? [], s.turns, pillars, s.posts, s.targets ?? [], mode);
         s.harvestMode = mode;
+        s.harvestedTurns = s.turns.length;
         await logRun(env, s, (r) => r.harvests.push({
           at: new Date().toISOString(),
           mode,
@@ -443,6 +444,23 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         }));
         s.saved = [];
         s.savedAsIdeas = [];
+        result = await view(env, client, s);
+        break;
+      }
+      case "/api/more": {
+        // They found few stories and want to keep talking: the interviewer
+        // comes back with a fresh angle, and the next harvest reads it all.
+        if (!s.turns?.some((t) => t.who === "you")) throw new UserError("Start an interview first.");
+        if (hasModel(env)) {
+          if (!(await modelAllowedToday(env, "typed"))) throw new UsageLimitError("Typed interviews are resting for today. Try voice, or come back tomorrow.");
+          s.typedStarts = reserveWindow(s.typedStarts, 3600_000, TYPED_CALLS_PER_HOUR, "That's a lot of answers in one hour. Take a short break, then continue.");
+          await saveSession(env, id, s);
+        }
+        const found = (s.drafts ?? []).filter((d) => !d.later).length;
+        const note = `\n\nThey just looked for stories and found ${found === 1 ? "only one" : found === 0 ? "none yet" : `only ${found}`}, so they came back to keep talking. Welcome them back in a few words, without recapping, and ask one easy, open question from a fresh angle you haven't covered yet.`;
+        const { fallback, wrapUp: _ended, ...next } = await reply(env, s.questions ?? [], s.turns, (s.brief ?? "").slice(0, 3600) + note);
+        s.turns.push(next);
+        await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: fallback ? "keep talking, reply FAILED" : "keep talking" }));
         result = await view(env, client, s);
         break;
       }
