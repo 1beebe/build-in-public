@@ -732,7 +732,7 @@ export function appPage(): string {
     <header style="display:grid;gap:10px"><h1>That's this week.</h1><p class="lede" id="doneLine"></p></header>
     <ul class="done-list" id="doneList"></ul>
     <p class="muted" id="ideaNote" style="max-width:62ch" hidden></p>
-    <p class="muted" style="max-width:62ch">In Buffer, click <b>Publish</b> in the left sidebar, then the <b>Drafts</b> tab. There's one draft for each channel. Open one with <b>Edit draft</b> when you're ready to finish it.</p>
+    <p class="muted" style="max-width:62ch">There's one draft for each channel. Open one with <b>Edit draft</b> when you're ready to finish it.</p>
     <div class="row"><a class="btn" href="https://publish.buffer.com/schedule?tab=drafts" target="_blank" rel="noopener">Open my drafts in Buffer</a><button id="again" class="btn quiet" type="button">Start a new interview</button></div>
   </div>
 </section>
