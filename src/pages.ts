@@ -605,9 +605,18 @@ button.chip.on{background:var(--ink);color:var(--ground);box-shadow:none}
 .draft .lbl{font-size:.875rem;font-weight:600;color:var(--muted);display:block;margin-bottom:6px}
 .draft .text{min-height:150px}
 .draft .prompts{min-height:84px;font-size:.92rem}
-.pick{justify-self:start}
+.draft textarea{resize:vertical}
+.pick{justify-self:start;display:inline-flex;align-items:center;gap:10px;font-weight:600;cursor:pointer;min-height:44px}
+.pick input{width:22px;height:22px;margin:0;accent-color:var(--ink);cursor:pointer}
+.draft .same{font-size:.875rem;color:var(--muted);margin:0}
+.review-foot{display:flex;justify-content:center}
+.log .wrap-go{margin-top:10px}
+#harvestBtn.nudge{background:var(--accent);color:var(--accent-ink);box-shadow:none;animation:nudge 1.6s ease-in-out 3}
+@keyframes nudge{50%{transform:scale(1.04)}}
+@media (prefers-reduced-motion:reduce){#harvestBtn.nudge{animation:none}}
+body:has(#review:not([hidden])) .feedback-open,body:has(#talk:not([hidden])) .feedback-open{display:none}
 .draft .shape{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
-.draft .fmt{font-weight:600;font-size:.92rem}
+.draft .fmt{font-weight:600;font-size:1rem}
 .draft .why{color:var(--muted);font-size:.92rem;margin:0;max-width:62ch}
 .draft .flag{font-size:.875rem;color:var(--muted);margin:0;padding-left:10px;box-shadow:inset 2px 0 0 var(--control)}
 .more-row{display:flex;justify-content:center}
@@ -651,9 +660,12 @@ button.chip.on{background:var(--ink);color:var(--ground);box-shadow:none}
   .draft .title{font-size:1.15rem}
   .draft .text{min-height:132px}
   .savebar{bottom:calc(8px + env(safe-area-inset-bottom));border-radius:18px;padding:12px 14px}
-  .savebar .count{width:100%}
-  .savebar .row{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .savebar .row .btn{width:100%;padding-inline:12px}
+  .savebar{padding:10px;gap:8px}
+  .savebar .count{width:100%;font-size:.875rem;padding-left:6px}
+  .savebar .row{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .savebar .row .btn{width:100%;padding-inline:10px}
+  .savebar #saveAll{grid-column:1/-1;order:-1}
+  .savebar .btn.quiet{min-height:38px;font-size:.875rem;box-shadow:none;text-decoration:underline;text-underline-offset:.15em}
   .studio > .row{display:grid;width:100%}
   .studio > .row .btn{width:100%}
 }
@@ -709,13 +721,15 @@ export function appPage(): string {
     <button id="harvestBtn" class="btn quiet" type="button">I'm done. Find my stories</button>
   </div>
 </div>
+<div class="review-foot"><button class="btn text" type="button" data-feedback-open>Feedback or bug</button></div>
 </section>
 
 <section id="review" class="screen wide" hidden>
-  <header><h1>Stories from your interview</h1><p class="lede" id="reviewLede">Each card is one post, shaped for where you publish, built from what you said and tidied by an editor. Edit anything, untick what you don't want, and save them to Buffer as drafts.</p></header>
+  <header><h1>Stories from your interview</h1><p class="lede" id="reviewLede"></p></header>
   <div id="drafts" class="drafts"></div>
   <div class="more-row"><button id="showMore" class="btn quiet small" type="button" hidden></button></div>
-  <div class="savebar"><span class="count" id="saveCount"></span><div class="row"><button id="backTalk" class="btn quiet small" type="button">Back to the conversation</button><button id="getTranscript" class="btn quiet small" type="button">Transcript</button><button id="saveAll" class="btn" type="button">Save to Buffer</button></div></div>
+  <div class="review-foot"><button class="btn text" type="button" data-feedback-open>Feedback or bug</button></div>
+  <div class="savebar"><span class="count" id="saveCount"></span><div class="row"><button id="backTalk" class="btn quiet small" type="button">Keep talking</button><button id="getTranscript" class="btn quiet small" type="button">Transcript</button><button id="saveAll" class="btn" type="button">Save to Buffer</button></div></div>
 </section>
 
 <section id="transcript" class="screen" hidden>
@@ -729,11 +743,12 @@ export function appPage(): string {
 <section id="done" class="screen" hidden>
   <div class="panel studio">
     <div class="orb" data-s="idle" aria-hidden="true"><i></i><i></i><b></b></div>
-    <header style="display:grid;gap:10px"><h1>That's this week.</h1><p class="lede" id="doneLine"></p></header>
+    <header style="display:grid;gap:10px"><h1>Your drafts are in Buffer.</h1><p class="lede" id="doneLine"></p></header>
+    <div class="row"><a class="btn" href="https://publish.buffer.com/schedule?tab=drafts" target="_blank" rel="noopener">Open my drafts in Buffer</a></div>
     <ul class="done-list" id="doneList"></ul>
     <p class="muted" id="ideaNote" style="max-width:62ch" hidden></p>
     <p class="muted" style="max-width:62ch">There's one draft for each channel. Open one with <b>Edit draft</b> when you're ready to finish it.</p>
-    <div class="row"><a class="btn" href="https://publish.buffer.com/schedule?tab=drafts" target="_blank" rel="noopener">Open my drafts in Buffer</a><button id="again" class="btn quiet" type="button">Start a new interview</button></div>
+    <div class="row"><button id="again" class="btn quiet" type="button">Start a new interview</button></div>
   </div>
 </section>
 </main>`,
@@ -877,6 +892,14 @@ function renderTalk(){
     log.append(li);
   });
   drawn = turns.length;
+  // The interviewer wrapped up (or they asked for a draft): put the next step right there.
+  const wrap = !busy && turns.length && turns[turns.length - 1].wrapUp;
+  $("harvestBtn").classList.toggle("nudge", !!wrap);
+  if (wrap) {
+    const go = el("button", "btn small wrap-go", HARVEST_LABEL); go.type = "button";
+    go.onclick = () => { go.disabled = true; $("harvestBtn").click(); };
+    log.lastChild.append(go);
+  }
   if (busy) { const li = el("li", "them typing new"), p = el("p"); p.textContent = "Thinking about what you said"; li.append(el("span", "who", "The Interviewer"), p); log.append(li); }
   $("liveBox").hidden = !state.live || !window.RTCPeerConnection;
   if (!liveOn()) { orbState(busy ? "thinking" : "idle"); if (!$("liveBox").hidden && !$("liveState").textContent) setLive(""); }
@@ -1047,17 +1070,21 @@ function renderReview(){
   const box = $("drafts"); box.innerHTML = "";
   const outline = state.harvestMode === "outline";
   $("reviewLede").textContent = outline
-    ? "Each card is one post, outlined in your words for where you publish. Write it your way, untick what you don't want, and save them to Buffer as drafts."
-    : "Each card is one post, shaped for where you publish, built from what you said and tidied by an editor. Edit anything, untick what you don't want, and save them to Buffer as drafts.";
+    ? "Each card is one post for one channel, outlined in your words. Write it your way and untick what you don't want. Nothing goes to Buffer until you press Save at the bottom."
+    : "Each card is one post for one channel, built from what you said and tidied by an editor. Edit anything and untick what you don't want. Nothing goes to Buffer until you press Save at the bottom.";
   const extra = (state.drafts || []).filter(d => d.extra && !(state.saved||[]).includes(d.id));
+  const seen = {};
   for (const d of state.drafts || []) {
     const card = el("article", "panel draft" + (d.later ? " later" : "")); card.dataset.id = d.id;
     if (d.extra) { card.hidden = true; card.classList.add("extra"); }
-    const top = el("label", "chip pick"); const cb = el("input"); cb.type = "checkbox"; cb.checked = !d.later && !d.extra; top.append(cb, el("span", "", d.later ? "Save to answer later" : "Save this one")); card.append(top);
+    const top = el("label", "pick"); const cb = el("input"); cb.type = "checkbox"; cb.checked = !d.later && !d.extra; top.append(cb, el("span", "", d.later ? "Include this question" : "Include in Buffer")); card.append(top);
     if ((state.saved||[]).includes(d.id)) { cb.checked = false; cb.disabled = true; top.lastChild.textContent = "Saved"; }
     cb.onchange = countPicked;
     if (d.format) {
-      const sh = el("div", "shape"); sh.append(el("span", "fmt", channelName(d.channel) + " · " + d.format)); card.append(sh);
+      const sh = el("div", "shape"); sh.append(el("span", "fmt", "For " + channelName(d.channel) + " · " + d.format)); card.append(sh);
+      const key = (d.title || "").trim().toLowerCase();
+      if (key && seen[key]) card.append(el("p", "same", "Same story as the " + seen[key] + " card, shaped for " + channelName(d.channel) + "."));
+      else if (key) seen[key] = channelName(d.channel);
       if (d.why) card.append(el("p", "why", d.why));
     }
     const t = el("input", "title"); t.type = "text"; t.maxLength = 200; t.value = d.title; t.setAttribute("aria-label", "Story title"); card.append(t);
@@ -1065,7 +1092,7 @@ function renderReview(){
     const x = el("textarea", "text"); x.maxLength = 10000; x.value = d.text; x.setAttribute("aria-label", "Post text"); words.append(x); card.append(words);
     for (const f of d.flags || []) card.append(el("p", "flag", f));
     if ((d.prompts||[]).length) {
-      const pw = el("div"); pw.append(el("span", "lbl", "Questions to finish or adapt it, one per line"));
+      const pw = el("div"); pw.append(el("span", "lbl", outline ? "Questions to help you write it, added under your outline" : "Questions to help you finish it. Just for you, not added to the post"));
       const pr = el("textarea", "prompts"); pr.maxLength = 1000; pr.value = d.prompts.join("\\n"); pr.setAttribute("aria-label", "Questions, one per line"); pw.append(pr); card.append(pw);
     }
     if (tags().length) {
@@ -1077,9 +1104,11 @@ function renderReview(){
   $("showMore").hidden = !extra.length;
   $("showMore").textContent = "Show " + extra.length + " more " + (extra.length === 1 ? "story" : "stories");
   show("review"); countPicked();
+  box.querySelectorAll("textarea").forEach(t => { t.addEventListener("input", () => grow(t)); grow(t); });
 }
+function grow(t){ if (!t.offsetParent) return; t.style.height = "auto"; t.style.height = (t.scrollHeight + 4) + "px"; }
 function channelName(service){ const c = (state.channels||[]).find(c => c.service === service); return c ? c.label : service ? service : "Any channel"; }
-$("showMore").onclick = () => { document.querySelectorAll(".draft.extra").forEach(c => { c.hidden = false; }); $("showMore").hidden = true; };
+$("showMore").onclick = () => { document.querySelectorAll(".draft.extra").forEach(c => { c.hidden = false; c.querySelectorAll("textarea").forEach(grow); }); $("showMore").hidden = true; };
 $("backTalk").onclick = renderTalk;
 $("saveAll").onclick = async () => {
   err("");
@@ -1096,9 +1125,9 @@ $("saveAll").onclick = async () => {
 };
 function renderDone(){
   const n = (state.saved||[]).length, asIdeas = state.savedAsIdeas || [];
-  $("doneLine").textContent = n + (n === 1 ? " story is" : " stories are") + " in your Buffer, built from your own words. Finish them whenever you're ready.";
+  $("doneLine").textContent = "You saved " + n + (n === 1 ? " story" : " stories") + ", built from your own words. They're waiting in Buffer for you to finish and schedule.";
   const list = $("doneList"); list.innerHTML = "";
-  (state.drafts||[]).filter(d => (state.saved||[]).includes(d.id)).forEach((d, k) => { const li = el("li", "", d.title + (asIdeas.includes(d.id) ? " (saved as an Idea)" : "")); li.style.setProperty("--i", k); list.append(li); });
+  (state.drafts||[]).filter(d => (state.saved||[]).includes(d.id)).forEach((d, k) => { const li = el("li", "", d.title + (d.channel ? " · " + channelName(d.channel) : "") + (asIdeas.includes(d.id) ? " (saved as an Idea)" : "")); li.style.setProperty("--i", k); list.append(li); });
   const m = asIdeas.length; $("ideaNote").hidden = !m;
   if (m) $("ideaNote").textContent = "Buffer wouldn't take " + (m === 1 ? "one of these" : m + " of these") + " as a draft. Some channels need an image or video, and plans have a draft limit. " + (m === 1 ? "It's" : "They're") + " in Create, under Ideas, instead.";
   show("done"); window.scrollTo({top:0});
