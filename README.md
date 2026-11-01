@@ -1,6 +1,6 @@
 # The Interviewer
 
-A weekly interview about what you built. Sign in with Buffer, paste a public GitHub repo or describe your week, and talk for ten minutes with an interviewer who already knows what you shipped and what you've posted lately. When you're done it pulls out the stories worth telling, shapes each one into a lightly edited draft or an outline in only your words, adds a few questions to help you shape it, and saves the ones you choose to Buffer as drafts, one per channel. It won't make things up, and you finish the posts.
+An interview about what you built. Sign in with Buffer, paste a public GitHub repo or describe your week, and talk for ten minutes with an interviewer who already knows what you shipped and what you've posted lately. When you're done it pulls out the stories worth telling, shapes each one into a lightly edited draft or an outline in only your words, adds a few questions to help you shape it, and saves the ones you choose to Buffer as drafts, one per channel. It won't make things up, and you finish the posts.
 
 **Try it at [interviewer.lbeebe.com](https://interviewer.lbeebe.com).** There's nothing to install: sign in with your Buffer account and start talking.
 
@@ -70,5 +70,6 @@ npm run dev     # local, needs a .dev.vars file with the secrets below
 
 ## Later
 
+- A weekly check-in: an optional reminder to do an interview each week, picking up from what shipped since the last one.
 - Search across past answers.
 - A skill so a personal agent can run the interview with more context.
