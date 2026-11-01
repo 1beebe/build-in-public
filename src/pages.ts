@@ -610,7 +610,11 @@ button.chip.on{background:var(--ink);color:var(--ground);box-shadow:none}
 .pick input{width:22px;height:22px;margin:0;accent-color:var(--ink);cursor:pointer}
 .draft .same{font-size:.875rem;color:var(--muted);margin:0}
 .review-foot{display:flex;justify-content:center}
-body:has(#review:not([hidden])) .feedback-open{display:none}
+.log .wrap-go{margin-top:10px}
+#harvestBtn.nudge{background:var(--accent);color:var(--accent-ink);box-shadow:none;animation:nudge 1.6s ease-in-out 3}
+@keyframes nudge{50%{transform:scale(1.04)}}
+@media (prefers-reduced-motion:reduce){#harvestBtn.nudge{animation:none}}
+body:has(#review:not([hidden])) .feedback-open,body:has(#talk:not([hidden])) .feedback-open{display:none}
 .draft .shape{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
 .draft .fmt{font-weight:600;font-size:1rem}
 .draft .why{color:var(--muted);font-size:.92rem;margin:0;max-width:62ch}
@@ -717,6 +721,7 @@ export function appPage(): string {
     <button id="harvestBtn" class="btn quiet" type="button">I'm done. Find my stories</button>
   </div>
 </div>
+<div class="review-foot"><button class="btn text" type="button" data-feedback-open>Feedback or bug</button></div>
 </section>
 
 <section id="review" class="screen wide" hidden>
@@ -887,6 +892,14 @@ function renderTalk(){
     log.append(li);
   });
   drawn = turns.length;
+  // The interviewer wrapped up (or they asked for a draft): put the next step right there.
+  const wrap = !busy && turns.length && turns[turns.length - 1].wrapUp;
+  $("harvestBtn").classList.toggle("nudge", !!wrap);
+  if (wrap) {
+    const go = el("button", "btn small wrap-go", HARVEST_LABEL); go.type = "button";
+    go.onclick = () => { go.disabled = true; $("harvestBtn").click(); };
+    log.lastChild.append(go);
+  }
   if (busy) { const li = el("li", "them typing new"), p = el("p"); p.textContent = "Thinking about what you said"; li.append(el("span", "who", "The Interviewer"), p); log.append(li); }
   $("liveBox").hidden = !state.live || !window.RTCPeerConnection;
   if (!liveOn()) { orbState(busy ? "thinking" : "idle"); if (!$("liveBox").hidden && !$("liveState").textContent) setLive(""); }
