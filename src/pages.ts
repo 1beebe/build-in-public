@@ -200,6 +200,7 @@ const PAGE_STYLE = `
 .foot .big{font-size:clamp(3rem,14.2vw,13.5rem);white-space:nowrap;font-weight:600;letter-spacing:-.045em;line-height:.88;margin:0}
 .foot .row{display:flex;flex-wrap:wrap;gap:16px 32px;justify-content:space-between;align-items:end;margin-top:48px;font-size:1rem;color:var(--field-muted)}
 .foot .row a:not(.btn){color:var(--field-ink)}
+.foot .foot-link{background:none;border:0;padding:0;font:inherit;color:var(--field-ink);text-decoration:underline;text-underline-offset:.15em;cursor:pointer}
 .foot .btn{background:var(--accent);color:var(--accent-ink)}
 @media (prefers-color-scheme:dark){.foot .btn{background:var(--field-ink);color:var(--field)}}
 
@@ -216,8 +217,9 @@ const MARK = `<svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="
 const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600&display=swap">`;
 
-const FEEDBACK_WIDGET = `<button class="feedback-open" type="button" data-feedback-open>Feedback or bug</button>
-<dialog class="feedback-dialog" id="feedbackDialog">
+const FEEDBACK_PILL = `<button class="feedback-open" type="button" data-feedback-open>Feedback or bug</button>`;
+
+const FEEDBACK_WIDGET = `<dialog class="feedback-dialog" id="feedbackDialog">
   <form class="feedback-form" id="feedbackForm">
     <h2>Tell me what happened.</h2>
     <label>What is this?<select name="kind"><option value="feedback">Feedback</option><option value="bug">A bug</option></select></label>
@@ -231,13 +233,13 @@ const FEEDBACK_WIDGET = `<button class="feedback-open" type="button" data-feedba
 
 const FEEDBACK_SCRIPT = `(() => {
   const d=document.getElementById("feedbackDialog"), f=document.getElementById("feedbackForm"), status=document.getElementById("feedbackStatus");
-  document.querySelector("[data-feedback-open]")?.addEventListener("click",()=>d.showModal());
+  document.querySelectorAll("[data-feedback-open]").forEach(b=>b.addEventListener("click",()=>d.showModal()));
   document.querySelector("[data-feedback-close]")?.addEventListener("click",()=>d.close());
   d?.addEventListener("click",e=>{if(e.target===d)d.close()});
   f?.addEventListener("submit",async e=>{e.preventDefault();const send=f.querySelector('[type="submit"]');send.disabled=true;status.textContent="Sending…";const data=Object.fromEntries(new FormData(f));data.path=location.pathname;try{const r=await fetch("/feedback",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||"Could not send that.");f.reset();status.textContent="Thank you—sent.";setTimeout(()=>d.close(),900)}catch(x){status.textContent=x.message}finally{send.disabled=false}});
 })();`;
 
-function shell(title: string, body: string, opts: { style?: string; script?: string } = {}): string {
+function shell(title: string, body: string, opts: { style?: string; script?: string; pill?: boolean } = {}): string {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>${title}</title>
 <meta name="description" content="Talk through what you built, find the stories worth telling, and save them to Buffer in your own words. A thinking scaffold for building in public, not an AI ghostwriter.">
@@ -245,7 +247,7 @@ function shell(title: string, body: string, opts: { style?: string; script?: str
 <link rel="icon" href="data:image/svg+xml,${encodeURIComponent(MARK.replace('class="mark" ', 'xmlns="http://www.w3.org/2000/svg" '))}">
 ${FONTS}
 <script>document.documentElement.classList.add("js")</script>
-<style>${STYLE}${opts.style ?? ""}</style></head><body>${body}${FEEDBACK_WIDGET}<script>${FEEDBACK_SCRIPT}</script>${opts.script ? `<script>${opts.script}</script>` : ""}</body></html>`;
+<style>${STYLE}${opts.style ?? ""}</style></head><body>${body}${opts.pill === false ? "" : FEEDBACK_PILL}${FEEDBACK_WIDGET}<script>${FEEDBACK_SCRIPT}</script>${opts.script ? `<script>${opts.script}</script>` : ""}</body></html>`;
 }
 
 const NAV = `<header class="wrap nav">
@@ -379,10 +381,10 @@ ${NAV}
 <footer class="foot">
   <div class="wrap">
     <p class="big" aria-hidden="true">The Interviewer</p>
-    <div class="row"><a class="btn" href="/connect">Connect with Buffer</a><p>Built in public for Buffer Commit by Ligaya Beebe. <a href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Source on GitHub</a>. Not made by or affiliated with Buffer. <a href="/privacy">Privacy</a></p></div>
+    <div class="row"><a class="btn" href="/connect">Connect with Buffer</a><p>Built in public for Buffer Commit by Ligaya Beebe. <a href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Source on GitHub</a>. Not made by or affiliated with Buffer. <a href="/privacy">Privacy</a>. <button class="foot-link" type="button" data-feedback-open>Feedback</button></p></div>
   </div>
 </footer>`,
-    { style: PAGE_STYLE, script: LANDING_SCRIPT },
+    { style: PAGE_STYLE, script: LANDING_SCRIPT, pill: false },
   );
 }
 
