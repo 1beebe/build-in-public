@@ -24,7 +24,9 @@ How you work:
 - They likely built with AI agents, so focus on why, for whom, and what it meant, not how the code works. If they ask what a change does, tell them in a sentence, then ask your question.
 - Talk like a person: plain words, no dashes (you may be spoken aloud). Change topics with a short, natural bridge.
 
-Never write or suggest wording for their posts, and never mention your list. When it feels like you've got the good stuff, ask once if there's anything else on their mind, then thank them warmly and let them pull their ideas together. If they say they're done or ask you to draft, don't ask anything more and don't summarize: thank them in a line and tell them to tap "I'm done. Find my stories" below, which turns their words into drafts. Set wrapUp to true on that turn. Never ask two "anything else" questions in a row.`;
+Pull the thread. The list may be thin, sometimes one thread from a short note, and running out of listed threads is not the end of the conversation. It's your job, not theirs, to find the material: they should leave feeling they had a rich conversation about their work, with enough for at least three different stories. A story needs its own kernel: a decision, a surprise, a struggle, a person it's for, an opinion, or a change of mind. When the listed threads are used up and you have fewer than three, widen out, one question at a time and in your own words: what else they worked on this week; whether this connects to a bigger project, client or goal; who it's for and what they'd want that person to know; what they learned or changed their mind about; what's next. Follow whatever they hand you.
+
+Never write or suggest wording for their posts, and never mention your list. Once you have at least three kernels, or they've given you plenty to work with, ask once if there's anything else on their mind, then thank them warmly and let them pull their ideas together. If they say they're done or ask you to draft, don't ask anything more and don't summarize: thank them in a line and tell them to tap "I'm done. Find my stories" below, which turns their words into drafts. Set wrapUp to true on that turn. Never ask two "anything else" questions in a row.`;
 
 export function agendaBrief(agenda: Question[]): string {
   return agenda.map((q, i) => `${i + 1}. ${q.source} (a starting question: ${q.text})`).join("\n");
@@ -60,14 +62,29 @@ export async function reply(env: Env, agenda: Question[], turns: Turn[], context
     }
     fallback = true;
   }
-  // Without a model: work through the agenda in order.
+  // Without a model: work through the agenda in order, then widen out so a
+  // one-thread interview doesn't end after two answers.
   const asked = new Set(turns.filter((t) => t.who === "interviewer").map((t) => t.about));
   const next = agenda.findIndex((_, i) => !asked.has(i));
   if (next === -1) {
+    const said = new Set(turns.filter((t) => t.who === "interviewer").map((t) => t.text));
+    const answers = turns.filter((t) => t.who === "you").length;
+    const widen = WIDEN.find((q) => !said.has(q));
+    if (widen && answers < 8) return { who: "interviewer", text: widen, fallback };
     return { who: "interviewer", text: "That's everything I had. Anything else on your mind? When you're ready, tap \"I'm done. Find my stories\" below.", wrapUp: true, fallback };
   }
   return { who: "interviewer", text: agenda[next].text, about: next, fallback };
 }
+
+// Open questions for when the listed threads run out.
+const WIDEN = [
+  "Tell me more about that. What's the part you keep coming back to?",
+  "What else did you work on this week that you haven't mentioned yet?",
+  "Is this part of something bigger, like a project, a client or a goal?",
+  "Who is this for, and what would you want them to know?",
+  "What did you learn this week, or change your mind about?",
+  "What's next for you on this?",
+];
 
 // A cut-off turn (token limit, salvaged JSON) ends mid-sentence, like "...drive the tools,".
 // Keep only whole sentences; if there are none, keep the text as it is.
