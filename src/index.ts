@@ -84,6 +84,8 @@ const MAX_TURNS = 32;
 const TYPED_CALLS_PER_HOUR = 20;
 const VOICE_STARTS_PER_HOUR = 4;
 const HARVESTS_PER_DAY = 6;
+// The owner runs the eval suite against production, which needs more room.
+const OWNER_CAP_FACTOR = 4;
 
 function textInput(value: unknown, max: number, tooLong: string): string {
   const text = String(value ?? "").replace(/\0/g, "").trim();
@@ -386,7 +388,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         }
         if (hasModel(env)) {
           if (!(await modelAllowedToday(env, "typed"))) throw new UsageLimitError("Typed interviews are resting for today. Try again tomorrow.");
-          s.typedStarts = reserveWindow(s.typedStarts, 3600_000, TYPED_CALLS_PER_HOUR, "That's a lot of answers in one hour. Take a short break, then continue.");
+          s.typedStarts = reserveWindow(s.typedStarts, 3600_000, TYPED_CALLS_PER_HOUR * capFactor(env, s), "That's a lot of answers in one hour. Take a short break, then continue.");
           await saveSession(env, id, s); // reserve before the paid call
         }
         s.turns.push({ who: "you", text });
@@ -394,7 +396,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const { fallback, ...next } = await reply(env, s.questions, s.turns, s.brief ?? "", s.longform);
         s.turns.push(next);
         await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: fallback ? "typed reply FAILED, used the canned agenda question" : "typed reply", ms: Date.now() - asked }));
-        result = await view(env, client, s);
+        result = { ...(await view(env, client, s)), replyFallback: Boolean(fallback), replyMs: Date.now() - asked };
         break;
       }
       case "/api/live": {
@@ -445,7 +447,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         }
         if (hasModel(env)) {
           if (!(await modelAllowedToday(env, "harvest"))) throw new UsageLimitError("Idea harvesting is resting for today. Your interview is saved; try again tomorrow.");
-          s.harvestStarts = reserveWindow(s.harvestStarts, 86400_000, HARVESTS_PER_DAY, "You've harvested several interviews today. Your conversation is saved; try again tomorrow.");
+          s.harvestStarts = reserveWindow(s.harvestStarts, 86400_000, HARVESTS_PER_DAY * capFactor(env, s), "You've harvested several interviews today. Your conversation is saved; try again tomorrow.");
           await saveSession(env, id, s); // reserve before the paid call
         }
         const pillars = s.tags ?? [];
@@ -475,7 +477,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         if (!s.turns?.some((t) => t.who === "you")) throw new UserError("Start an interview first.");
         if (hasModel(env)) {
           if (!(await modelAllowedToday(env, "typed"))) throw new UsageLimitError("Typed interviews are resting for today. Try voice, or come back tomorrow.");
-          s.typedStarts = reserveWindow(s.typedStarts, 3600_000, TYPED_CALLS_PER_HOUR, "That's a lot of answers in one hour. Take a short break, then continue.");
+          s.typedStarts = reserveWindow(s.typedStarts, 3600_000, TYPED_CALLS_PER_HOUR * capFactor(env, s), "That's a lot of answers in one hour. Take a short break, then continue.");
           await saveSession(env, id, s);
         }
         const found = (s.drafts ?? []).filter((d) => !d.later).length;
@@ -486,7 +488,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         s.turns.push(next);
         s.drafts = []; // back to talking: a reload lands on the conversation, and the next harvest reads it all
         await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: fallback ? "keep talking, reply FAILED" : "keep talking" }));
-        result = await view(env, client, s);
+        result = { ...(await view(env, client, s)), replyFallback: Boolean(fallback) };
         break;
       }
       case "/api/save": {
@@ -666,6 +668,10 @@ async function view(env: Env, client: BufferClient, s: Session, refresh = false)
 
 // Long-form is the owner's to try first; LONGFORM=on offers it to everyone.
 // The organization id is chosen from their own Buffer organizations at setup.
+function capFactor(env: Env, s: Session): number {
+  return env.OWNER_ORG_ID && s.organizationId === env.OWNER_ORG_ID ? OWNER_CAP_FACTOR : 1;
+}
+
 function longformOffered(env: Env, s: Session): boolean {
   return env.LONGFORM === "on" || Boolean(env.OWNER_ORG_ID && s.organizationId === env.OWNER_ORG_ID);
 }

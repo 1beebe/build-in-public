@@ -1,0 +1,62 @@
+[
+  {
+    "id": "builder",
+    "about": "Ships real changes, answers fully. Tests homework, digging and 2 to 3 stories.",
+    "setup": { "work": "1beebe/build-in-public", "targets": ["linkedin", "twitter"], "longform": false },
+    "answers": [
+      "Mostly I cut the Ideas step. Stories now go straight to Buffer drafts, because clicking through Ideas felt like friction when I tested it myself.",
+      "I noticed it when I used it as a user. It was three clicks before you could even edit anything.",
+      "The hard part was trusting the API. Saving a draft didn't work the way I expected from the docs, so I tested it on my own account before I let anyone else near it.",
+      "I also rewrote how the interviewer talks. People said the questions felt generic, and that was fair, because it wasn't using anything it already knew about them.",
+      "Now it's meant to feel like a podcast host who did their homework. It should mention something you actually shipped or posted.",
+      "I think that's it for now."
+    ],
+    "harvest": "draft"
+  },
+  {
+    "id": "terse",
+    "about": "One-word answers. Tests digging on thin answers, widening, no repeated questions, and Keep talking.",
+    "setup": { "work": "I built an app called Borrow in Replit. It lets neighbors lend each other tools.", "targets": ["linkedin"], "longform": false },
+    "answers": ["Yeah.", "It works.", "A few friends.", "Not really.", "Ladders, mostly.", "ok"],
+    "harvest": "draft",
+    "keepTalkingIfUnder": 2,
+    "afterMore": ["My neighbor borrowed a ladder and returned it with a pie. That's when I knew people would actually use it."]
+  },
+  {
+    "id": "rambler",
+    "about": "Pastes one very long answer. Tests that the reply survives long input and isn't cut off (Justine's failure).",
+    "setup": { "work": "I'm building a course with Codex to prepare for an AI strategy exam aimed at managers.", "targets": ["linkedin"], "longform": false },
+    "answers": [
+      "So the whole thing started because I wanted a certification that wasn't about proving I can write Python. Most of the exams out there are technical, and they're gated, you have to be a partner. This one is open entry and it's aimed at managers and execs. I gave Codex a long brief: practice questions, quizzes, readings, and I told it I get bored easily so it should vary things. It asked me how much time I had each week and whether I wanted a fixed schedule, and we landed on self paced. The exam covers four areas: AI fundamentals and matching capabilities to business problems, strategy and business value including ROI and deciding when AI isn't the answer, governance and responsible AI with human oversight, and readiness and transformation, which is people, process, technology and data, leading change and scaling pilots. What I like is that it rewards judgment, not tool knowledge. And honestly the part I'm most curious about is whether a course Codex builds for me will actually keep me engaged, because every course I've bought before, I stopped at module two.",
+      "Module two is where they always turn into reading. I need to be doing something.",
+      "Probably that it's possible to design for how you actually learn, not how courses are usually built."
+    ],
+    "harvest": "draft"
+  },
+  {
+    "id": "finisher",
+    "about": "Says 'go ahead and draft' partway through. Tests that the interviewer points to the button and sets wrapUp.",
+    "setup": { "work": "1beebe/build-in-public", "targets": ["linkedin", "twitter"], "longform": false },
+    "answers": [
+      "I added a screen wake lock so phones don't go to sleep in the middle of a voice interview. I lost half an answer that way.",
+      "It was my own test. My phone went black and the interviewer said it heard me, which it hadn't.",
+      "go ahead and draft"
+    ],
+    "stopOnWrapUp": true,
+    "harvest": "draft"
+  },
+  {
+    "id": "writer",
+    "about": "Long-form piece. Tests the informed opener, staying on one topic, follow-ups, the objection question and the article.",
+    "setup": { "work": "1beebe/build-in-public", "targets": ["linkedin", "twitter"], "longform": true },
+    "answers": [
+      "I want to write about why I built an interviewer instead of a ghostwriter. Writing is thinking, and I don't want AI to take that part away.",
+      "A lot of people I teach have decided not to use AI for writing at all. It flattens their voice and it skips the thinking.",
+      "In my workshops, people light up when they talk about their work and freeze when they have to write it. So the tool asks questions and keeps their words.",
+      "The pushback I hear is that it's slower than just generating a post. It is slower. But the post is actually yours, and you learn what you think.",
+      "I'd want readers to try talking it out once before they decide AI can't help them write.",
+      "That's the piece."
+    ],
+    "harvest": "draft"
+  }
+]
