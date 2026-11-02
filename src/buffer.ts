@@ -175,11 +175,11 @@ export interface Tag {
   color: string;
 }
 
-export async function getStart(client: BufferClient): Promise<{ orgs: Org[] }> {
-  const data = await client.query<{ account: { organizations: Org[] } }>(
-    `query Start { account { organizations { id name } } }`,
+export async function getStart(client: BufferClient): Promise<{ orgs: Org[]; accountId?: string }> {
+  const data = await client.query<{ account: { id?: string; organizations: Org[] } }>(
+    `query Start { account { id organizations { id name } } }`,
   );
-  return { orgs: data.account.organizations };
+  return { orgs: data.account.organizations, accountId: data.account.id };
 }
 
 export async function getTags(client: BufferClient, organizationId: string): Promise<Tag[]> {

@@ -23,6 +23,7 @@ import { gptLiveSession, openaiKey, VoiceError } from "./realtime";
 import { MindStudioError } from "./mindstudio";
 import { storeFeedback } from "./feedback";
 import { beginRun, logRun, runsPage } from "./runs";
+import { forget, loadMemory, memoryView, recall, remember, setMemoryOn } from "./memory";
 import { appPage, landingPage, privacyPage } from "./pages";
 import { SpendCapError, countFunnel, countInterview, modelAllowedToday, statsPage, tickVoice, voiceAllowedToday } from "./spend";
 import { cookie, createSession, destroySession, loadSession, readCookie, saveSession, type Channel, type HarvestMode, type Session } from "./session";
@@ -225,7 +226,10 @@ async function callback(req: Request, env: Env, url: URL): Promise<Response> {
   // Signing in again keeps their setup and any interview in progress.
   const existing = await loadSession(req, env);
   const session: Session = existing ? { ...existing.data, tokens, scopeVersion: SCOPE_VERSION } : { tokens, scopeVersion: SCOPE_VERSION };
-  const { orgs } = await getStart(new BufferClient(env, session));
+  const { orgs, accountId } = await getStart(new BufferClient(env, session));
+  // A different Buffer account signing in on this browser starts clean.
+  if (session.accountId && accountId && session.accountId !== accountId) session.keepMemory = false;
+  session.accountId = accountId;
   if (!orgs.some((o) => o.id === session.organizationId)) {
     Object.assign(session, { organizationId: undefined, organizationName: undefined, repo: undefined, questions: [], turns: [], drafts: [], saved: [], savedAsIdeas: [] });
   }
@@ -319,7 +323,10 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const connected = new Set((s.channels ?? []).map((c) => c.service));
         const targets = Array.isArray(body.targets) ? [...new Set(body.targets.map(String))].filter((t) => connected.has(t)).slice(0, 6) : undefined;
         const longform = body.longform === true && longformOffered(env, s);
-        Object.assign(s, { repo, noRepo, weekNote: repo ? undefined : work, targets, keepLog: body.keepLog !== false, longform, questions: [], turns: [], drafts: [], saved: [], savedAsIdeas: [], harvestMode: undefined });
+        const keepMemory = body.keepMemory === true;
+        if (!s.accountId) s.accountId = (await getStart(client)).accountId;
+        if (s.accountId) await setMemoryOn(env, s.accountId, keepMemory);
+        Object.assign(s, { repo, noRepo, weekNote: repo ? undefined : work, targets, keepLog: body.keepLog !== false, keepMemory, longform, questions: [], turns: [], drafts: [], saved: [], savedAsIdeas: [], harvestMode: undefined });
         result = await view(env, client, s, true);
         break;
       }
@@ -330,6 +337,9 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const noShip: Shipped = { repo: "", commits: [], pulls: [], issues: [] };
         const [shipped, recent] = await Promise.all([s.repo ? whatShipped(env, s.repo) : noShip, getRecent(client, s.organizationId)]);
         s.questions = await planQuestions(shipped, recent, s.weekNote ?? "");
+        // If they asked to be remembered, open on what they were in the middle of last time.
+        const recalled = await recall(env, s);
+        if (recalled.question) s.questions = [recalled.question, ...s.questions].slice(0, 5);
         s.posts = recent.posts.map((p) => p.slice(0, 300));
         s.brief = [
           s.repo
@@ -345,6 +355,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           `Their recent posts, newest first. They show who they are and who they write for; don't steer back to these topics:`,
           ...recent.posts.slice(0, 8).map((p) => `- ${p.slice(0, 200)}`),
         ].join("\n");
+        if (recalled.brief) s.brief += `\n${recalled.brief}`;
         if (s.longform) s.brief += "\nThey chose to work on one longer piece today, like a newsletter issue or an article. The threads are background; the piece is the topic.";
         const first = s.longform ? { who: "interviewer" as const, text: LONGFORM_OPENING } : opening(s.questions);
         Object.assign(s, { turns: [first], drafts: [], saved: [], savedAsIdeas: [], voice: undefined });
@@ -441,6 +452,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           : await harvest(env, s.questions ?? [], s.turns, pillars, s.posts, s.targets ?? [], mode);
         s.harvestMode = mode;
         s.harvestedTurns = s.turns.length;
+        await remember(env, s, s.drafts ?? []);
         await logRun(env, s, (r) => r.harvests.push({
           at: new Date().toISOString(),
           mode: s.longform ? `long-form ${mode}` : mode,
@@ -546,6 +558,16 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         if (!q?.ref || !s.repo) throw new UserError("Nothing to show for this question.");
         return json(await source(env, s.repo, q.ref)); // read-only: the session doesn't change
       }
+      case "/api/memory/forget": {
+        // One remembered item, or with no id, the whole memory.
+        if (!s.accountId) throw new UserError("There's nothing remembered yet.");
+        const entryId = body.id ? String(body.id).slice(0, 40) : undefined;
+        if (!entryId && body.all !== true) throw new UserError("Choose what to forget.");
+        await forget(env, s.accountId, entryId);
+        if (!entryId) s.keepMemory = false;
+        result = await view(env, client, s);
+        break;
+      }
       case "/api/reset":
         Object.assign(s, { questions: [], turns: [], drafts: [], saved: [], savedAsIdeas: [], brief: undefined, voice: undefined, harvestMode: undefined, runKey: undefined });
         result = await view(env, client, s);
@@ -622,6 +644,7 @@ async function view(env: Env, client: BufferClient, s: Session, refresh = false)
     tags,
     weekNote: s.weekNote ?? "",
     keepLog: s.keepLog !== false,
+    memory: memoryView(s.accountId ? await loadMemory(env, s.accountId) : null),
     channels: channels.map((c) => ({ service: c.service, name: c.name, label: channelLabel(c.service) })),
     targets: s.targets ?? mainServices(channels),
     harvestMode: s.harvestMode ?? "draft",

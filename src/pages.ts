@@ -455,7 +455,9 @@ ${NAV}
 <h2>What's stored</h2>
 <p>Your Buffer sign-in tokens, encrypted with AES-GCM, plus the public GitHub repo link or week note and the current interview: its topics and the conversation, encrypted the same way. Starting a new interview clears the last one. All of it expires 30 days after your last visit. Disconnecting deletes it straight away.</p>
 <h2>What isn't</h2>
-<p>Anything after you're done with it, unless you leave the transcript box ticked (below). The drafts you choose go to your own Buffer account. Nothing is sold, shared or used for ads.</p>
+<p>Anything after you're done with it, unless you leave the transcript box ticked or ask it to remember your work (both below). The drafts you choose go to your own Buffer account. Nothing is sold, shared or used for ads.</p>
+<h2 id="memory">What it remembers between interviews</h2>
+<p>The setup screen has a second box, unticked by default: "Remember what I'm still working through." Tick it and, after each interview, the app keeps two short lists: up to twelve things you said you were still in the middle of (a decision, a problem, a bet), each as a short phrase, and the titles of up to thirty stories it found. It never keeps the transcript for this. The next interview can open on one of those open threads and steers away from stories you've already found. This is filed under your Buffer account rather than your browser, so it survives Disconnect and is there when you sign in again. It's encrypted at rest. Only you can see it, on the setup screen, where you can forget any item, download it all as Markdown, or forget everything at once. Untick the box and nothing new is added or read. If you don't use it for a year, it deletes itself.</p>
 <h2 id="kept">Transcripts you let us keep</h2>
 <p>The setup screen has a box, ticked by default, that says "Keep this transcript for 14 days so Ligaya can improve the interviewer." While it's ticked, the app keeps a copy of that interview: your repo link or note, the channels you picked, the conversation, the stories it found, the titles you saved, and timings and errors. It's encrypted at rest, only Ligaya can read it, and it deletes itself 14 days after your last activity in that interview. It never includes your Buffer sign-in or your Buffer posts. Untick the box before you start and nothing is kept. To have a kept transcript deleted sooner, send a note through the feedback button.</p>
 <h2>Lightweight telemetry</h2>
@@ -625,6 +627,11 @@ body:has(main.app) .feedback-open{display:none}
 .note-more summary{cursor:pointer;margin-top:6px}
 .keep{display:flex;gap:10px;align-items:flex-start;font-size:.875rem;color:var(--muted);max-width:60ch;cursor:pointer}
 .keep input{margin-top:4px;width:18px;height:18px;flex:none;accent-color:var(--ink)}
+.memory{font-size:.875rem;color:var(--muted);max-width:60ch}
+.memory summary{cursor:pointer;min-height:32px}
+.memory ul{list-style:none;padding:0;margin:8px 0;display:grid;gap:6px}
+.memory li{display:flex;gap:8px;align-items:baseline;justify-content:space-between}
+.memory li span{color:var(--ink)}
 .transcript{min-height:320px;font-size:1rem}
 .savebar{position:sticky;bottom:16px;z-index:4;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;background:var(--ink);color:var(--ground);border-radius:var(--r-ctl);padding:8px 8px 8px 22px;box-shadow:0 18px 36px -18px rgba(0,0,0,.5)}
 .savebar .btn.quiet{color:var(--ground);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--ground) 40%,transparent)}
@@ -691,6 +698,8 @@ export function appPage(): string {
     <div class="fieldset" id="kindWrap" hidden><span class="lbl">What are you making?</span><span class="hint" id="kindHint"></span><div class="chips" role="radiogroup" aria-label="What are you making?"><label class="chip"><input type="radio" name="kind" value="posts" checked><span>Posts about my week</span></label><label class="chip"><input type="radio" name="kind" value="long"><span>A longer piece, like a newsletter or article</span></label></div></div>
     <div class="fieldset" id="chanWrap" hidden><span class="lbl">Shape stories for</span><span class="hint" id="chanHint"></span><div class="chips" id="chans" aria-label="Channels to shape stories for"></div></div>
     <label class="keep"><input type="checkbox" id="keepLog" checked><span>Keep this transcript for 14 days so Ligaya can improve the interviewer. Only she can read it. <a href="/privacy#kept" target="_blank" rel="noopener">What's kept</a></span></label>
+    <label class="keep"><input type="checkbox" id="keepMemory"><span>Remember what I'm still working through, so next time the interview picks up where this one stopped. Kept under your Buffer account until you delete it. <a href="/privacy#memory" target="_blank" rel="noopener">What's remembered</a></span></label>
+    <details class="memory" id="memWrap" hidden><summary>What I remember about your work (<span id="memCount"></span>)</summary><ul id="memList"></ul><div class="row"><button class="btn text" type="button" id="memExport">Download as Markdown</button><button class="btn text" type="button" id="memForgetAll">Forget everything</button></div></details>
     <div class="row"><button id="saveSetup" class="btn" type="button"><span class="rec"></span>Start the interview</button></div>
     <p class="busyline" id="setupBusy" aria-live="polite"></p>
   </div>
@@ -830,6 +839,7 @@ function renderSetup(){
   }
   $("chanWrap").hidden = !seen.size;
   $("keepLog").checked = state.keepLog !== false;
+  drawMemory();
   $("kindWrap").hidden = !state.longformOffered;
   document.querySelector('input[name=kind][value=' + (state.longform ? "long" : "posts") + ']').checked = true;
   $("kindHint").textContent = seen.has("substack") ? "You post on Substack, so a longer piece might fit." : "";
@@ -1182,6 +1192,29 @@ async function copyText(text, btn, label){
   catch { btn.textContent = "Couldn't copy. Use Download instead"; }
   setTimeout(() => { btn.textContent = label; }, 2000);
 }
+// What memory holds between interviews, shown so they can see and cut it.
+function drawMemory(){
+  const mem = state.memory || {on:false, entries:[]}, list = $("memList");
+  $("keepMemory").checked = !!mem.on;
+  $("memWrap").hidden = !mem.entries.length; $("memCount").textContent = mem.entries.length;
+  list.innerHTML = "";
+  for (const e of mem.entries) {
+    const li = el("li"), b = el("button", "btn text", "Forget");
+    b.type = "button"; b.setAttribute("aria-label", "Forget: " + e.text);
+    b.onclick = async () => { try { state = await api("/api/memory/forget", {id: e.id}); drawMemory(); } catch(x){ err(x.message); } };
+    li.append(el("span", "", (e.kind === "open" ? "Still working through: " : "Story found: ") + e.text + " (" + e.at + ")"), b); list.append(li);
+  }
+}
+$("memExport").onclick = () => {
+  const es = (state.memory || {}).entries || [];
+  const part = (k, h) => { const xs = es.filter(e => e.kind === k); return xs.length ? "## " + h + "\\n\\n" + xs.map(e => "- " + e.at + ": " + e.text).join("\\n") + "\\n\\n" : ""; };
+  const a = el("a"); a.href = URL.createObjectURL(new Blob(["# What The Interviewer remembers\\n\\n" + part("open", "Still working through") + part("story", "Stories found")], {type:"text/markdown"}));
+  a.download = "interviewer-memory.md"; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+$("memForgetAll").onclick = async () => {
+  if (!confirm("Forget everything The Interviewer remembers about your work? This can't be undone.")) return;
+  try { state = await api("/api/memory/forget", {all: true}); drawMemory(); } catch(x){ err(x.message); }
+};
 function downloadMd(title, text){
   const md = "# " + title + "\\n\\n" + text.replace(/^\\[Section: ([^\\]]*)\\]\\s*$/gm, "## $1");
   const a = el("a"); a.href = URL.createObjectURL(new Blob([md], {type:"text/markdown"}));
@@ -1216,7 +1249,7 @@ $("saveSetup").onclick = async () => {
   busyLines("setupBusy", ["Reading this week's public work", "Looking at what you've posted lately", "Choosing a few threads to pull on", "Getting your first question ready"]);
   try {
     const targets = [...document.querySelectorAll("#chans input:checked")].map(i => i.value);
-    state = await api("/api/setup", {organizationId:$("org").value, work:$("work").value, targets: $("chanWrap").hidden ? undefined : targets, keepLog: $("keepLog").checked, longform: longChosen()});
+    state = await api("/api/setup", {organizationId:$("org").value, work:$("work").value, targets: $("chanWrap").hidden ? undefined : targets, keepLog: $("keepLog").checked, keepMemory: $("keepMemory").checked, longform: longChosen()});
     state = await api("/api/start", {}); shown = null; drawn = 0; renderTalk(); $("say").focus({preventScroll:true});
   }
   catch(e){ err(e.message); }
