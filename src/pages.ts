@@ -350,9 +350,9 @@ ${NAV}
   <div class="wrap">
     <h2 id="landH">Where your drafts land.</h2>
     <ol class="where">
-      <li><span class="n" aria-hidden="true">1</span><b class="k">Open Buffer</b><p>On the web, click <b>Publish</b> in the left sidebar. In the mobile app, tap the menu at the top left, then <b>Channels</b>, then <b>All Channels</b>.</p></li>
-      <li><span class="n" aria-hidden="true">2</span><b class="k">Drafts</b><p>Switch to the <b>Drafts</b> tab. In the app it's along the bottom. There's one draft for each channel you picked, with any tag you chose.</p></li>
-      <li><span class="n" aria-hidden="true">3</span><b class="k">Edit</b><p>Choose <b>Edit</b> on one, finish it in your voice, and schedule it when it's ready.</p></li>
+      <li><span class="n" aria-hidden="true">1</span><b class="k">Open Buffer</b><p>On the web, <b>Publish</b> in the left sidebar. In the app, the menu at top left, then <b>Channels</b>, then <b>All Channels</b>.</p></li>
+      <li><span class="n" aria-hidden="true">2</span><b class="k">Drafts</b><p>Open the <b>Drafts</b> tab (along the bottom in the app). There's one per channel you picked.</p></li>
+      <li><span class="n" aria-hidden="true">3</span><b class="k">Edit</b><p>Finish it in your voice, then schedule it.</p></li>
     </ol>
     <p class="where-go"><a class="btn" href="https://publish.buffer.com/schedule?tab=drafts" target="_blank" rel="noopener">Open your drafts in Buffer</a></p>
   </div>
