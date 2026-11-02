@@ -236,7 +236,7 @@ const FEEDBACK_SCRIPT = `(() => {
   document.querySelectorAll("[data-feedback-open]").forEach(b=>b.addEventListener("click",()=>d.showModal()));
   document.querySelector("[data-feedback-close]")?.addEventListener("click",()=>d.close());
   d?.addEventListener("click",e=>{if(e.target===d)d.close()});
-  f?.addEventListener("submit",async e=>{e.preventDefault();const send=f.querySelector('[type="submit"]');send.disabled=true;status.textContent="Sending…";const data=Object.fromEntries(new FormData(f));data.path=location.pathname;try{const r=await fetch("/feedback",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||"Could not send that.");f.reset();status.textContent="Thank you—sent.";setTimeout(()=>d.close(),900)}catch(x){status.textContent=x.message}finally{send.disabled=false}});
+  f?.addEventListener("submit",async e=>{e.preventDefault();const send=f.querySelector('[type="submit"]');send.disabled=true;status.textContent="Sending…";const data=Object.fromEntries(new FormData(f));data.path=location.pathname;try{const r=await fetch("/feedback",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||"Could not send that.");f.reset();status.textContent="Thanks, it\u2019s sent.";setTimeout(()=>d.close(),900)}catch(x){status.textContent=x.message}finally{send.disabled=false}});
 })();`;
 
 function shell(title: string, body: string, opts: { style?: string; script?: string; pill?: boolean } = {}): string {
@@ -368,7 +368,7 @@ ${NAV}
     <div class="keptwrap">
     <figure class="pic rise"><img src="/img/couch.webp" alt="Someone on a couch at night with a laptop, talking and smiling" width="960" height="1190" loading="lazy" decoding="async"></figure>
     <div class="kept">
-      <div class="rise"><h3>Buffer</h3><p>It reads your tags and recent work so its questions fit. It only saves the drafts you approve. It never publishes or schedules anything.</p></div>
+      <div class="rise"><h3>Buffer</h3><p>It reads your tags and recent posts so its questions fit. It only saves the drafts you approve. It never publishes or schedules anything.</p></div>
       <div class="rise" style="--i:1"><h3>GitHub</h3><p>It reads one week of public commits, pull requests, and issues. There is no GitHub sign-in or access to private code.</p></div>
       <div class="rise" style="--i:2"><h3>Your interview</h3><p>Your current conversation and sign-in are encrypted, expire after 30 days of inactivity, and disappear when you disconnect. If you leave the box ticked at setup, Ligaya can read that transcript for 14 days to improve the interviewer.</p></div>
       <div class="rise" style="--i:3"><h3>Your privacy</h3><p>No third-party trackers, ads, or data sales. Anonymous funnel counts show what works. <a href="/privacy">The full privacy note</a> has the details.</p></div>
@@ -689,7 +689,7 @@ export function appPage(): string {
   <header><h1>What did you work on this week?</h1><p class="lede">Paste a public GitHub repo, or describe the work in a sentence or two.</p></header>
   <div class="panel">
     <label class="fieldset" id="orgWrap" hidden><span class="lbl">Buffer organization</span><select id="org"></select></label>
-    <label class="fieldset"><span class="lbl">A repo or a quick note</span><span class="hint">With a repo, it reads this week's public commits, pull requests and issues. Otherwise it starts from what you write here. 500 characters maximum.</span><textarea id="work" maxlength="500" placeholder="github.com/you/project — or — I rebuilt the onboarding for…"></textarea></label>
+    <label class="fieldset"><span class="lbl">A repo or a quick note</span><span class="hint">With a repo, it reads this week's public commits, pull requests and issues. Otherwise it starts from what you write here. 500 characters maximum.</span><textarea id="work" maxlength="500" placeholder="github.com/you/project, or: I rebuilt the onboarding for…"></textarea></label>
     <div class="fieldset" id="chanWrap" hidden><span class="lbl">Shape stories for</span><span class="hint" id="chanHint"></span><div class="chips" id="chans" aria-label="Channels to shape stories for"></div></div>
     <label class="keep"><input type="checkbox" id="keepLog" checked><span>Keep this transcript for 14 days so Ligaya can improve the interviewer. Only she can read it. <a href="/privacy#kept" target="_blank" rel="noopener">What's kept</a></span></label>
     <div class="row"><button id="saveSetup" class="btn" type="button"><span class="rec"></span>Start the interview</button></div>
@@ -715,7 +715,7 @@ export function appPage(): string {
     </div>
   </div>
   <div class="done-row">
-    <div class="handback"><span class="lbl">When you stop, hand me back</span><div class="chips" id="modes" role="radiogroup" aria-label="What to hand back">
+    <div class="handback"><span class="lbl">When you're done, hand me back</span><div class="chips" id="modes" role="radiogroup" aria-label="What to hand back">
       <label class="chip"><input type="radio" name="mode" value="draft"><span>Drafts from my words, lightly edited</span></label>
       <label class="chip"><input type="radio" name="mode" value="outline"><span>An outline. I'll write it</span></label>
       <label class="chip"><input type="radio" name="mode" value="transcript"><span>Just the transcript</span></label>
@@ -1038,7 +1038,7 @@ $("harvestBtn").onclick = async () => {
     if (pending && !busy) { state = await api("/api/say", {text:pending, final:true}); $("say").value = ""; renderTalk(); }
     const mode = handBack();
     if (mode === "transcript") return renderTranscript();
-    orbState("thinking"); busyLines("voiceState", ["Reading the conversation back", "Finding the stories with a turn in them", "Shaping each one for where you post", "Writing a few questions for each one"]);
+    orbState("thinking"); busyLines("voiceState", ["Reading the conversation back. This takes about half a minute", "Finding the stories with a turn in them", "Shaping each one for where you post", "Writing a few questions for each one"]);
     state = await api("/api/harvest", {mode}); renderReview(); window.scrollTo({top:0});
   }
   catch(e){ err(e.message); } finally { busyDone("voiceState"); orbState("idle"); $("harvestBtn").disabled = false; $("harvestBtn").textContent = HARVEST_LABEL; }
@@ -1066,7 +1066,7 @@ function countPicked(){
   const cards = [...document.querySelectorAll(".draft")];
   cards.forEach(c => c.classList.toggle("off", !c.querySelector(".pick input").checked));
   const n = cards.filter(c => c.querySelector(".pick input").checked).length;
-  $("saveCount").textContent = n ? n + (n === 1 ? " story" : " stories") + " ticked" : "Nothing ticked yet";
+  $("saveCount").textContent = n ? n + (n === 1 ? " story" : " stories") + " ticked" : "Nothing ticked yet. Tick a story to save it.";
   $("saveAll").textContent = n ? "Save " + n + (n === 1 ? " draft" : " drafts") + " to Buffer" : "Save drafts to Buffer";
 }
 function renderReview(){
@@ -1156,7 +1156,7 @@ function route(){
 async function load(){ try { state = await api("/api/state"); route(); } catch(e){ err(e.message); } }
 $("saveSetup").onclick = async () => {
   err(""); $("saveSetup").disabled = true; orbState("thinking");
-  busyLines("setupBusy", ["Reading this week's public work", "Looking at what you've posted lately", "Choosing a few threads to pull on", "Almost ready"]);
+  busyLines("setupBusy", ["Reading this week's public work", "Looking at what you've posted lately", "Choosing a few threads to pull on", "Getting your first question ready"]);
   try {
     const targets = [...document.querySelectorAll("#chans input:checked")].map(i => i.value);
     state = await api("/api/setup", {organizationId:$("org").value, work:$("work").value, targets: $("chanWrap").hidden ? undefined : targets, keepLog: $("keepLog").checked});
