@@ -635,7 +635,7 @@ body:has(main.app) .feedback-open{display:none}
 
 /* Done */
 .done-list{list-style:none;margin:0;padding:0;display:grid;gap:10px;width:100%}
-.done-list li{display:flex;gap:12px;align-items:baseline;background:var(--ground);border-radius:16px;padding:14px 18px;animation:fadein .5s var(--ease) both;animation-delay:calc(var(--i,0) * 110ms)}
+.done-list li{display:flex;gap:12px;align-items:baseline;overflow-wrap:anywhere;min-width:0;background:var(--ground);border-radius:16px;padding:14px 18px;animation:fadein .5s var(--ease) both;animation-delay:calc(var(--i,0) * 110ms)}
 @media (max-width:640px){
   .top .wrap{min-height:56px;gap:8px}
   .top .scope{display:none}
@@ -766,7 +766,9 @@ function show(id){ for (const s of SCREENS) $(s).hidden = s !== id; $("scope").t
 function err(m){ $("msg").textContent = m || ""; $("msg").hidden = !m; if (m) $("msg").scrollIntoView({block:"nearest", behavior:"smooth"}); }
 function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 async function api(path, body){
-  const res = await fetch(path, body ? {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)} : {});
+  let res;
+  try { res = await fetch(path, body ? {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)} : {}); }
+  catch { throw new Error(navigator.onLine === false ? "You're offline. Reconnect and try again. Nothing you've said is lost." : "Couldn't reach The Interviewer. Check your connection and try again."); }
   const json = await res.json().catch(() => ({}));
   if (res.status === 401) { location.href = "/?error=reconnect"; throw new Error("reconnect"); }
   if (!res.ok) throw new Error(json.error || "Something went wrong. Try again.");
