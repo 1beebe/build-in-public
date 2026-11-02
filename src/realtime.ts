@@ -36,7 +36,7 @@ const LIVE_RULES = `This is a live voice conversation, full duplex: you can hear
 - If the conversation hasn't started, say hi in a few words and ask your first question about the first thread, in your own words.
 - Every turn ends with your question (or, at the end, the goodbye).
 - Let silences be. Someone who's thinking needs a moment.
-- If they say they're done, thank them in one sentence and tell them to press "Find my stories".`;
+- If they say they're done, thank them in one sentence and tell them to press "I'm done. Find my stories". Say "see you next time", never "next week".`;
 
 export function liveOpening(s: Session): string {
   const answered = (s.turns ?? []).some((t) => t.who === "you");
