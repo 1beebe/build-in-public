@@ -264,12 +264,12 @@ ${NAV}
 <main>
 <section class="wrap hero">
   <div>
-    <h1 class="rise">Unblock your stories.</h1>
-    <p class="lead rise" style="--i:1">The Interviewer asks you thoughtful questions, grounded in your actual work, to help you develop stories in your own words. Then edit, draft, and schedule your posts in Buffer.</p>
+    <h1>Unblock your stories.</h1>
+    <p class="lead">The Interviewer asks you thoughtful questions, grounded in your actual work, to help you develop stories in your own words. Then edit, draft, and schedule your posts in Buffer.</p>
     ${error ? `<p class="alert" role="alert">${escapeHtml(error)}</p>` : ""}
-    <div class="act rise" style="--i:2"><a class="btn" href="/connect">Connect with Buffer</a><span class="small muted">Signs in with Buffer, the social media planner. New to it? <a href="https://buffer.com" target="_blank" rel="noopener">The free plan</a> works.</span></div>
+    <div class="act"><a class="btn" href="/connect">Connect with Buffer</a><span class="small muted">Signs in with Buffer, the social media planner. New to it? <a href="https://buffer.com" target="_blank" rel="noopener">The free plan</a> works.</span></div>
   </div>
-  <div class="demo rise" style="--i:3" data-ui>
+  <div class="demo" data-ui>
     <form id="try">
       <label for="tryRepo">Try it on any public GitHub repo</label>
       <input id="tryRepo" name="repo" placeholder="owner/repo" autocomplete="off" spellcheck="false" maxlength="200">
@@ -297,9 +297,9 @@ ${NAV}
 <section class="sec" id="sounds" style="background:var(--raised)">
   <div class="wrap two">
     <div>
-      <h2 class="rise" id="soundsH">Centered on your work and words</h2>
-      <p class="say rise" style="--i:1">It reads about your week first, then asks you questions to help you turn your scattered thoughts into a polished narrative arc.</p>
-      <figure class="pic rise" style="--i:2"><img src="/img/cafe.webp" alt="Two people talking across a small cafe table, one laughing mid-story" width="960" height="1190" loading="lazy" decoding="async"></figure>
+      <h2 id="soundsH">Centered on your work and words</h2>
+      <p class="say">It reads about your week first, then asks you questions to help you turn your scattered thoughts into a polished narrative arc.</p>
+      <figure class="pic"><img src="/img/cafe.webp" alt="Two people talking across a small cafe table, one laughing mid-story" width="960" height="1190" loading="lazy" decoding="async"></figure>
     </div>
     <ol class="talk" aria-label="An example conversation">
       <li class="them rise"><span class="who">The Interviewer</span><p>You let people try it before signing up. What were you seeing before that?</p></li>
@@ -314,10 +314,10 @@ ${NAV}
 <section class="sec field" id="keep" aria-labelledby="keepH">
   <div class="wrap two flip">
     <div>
-      <h2 class="rise" id="keepH">Your stories, saved in your own words.</h2>
-      <p class="say rise" style="--i:1">It finds your real stories, helps you articulate your insights, and shapes each one for the channels you post on. Choose your own path: a draft built from your words with a light editor's touch, an outline so you can write the draft yourself, or a transcript you can pull to work on with your own tools. </p>
+      <h2 id="keepH">Your stories, saved in your own words.</h2>
+      <p class="say">It finds your real stories, helps you articulate your insights, and shapes each one for the channels you post on. Choose your own path: a draft built from your words with a light editor's touch, an outline so you can write the draft yourself, or a transcript you can pull to work on with your own tools. </p>
     </div>
-    <article class="idea rise" style="--i:1" aria-label="An Idea as it lands in Buffer">
+    <article class="idea" aria-label="An Idea as it lands in Buffer">
       <p class="t">Why I let people in before they sign up</p>
       <div><p class="lbl">Draft, from your words, lightly edited</p><p>Half the people who found it would hit the sign-up screen and leave. Why would they give their email to something they hadn't seen work? I wouldn't. So now you try it first and sign up after.</p></div>
       <div><p class="lbl">Questions to help you write it</p><ul><li>What did you worry you'd lose by letting people in free?</li><li>Who was the first person to try it this way?</li></ul></div>
@@ -328,50 +328,50 @@ ${NAV}
 
 <section class="sec ink" aria-labelledby="whyH">
   <div class="wrap two">
-    <h2 class="rise" id="whyH">It won't make things up.</h2>
-    <p class="say rise" style="--i:1">Writing is thinking. Your words are powerful. The Interviewer is a scaffold, not a ghostwriter: it helps you find a stronger place to start. Drafts keep your sentences and add only what a good editor would, a transition here, a tighter line there, never a new claim. Outlines are all you. The final word, and your voice, stay with you.</p>
+    <h2 id="whyH">It won't make things up.</h2>
+    <p class="say">Writing is thinking. Your words are powerful. The Interviewer is a scaffold, not a ghostwriter: it helps you find a stronger place to start. Drafts keep your sentences and add only what a good editor would, a transition here, a tighter line there, never a new claim. Outlines are all you. The final word, and your voice, stay with you.</p>
   </div>
 </section>
 
 <section class="sec hood" id="hood" aria-labelledby="hoodH">
   <div class="wrap">
     <div class="two">
-      <h2 class="rise" id="hoodH">A peek under the hood.</h2>
-      <p class="say rise" style="--i:1">See exactly where AI is used, and where it isn't. The models hold the conversation, then shape your stories from what you said.</p>
+      <h2 id="hoodH">A peek under the hood.</h2>
+      <p class="say">See exactly where AI is used, and where it isn't. The models hold the conversation, then shape your stories from what you said.</p>
     </div>
     <ol class="flow-mini" aria-label="A simplified technical workflow">
-      <li class="rise"><span class="k">No AI</span><b>Read context</b><p>Public GitHub work and recent Buffer posts.</p></li>
-      <li class="rise" style="--i:1"><span class="k">App logic</span><b>Rank threads</b><p>Deterministic rules choose useful starting points.</p></li>
-      <li class="rise ai" style="--i:2"><span class="k">AI call</span><b>Hold the interview</b><p>GPT-Live 1 for voice; DeepSeek Flash for typed follow-ups.</p></li>
-      <li class="rise ai" style="--i:3"><span class="k">AI call</span><b>Find the stories</b><p>Claude Sonnet 5.5 finds your stories, shapes each for your channels, and lightly edits drafts. No new claims.</p></li>
-      <li class="rise" style="--i:4"><span class="k">Human decision</span><b>Review and save</b><p>You edit, choose, optionally tag, and finish the post.</p></li>
+      <li><span class="k">No AI</span><b>Read context</b><p>Public GitHub work and recent Buffer posts.</p></li>
+      <li><span class="k">App logic</span><b>Rank threads</b><p>Deterministic rules choose useful starting points.</p></li>
+      <li class="ai"><span class="k">AI call</span><b>Hold the interview</b><p>GPT-Live 1 for voice; DeepSeek Flash for typed follow-ups.</p></li>
+      <li class="ai"><span class="k">AI call</span><b>Find the stories</b><p>Claude Sonnet 5.5 finds your stories, shapes each for your channels, and lightly edits drafts. No new claims.</p></li>
+      <li><span class="k">Human decision</span><b>Review and save</b><p>You edit, choose, optionally tag, and finish the post.</p></li>
     </ol>
-    <div class="hood-links rise" style="--i:5"><a class="btn" href="/build-flow">Explore the full workflow</a><a class="btn quiet" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Browse the source on GitHub</a></div>
+    <div class="hood-links"><a class="btn" href="/build-flow">Explore the full workflow</a><a class="btn quiet" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Browse the source on GitHub</a></div>
   </div>
 </section>
 
 <section class="sec land" aria-labelledby="landH">
   <div class="wrap">
-    <h2 class="rise" id="landH">Where your drafts land.</h2>
-    <ol class="where rise" style="--i:1">
+    <h2 id="landH">Where your drafts land.</h2>
+    <ol class="where">
       <li><p>Open Buffer and click <b>Publish</b> in the left sidebar.</p></li>
       <li><p>Switch to the <b>Drafts</b> tab. There's one draft for each channel you picked, with any tag you chose.</p></li>
       <li><p>Open one with <b>Edit draft</b>, finish it in your voice, and schedule it when it's ready.</p></li>
     </ol>
-    <p class="rise" style="--i:2;margin-top:28px"><a class="btn quiet" href="https://publish.buffer.com/schedule?tab=drafts" target="_blank" rel="noopener">Open your drafts in Buffer</a></p>
+    <p style="margin-top:28px"><a class="btn quiet" href="https://publish.buffer.com/schedule?tab=drafts" target="_blank" rel="noopener">Open your drafts in Buffer</a></p>
   </div>
 </section>
 
 <section class="sec" id="data" style="background:var(--raised)" aria-labelledby="keptH">
   <div class="wrap">
-    <h2 class="rise" id="keptH">What happens when you connect.</h2>
+    <h2 id="keptH">What happens when you connect.</h2>
     <div class="keptwrap">
-    <figure class="pic rise"><img src="/img/couch.webp" alt="Someone on a couch at night with a laptop, talking and smiling" width="960" height="1190" loading="lazy" decoding="async"></figure>
+    <figure class="pic"><img src="/img/couch.webp" alt="Someone on a couch at night with a laptop, talking and smiling" width="960" height="1190" loading="lazy" decoding="async"></figure>
     <div class="kept">
-      <div class="rise"><h3>Buffer</h3><p>It reads your tags and recent posts so its questions fit. It only saves the drafts you approve. It never publishes or schedules anything.</p></div>
-      <div class="rise" style="--i:1"><h3>GitHub</h3><p>It reads one week of public commits, pull requests, and issues. There is no GitHub sign-in or access to private code.</p></div>
-      <div class="rise" style="--i:2"><h3>Your interview</h3><p>Your current conversation and sign-in are encrypted, expire after 30 days of inactivity, and disappear when you disconnect. If you leave the box ticked at setup, Ligaya can read that transcript for 14 days to improve the interviewer.</p></div>
-      <div class="rise" style="--i:3"><h3>Your privacy</h3><p>No third-party trackers, ads, or data sales. Anonymous funnel counts show what works. <a href="/privacy">The full privacy note</a> has the details.</p></div>
+      <div><h3>Buffer</h3><p>It reads your tags and recent posts so its questions fit. It only saves the drafts you approve. It never publishes or schedules anything.</p></div>
+      <div><h3>GitHub</h3><p>It reads one week of public commits, pull requests, and issues. There is no GitHub sign-in or access to private code.</p></div>
+      <div><h3>Your interview</h3><p>Your current conversation and sign-in are encrypted, expire after 30 days of inactivity, and disappear when you disconnect. If you leave the box ticked at setup, Ligaya can read that transcript for 14 days to improve the interviewer.</p></div>
+      <div><h3>Your privacy</h3><p>No third-party trackers, ads, or data sales. Anonymous funnel counts show what works. <a href="/privacy">The full privacy note</a> has the details.</p></div>
 </div>
     </div>
   </div>
