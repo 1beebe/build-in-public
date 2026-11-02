@@ -36,7 +36,6 @@ a:hover{text-decoration-thickness:2px}
 ::selection{background:var(--accent);color:var(--accent-ink)}
 :focus-visible{outline:3px solid var(--ink);outline-offset:3px;border-radius:6px}
 [hidden]{display:none!important}
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .muted{color:var(--muted)}
 .small{font-size:.875rem;line-height:1.45}
 .num{font-variant-numeric:tabular-nums}
@@ -148,13 +147,6 @@ const PAGE_STYLE = `
 .idea ul{margin:0;padding-left:1.1em;display:grid;gap:4px}
 
 /* Steps */
-.steps{list-style:none;margin:56px 0 0;padding:0;display:grid;gap:36px 28px}
-@media (min-width:720px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (min-width:1100px){.steps{grid-template-columns:repeat(4,minmax(0,1fr))}}
-.steps li{display:grid;gap:12px;align-content:start}
-.steps .min{font-size:clamp(2.6rem,1.8rem + 2.6vw,4.25rem);font-weight:600;letter-spacing:-.045em;line-height:.9}
-.steps .min small{font-size:.38em;letter-spacing:-.01em;font-weight:500;margin-left:6px;color:var(--muted)}
-.steps p{max-width:28ch}
 
 /* Under the hood */
 .hood{background:var(--ink-bg);color:#f6f6f3}
@@ -177,9 +169,6 @@ const PAGE_STYLE = `
 .band{margin:0;height:clamp(240px,40vw,600px);overflow:hidden;background:var(--raised)}
 .band img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 58%}
 #sounds .pic{margin-top:48px;aspect-ratio:4/5;max-width:440px}
-.stephead{display:grid;gap:32px;align-items:end}
-@media (min-width:900px){.stephead{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
-.stephead .pic{aspect-ratio:16/10}
 .keptwrap{display:grid;gap:clamp(36px,5vw,80px);margin-top:48px;align-items:start}
 @media (min-width:900px){.keptwrap{grid-template-columns:minmax(0,4fr) minmax(0,8fr)}}
 .keptwrap .pic{aspect-ratio:4/5}
@@ -515,7 +504,6 @@ textarea{resize:vertical;min-height:120px;line-height:1.5}
 .chip:has(input:checked){background:var(--ink);color:var(--ground);box-shadow:none}
 .chip:has(input:focus-visible){outline:3px solid var(--ink);outline-offset:2px}
 .chip:has(input:disabled){cursor:default;opacity:.7}
-.check{display:flex;gap:12px;align-items:center;color:var(--muted);cursor:pointer;min-height:44px}.check input{width:20px;height:20px;margin:0;flex:none;accent-color:var(--ink)}
 #repo:disabled{opacity:.45}
 .chip .swatch{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 0 1.5px var(--surface)}
 .row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
