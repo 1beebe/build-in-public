@@ -18,7 +18,7 @@ import {
 } from "./buffer";
 import { RepoError, getSource, parseRepo, whatShipped, type Shipped, type Source } from "./github";
 import { hasModel, planQuestions } from "./interview";
-import { channelLabel, harvest, opening, reply } from "./conversation";
+import { channelLabel, harvest, opening, reply, harvestArticle, LONGFORM_OPENING } from "./conversation";
 import { gptLiveSession, openaiKey, VoiceError } from "./realtime";
 import { MindStudioError } from "./mindstudio";
 import { storeFeedback } from "./feedback";
@@ -318,7 +318,8 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         // The channels to shape stories for, from the ones they have connected.
         const connected = new Set((s.channels ?? []).map((c) => c.service));
         const targets = Array.isArray(body.targets) ? [...new Set(body.targets.map(String))].filter((t) => connected.has(t)).slice(0, 6) : undefined;
-        Object.assign(s, { repo, noRepo, weekNote: repo ? undefined : work, targets, keepLog: body.keepLog !== false, questions: [], turns: [], drafts: [], saved: [], savedAsIdeas: [], harvestMode: undefined });
+        const longform = body.longform === true && longformOffered(env, s);
+        Object.assign(s, { repo, noRepo, weekNote: repo ? undefined : work, targets, keepLog: body.keepLog !== false, longform, questions: [], turns: [], drafts: [], saved: [], savedAsIdeas: [], harvestMode: undefined });
         result = await view(env, client, s, true);
         break;
       }
@@ -344,9 +345,11 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           `Their recent posts, newest first. They show who they are and who they write for; don't steer back to these topics:`,
           ...recent.posts.slice(0, 8).map((p) => `- ${p.slice(0, 200)}`),
         ].join("\n");
-        Object.assign(s, { turns: [opening(s.questions)], drafts: [], saved: [], savedAsIdeas: [], voice: undefined });
+        if (s.longform) s.brief += "\nThey chose to work on one longer piece today, like a newsletter issue or an article. The threads are background; the piece is the topic.";
+        const first = s.longform ? { who: "interviewer" as const, text: LONGFORM_OPENING } : opening(s.questions);
+        Object.assign(s, { turns: [first], drafts: [], saved: [], savedAsIdeas: [], voice: undefined });
         beginRun(s);
-        await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: `started with ${s.questions?.length ?? 0} threads` }));
+        await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: `started with ${s.questions?.length ?? 0} threads${s.longform ? ", long-form" : ""}` }));
         await countInterview(env);
         result = await view(env, client, s);
         break;
@@ -372,7 +375,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         }
         s.turns.push({ who: "you", text });
         const asked = Date.now();
-        const { fallback, ...next } = await reply(env, s.questions, s.turns, s.brief ?? "");
+        const { fallback, ...next } = await reply(env, s.questions, s.turns, s.brief ?? "", s.longform);
         s.turns.push(next);
         await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: fallback ? "typed reply FAILED, used the canned agenda question" : "typed reply", ms: Date.now() - asked }));
         result = await view(env, client, s);
@@ -433,12 +436,14 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         await tickVoice(env, s.voice);
         s.voice = undefined; // the conversation's over; stop the meter
         const began = Date.now();
-        s.drafts = await harvest(env, s.questions ?? [], s.turns, pillars, s.posts, s.targets ?? [], mode);
+        s.drafts = s.longform
+          ? await harvestArticle(env, s.turns, s.posts, s.targets ?? [], mode)
+          : await harvest(env, s.questions ?? [], s.turns, pillars, s.posts, s.targets ?? [], mode);
         s.harvestMode = mode;
         s.harvestedTurns = s.turns.length;
         await logRun(env, s, (r) => r.harvests.push({
           at: new Date().toISOString(),
-          mode,
+          mode: s.longform ? `long-form ${mode}` : mode,
           ms: Date.now() - began,
           drafts: (s.drafts ?? []).map(({ title, channel, format, flags, text, later }) => ({ title, channel, format, flags, text, later })),
         }));
@@ -457,8 +462,10 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           await saveSession(env, id, s);
         }
         const found = (s.drafts ?? []).filter((d) => !d.later).length;
-        const note = `\n\nThey just looked for stories and found ${found === 1 ? "only one" : found === 0 ? "none yet" : `only ${found}`}, so they came back to keep talking. Welcome them back in a few words, without recapping, and ask one easy, open question from a fresh angle you haven't covered yet.`;
-        const { fallback, wrapUp: _ended, ...next } = await reply(env, s.questions ?? [], s.turns, (s.brief ?? "").slice(0, 3600) + note);
+        const note = s.longform
+          ? `\n\nThey just read the draft of their piece and came back to keep talking. Welcome them back in a few words, without recapping, and ask one easy, open question about a part of the piece that's still thin.`
+          : `\n\nThey just looked for stories and found ${found === 1 ? "only one" : found === 0 ? "none yet" : `only ${found}`}, so they came back to keep talking. Welcome them back in a few words, without recapping, and ask one easy, open question from a fresh angle you haven't covered yet.`;
+        const { fallback, wrapUp: _ended, ...next } = await reply(env, s.questions ?? [], s.turns, (s.brief ?? "").slice(0, 3600) + note, s.longform);
         s.turns.push(next);
         s.drafts = []; // back to talking: a reload lands on the conversation, and the next harvest reads it all
         await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: fallback ? "keep talking, reply FAILED" : "keep talking" }));
@@ -475,7 +482,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           const draft = s.drafts?.find((x) => x.id === d.id);
           if (!draft || s.saved?.includes(draft.id)) continue; // a double click must not create a second Idea
           const title = String(d.title ?? draft.title).trim().slice(0, 200);
-          const words = textInput(d.text ?? draft.text, 10_000, "Keep each Idea to 10,000 characters or fewer.");
+          const words = textInput(d.text ?? draft.text, 10_000, "Keep each piece to 10,000 characters or fewer. For a longer article, copy or download it instead.");
           if (!words) continue;
           // Their words first, then the shaping questions, clearly set apart.
           const prompts = (Array.isArray(d.prompts) ? d.prompts : draft.prompts ?? []).map((q) => String(q).trim().slice(0, 200)).filter(Boolean).slice(0, 5);
@@ -491,7 +498,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
                 prompts.length ? `QUESTIONS TO FINISH OR ADAPT IT\n${prompts.map((q) => `- ${q}`).join("\n")}` : "",
               ].filter(Boolean).join("\n\n");
           if (client.nearLimit) throw new RateLimited(60);
-          const ideaTitle = draft.later || /^INTERVIEW \|/.test(title) ? title : `INTERVIEW | ${where ? `${where} | ` : ""}${title}`;
+          const ideaTitle = draft.later || /^INTERVIEW \|/.test(title) ? title : `INTERVIEW | ${draft.article ? "Article | " : where ? `${where} | ` : ""}${title}`;
           // Each story goes to its channel's Drafts in Buffer, ready to edit and
           // schedule. Outlines carry their questions; drafts stay clean to post.
           const channel = (s.channels ?? []).find((c) => c.service === draft.channel) ??
@@ -502,7 +509,8 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
               ? `${words}\n\nQuestions to finish it:\n${prompts.map((q) => `- ${q}`).join("\n")}`
               : words;
           let asDraft = false;
-          if (channel) {
+          // The long-form piece itself can't be a Buffer post: it's kept as an Idea.
+          if (channel && !draft.article) {
             try {
               await createDraft(client, { channelId: channel.id, service: channel.service, text: draftText, format: draft.format, tagIds: tags.map((t) => t.id) });
               asDraft = true;
@@ -520,7 +528,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
               services: draft.channel ? [draft.channel] : undefined,
               aiAssisted: true, // their words, but the AI chose and arranged them
             });
-            (s.savedAsIdeas ??= []).push(draft.id);
+            if (!draft.article) (s.savedAsIdeas ??= []).push(draft.id);
           }
           (s.saved ??= []).push(draft.id);
           await saveSession(env, id, s);
@@ -617,6 +625,8 @@ async function view(env: Env, client: BufferClient, s: Session, refresh = false)
     channels: channels.map((c) => ({ service: c.service, name: c.name, label: channelLabel(c.service) })),
     targets: s.targets ?? mainServices(channels),
     harvestMode: s.harvestMode ?? "draft",
+    longform: Boolean(s.longform),
+    longformOffered: longformOffered(env, s),
     questions: s.questions ?? [],
     turns: s.turns ?? [],
     drafts: s.drafts ?? [],
@@ -624,6 +634,12 @@ async function view(env: Env, client: BufferClient, s: Session, refresh = false)
     savedAsIdeas: s.savedAsIdeas ?? [],
     live: Boolean(openaiKey(env)),
   };
+}
+
+// Long-form is the owner's to try first; LONGFORM=on offers it to everyone.
+// The organization id is chosen from their own Buffer organizations at setup.
+function longformOffered(env: Env, s: Session): boolean {
+  return env.LONGFORM === "on" || Boolean(env.OWNER_ORG_ID && s.organizationId === env.OWNER_ORG_ID);
 }
 
 // Where they actually publish: services with recent posts, busiest first. If

@@ -606,6 +606,8 @@ button.chip.on{background:var(--ink);color:var(--ground);box-shadow:none}
 .draft .same{font-size:.875rem;color:var(--muted);margin:0}
 .app-foot{display:flex;justify-content:center;margin-top:28px}
 .how{font-size:1rem;max-width:62ch;margin-top:8px}
+.draft .alts{font-size:.875rem;color:var(--muted);margin:0}
+.draft .art-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .few{display:grid;gap:14px}
 .few p{margin:0;max-width:62ch;font-size:1.05rem}
 .log .wrap-go{margin-top:10px}
@@ -682,10 +684,11 @@ export function appPage(): string {
 <p id="msg" role="alert" hidden></p>
 
 <section id="setup" class="screen" hidden>
-  <header><h1>What did you work on this week?</h1><p class="lede">Paste a public GitHub repo, or describe the work in a sentence or two.</p><p class="muted how">About ten minutes, start to finish. You talk, it finds the stories, and you choose which ones go to Buffer as drafts.</p></header>
+  <header><h1>What did you work on this week?</h1><p class="lede">Paste a public GitHub repo, or describe the work in a sentence or two.</p><p class="muted how" id="howLine">About ten minutes, start to finish. You talk, it finds the stories, and you choose which ones go to Buffer as drafts.</p></header>
   <div class="panel">
     <label class="fieldset" id="orgWrap" hidden><span class="lbl">Buffer organization</span><select id="org"></select></label>
     <label class="fieldset"><span class="lbl">A repo or a quick note</span><span class="hint">With a repo, it reads this week's public commits, pull requests and issues. Otherwise it starts from what you write here. 500 characters maximum.</span><textarea id="work" maxlength="500" placeholder="github.com/you/project, or: I rebuilt the onboarding for…"></textarea></label>
+    <div class="fieldset" id="kindWrap" hidden><span class="lbl">What are you making?</span><span class="hint" id="kindHint"></span><div class="chips" role="radiogroup" aria-label="What are you making?"><label class="chip"><input type="radio" name="kind" value="posts" checked><span>Posts about my week</span></label><label class="chip"><input type="radio" name="kind" value="long"><span>A longer piece, like a newsletter or article</span></label></div></div>
     <div class="fieldset" id="chanWrap" hidden><span class="lbl">Shape stories for</span><span class="hint" id="chanHint"></span><div class="chips" id="chans" aria-label="Channels to shape stories for"></div></div>
     <label class="keep"><input type="checkbox" id="keepLog" checked><span>Keep this transcript for 14 days so Ligaya can improve the interviewer. Only she can read it. <a href="/privacy#kept" target="_blank" rel="noopener">What's kept</a></span></label>
     <div class="row"><button id="saveSetup" class="btn" type="button"><span class="rec"></span>Start the interview</button></div>
@@ -723,7 +726,7 @@ export function appPage(): string {
 </section>
 
 <section id="review" class="screen wide" hidden>
-  <header><h1>Stories from your interview</h1><p class="lede" id="reviewLede"></p></header>
+  <header><h1 id="reviewHead">Stories from your interview</h1><p class="lede" id="reviewLede"></p></header>
   <div class="panel few" id="fewNote" hidden><p id="fewText"></p><div class="row"><button id="moreBtn" class="btn quiet" type="button">Keep talking to find more</button></div></div>
   <div id="drafts" class="drafts"></div>
   <div class="more-row"><button id="showMore" class="btn quiet small" type="button" hidden></button></div>
@@ -745,6 +748,7 @@ export function appPage(): string {
     <div class="row"><a class="btn" href="https://publish.buffer.com/schedule?tab=drafts" target="_blank" rel="noopener">Open my drafts in Buffer</a></div>
     <ul class="done-list" id="doneList"></ul>
     <p class="muted" id="ideaNote" style="max-width:62ch" hidden></p>
+    <div id="articleDone" hidden><p class="muted" style="max-width:62ch">Your article is kept in Buffer under Create, then Ideas. Buffer can't publish long pieces, so copy it into Substack or LinkedIn when you're ready.</p><div class="row"><button class="btn quiet" type="button" id="copyArticle">Copy the article</button><button class="btn text" type="button" id="downloadArticle">Download it</button></div></div>
     <p class="muted" style="max-width:62ch">There's one draft for each channel. Choose <b>Edit</b> on one when you're ready to finish it. To find them again later in Buffer's mobile app, tap the menu at the top left, then <b>Channels</b>, <b>All Channels</b>, and the <b>Drafts</b> tab at the bottom.</p>
     <div class="row"><button id="again" class="btn quiet" type="button">Start a new interview</button></div>
   </div>
@@ -826,10 +830,22 @@ function renderSetup(){
   }
   $("chanWrap").hidden = !seen.size;
   $("keepLog").checked = state.keepLog !== false;
+  $("kindWrap").hidden = !state.longformOffered;
+  document.querySelector('input[name=kind][value=' + (state.longform ? "long" : "posts") + ']').checked = true;
+  $("kindHint").textContent = seen.has("substack") ? "You post on Substack, so a longer piece might fit." : "";
+  kindChanged();
   const main = (state.targets || []).map(t => (chans.find(c => c.service === t) || {}).label).filter(Boolean);
   $("chanHint").textContent = main.length ? "Looks like you post mostly on " + main.join(" and ") + ". Change it if you like." : "Pick where you'd like to post these stories.";
   show("setup");
 }
+
+function longChosen(){ return !$("kindWrap").hidden && document.querySelector("input[name=kind]:checked").value === "long"; }
+function kindChanged(){
+  $("howLine").textContent = longChosen()
+    ? "About fifteen to twenty minutes. You talk through one piece, it drafts the piece from your words, and you copy it out. Short posts that share it go to Buffer as drafts."
+    : "About ten minutes, start to finish. You talk, it finds the stories, and you choose which ones go to Buffer as drafts.";
+}
+document.querySelectorAll("input[name=kind]").forEach(i => i.addEventListener("change", kindChanged));
 
 // The side panel: the piece of work the conversation is on.
 const sources = new Map();
@@ -1036,7 +1052,9 @@ $("harvestBtn").onclick = async () => {
     if (pending && !busy) { state = await api("/api/say", {text:pending, final:true}); $("say").value = ""; renderTalk(); }
     const mode = handBack();
     if (mode === "transcript") return renderTranscript();
-    orbState("thinking"); busyLines("harvestBusy", ["Reading the conversation back. This takes about half a minute", ...heardLines(), "Finding the stories with a turn in them", "Shaping each one for where you post", "Writing a few questions for each one"]);
+    orbState("thinking"); busyLines("harvestBusy", state.longform
+      ? ["Reading the conversation back. This takes about a minute", ...heardLines(), "Finding the shape of your piece", "Building it from your words", "Writing short posts to share it"]
+      : ["Reading the conversation back. This takes about half a minute", ...heardLines(), "Finding the stories with a turn in them", "Shaping each one for where you post", "Writing a few questions for each one"]);
     state = await api("/api/harvest", {mode}); renderReview(); window.scrollTo({top:0});
   }
   catch(e){ err(e.message); } finally { busyDone("harvestBusy"); orbState("idle"); $("harvestBtn").disabled = false; $("harvestBtn").textContent = HARVEST_LABEL; }
@@ -1080,12 +1098,15 @@ function countPicked(){
 function renderReview(){
   const box = $("drafts"); box.innerHTML = "";
   const outline = state.harvestMode === "outline";
-  $("reviewLede").textContent = outline
+  $("reviewHead").textContent = state.longform ? "Your piece, from your interview" : "Stories from your interview";
+  $("reviewLede").textContent = state.longform
+    ? "Your piece, built from what you said, plus short posts to share it. Edit anything and untick what you don't want. The article is kept in Buffer as an Idea; the short posts go to Drafts when you press Save."
+    : outline
     ? "Each card is one post for one channel, outlined in your words. Write it your way and untick what you don't want. Nothing goes to Buffer until you press Save at the bottom."
     : "Each card is one post for one channel, built from what you said and tidied by an editor. Edit anything and untick what you don't want. Nothing goes to Buffer until you press Save at the bottom.";
   const extra = (state.drafts || []).filter(d => d.extra && !(state.saved||[]).includes(d.id));
   const real = (state.drafts || []).filter(d => !d.later).length;
-  $("fewNote").hidden = real >= 2; $("backTalk").hidden = real < 2;
+  $("fewNote").hidden = real >= 2 || state.longform; $("backTalk").hidden = real < 2 && !state.longform;
   $("fewText").textContent = real === 0
     ? "I didn't find a full story in this one yet. Talk a bit more and I'll look again."
     : "I found one story so far. Talk a bit more and I'll look again.";
@@ -1093,19 +1114,27 @@ function renderReview(){
   for (const d of state.drafts || []) {
     const card = el("article", "panel draft" + (d.later ? " later" : "")); card.dataset.id = d.id;
     if (d.extra) { card.hidden = true; card.classList.add("extra"); }
-    const top = el("label", "pick"); const cb = el("input"); cb.type = "checkbox"; cb.checked = !d.later && !d.extra; top.append(cb, el("span", "", d.later ? "Include this question" : "Include in Buffer")); card.append(top);
+    const top = el("label", "pick"); const cb = el("input"); cb.type = "checkbox"; cb.checked = !d.later && !d.extra; top.append(cb, el("span", "", d.later ? "Include this question" : d.article ? "Keep in Buffer as an Idea" : "Include in Buffer")); card.append(top);
     if ((state.saved||[]).includes(d.id)) { cb.checked = false; cb.disabled = true; top.lastChild.textContent = "Saved"; }
     cb.onchange = countPicked;
     if (d.format) {
-      const sh = el("div", "shape"); sh.append(el("span", "fmt", "For " + channelName(d.channel) + " · " + d.format)); card.append(sh);
+      const sh = el("div", "shape"); sh.append(el("span", "fmt", d.article ? "Article · for your newsletter or a LinkedIn article" : "For " + channelName(d.channel) + " · " + d.format)); card.append(sh);
       const key = (d.title || "").trim().toLowerCase();
       if (key && seen[key]) card.append(el("p", "same", "Same story as the " + seen[key] + " card, shaped for " + channelName(d.channel) + "."));
       else if (key) seen[key] = channelName(d.channel);
-      if (d.why) card.append(el("p", "why", d.why));
+      if (d.why && !d.article) card.append(el("p", "why", d.why));
     }
     const t = el("input", "title"); t.type = "text"; t.maxLength = 200; t.value = d.title; t.setAttribute("aria-label", "Story title"); card.append(t);
+    if (d.article && (d.titles||[]).length > 1) card.append(el("p", "alts", "Other titles from your words: " + d.titles.slice(1).join(" · ")));
     const words = el("div"); words.append(el("span", "lbl", d.later ? "A question for later" : outline ? "Outline, in your words" : "Draft, from your words, lightly edited"));
-    const x = el("textarea", "text"); x.maxLength = 10000; x.value = d.text; x.setAttribute("aria-label", "Post text"); words.append(x); card.append(words);
+    const x = el("textarea", "text"); x.maxLength = 10000; x.value = d.text; x.setAttribute("aria-label", d.article ? "Article text" : "Post text"); words.append(x); card.append(words);
+    if (d.article) {
+      const acts = el("div", "art-actions"), cp = el("button", "btn quiet", "Copy the article"), dl = el("button", "btn text", "Download it");
+      cp.type = dl.type = "button";
+      cp.onclick = () => copyText(t.value + "\\n\\n" + x.value, cp, "Copy the article");
+      dl.onclick = () => downloadMd(t.value, x.value);
+      acts.append(cp, dl); card.append(acts);
+    }
     for (const f of d.flags || []) card.append(el("p", "flag", f));
     if ((d.prompts||[]).length) {
       const pw = el("div"); pw.append(el("span", "lbl", outline ? "Questions to help you write it, added under your outline" : "Questions to help you finish it. Just for you, not added to the post"));
@@ -1140,20 +1169,38 @@ $("saveAll").onclick = async () => {
     tagId: (c.querySelector('.chips input:checked') || {}).value,
   }));
   if (!drafts.length) return err("Tick at least one story to save.");
+  const art = [...document.querySelectorAll(".draft")].find(c => (state.drafts||[]).some(d => d.id === c.dataset.id && d.article));
+  lastArticle = art ? {title: art.querySelector(".title").value, text: art.querySelector(".text").value} : null;
   $("saveAll").disabled = true; $("saveAll").textContent = "Saving to Buffer…";
   try { state = await api("/api/save", {drafts}); renderDone(); }
   catch(e){ err(e.message); try { state = await api("/api/state"); renderReview(); } catch {} }
   finally { $("saveAll").disabled = false; if (!$("review").hidden) countPicked(); }
 };
+let lastArticle = null;
+async function copyText(text, btn, label){
+  try { await navigator.clipboard.writeText(text); btn.textContent = "Copied"; }
+  catch { btn.textContent = "Couldn't copy. Use Download instead"; }
+  setTimeout(() => { btn.textContent = label; }, 2000);
+}
+function downloadMd(title, text){
+  const md = "# " + title + "\\n\\n" + text.replace(/^\\[Section: ([^\\]]*)\\]\\s*$/gm, "## $1");
+  const a = el("a"); a.href = URL.createObjectURL(new Blob([md], {type:"text/markdown"}));
+  a.download = (title || "article").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) + ".md"; document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+$("copyArticle").onclick = () => { const a = articleForDone(); if (a) copyText(a.title + "\\n\\n" + a.text, $("copyArticle"), "Copy the article"); };
+$("downloadArticle").onclick = () => { const a = articleForDone(); if (a) downloadMd(a.title, a.text); };
+function articleForDone(){ if (lastArticle) return lastArticle; const d = (state.drafts||[]).find(d => d.article && (state.saved||[]).includes(d.id)); return d ? {title: d.title, text: d.text} : null; }
 function renderDone(){
   const n = (state.saved||[]).length, asIdeas = state.savedAsIdeas || [];
   const w = wordsSaid(), about = w >= 100 ? Math.round(w / 10) * 10 : w;
   const heard = w >= 40 ? "You said " + (w >= 100 ? "about " : "") + about.toLocaleString() + " words. That became " + n + (n === 1 ? " draft" : " drafts") + ", all built from them." : "You saved " + n + (n === 1 ? " story" : " stories") + ", built from your own words.";
   $("doneLine").textContent = heard + " " + (n === 1 ? "It's" : "They're") + " waiting in Buffer for you to finish and schedule.";
   const list = $("doneList"); list.innerHTML = "";
-  (state.drafts||[]).filter(d => (state.saved||[]).includes(d.id)).forEach((d, k) => { const li = el("li", "", d.title + (d.channel ? " · " + channelName(d.channel) : "") + (asIdeas.includes(d.id) ? " (saved as an Idea)" : "")); li.style.setProperty("--i", k); list.append(li); });
+  (state.drafts||[]).filter(d => (state.saved||[]).includes(d.id)).forEach((d, k) => { const li = el("li", "", d.title + (d.channel ? " · " + channelName(d.channel) : "") + (d.article ? " · article, kept as an Idea" : asIdeas.includes(d.id) ? " (saved as an Idea)" : "")); li.style.setProperty("--i", k); list.append(li); });
   const m = asIdeas.length; $("ideaNote").hidden = !m;
   if (m) $("ideaNote").textContent = "Buffer wouldn't take " + (m === 1 ? "one of these" : m + " of these") + " as a draft. Some channels need an image or video, and plans have a draft limit. " + (m === 1 ? "It's" : "They're") + " in Create, under Ideas, instead.";
+  $("articleDone").hidden = !articleForDone();
   show("done"); window.scrollTo({top:0});
 }
 
@@ -1169,7 +1216,7 @@ $("saveSetup").onclick = async () => {
   busyLines("setupBusy", ["Reading this week's public work", "Looking at what you've posted lately", "Choosing a few threads to pull on", "Getting your first question ready"]);
   try {
     const targets = [...document.querySelectorAll("#chans input:checked")].map(i => i.value);
-    state = await api("/api/setup", {organizationId:$("org").value, work:$("work").value, targets: $("chanWrap").hidden ? undefined : targets, keepLog: $("keepLog").checked});
+    state = await api("/api/setup", {organizationId:$("org").value, work:$("work").value, targets: $("chanWrap").hidden ? undefined : targets, keepLog: $("keepLog").checked, longform: longChosen()});
     state = await api("/api/start", {}); shown = null; drawn = 0; renderTalk(); $("say").focus({preventScroll:true});
   }
   catch(e){ err(e.message); }
