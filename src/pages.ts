@@ -610,6 +610,7 @@ button.chip.on{background:var(--ink);color:var(--ground);box-shadow:none}
 .pick input{width:22px;height:22px;margin:0;accent-color:var(--ink);cursor:pointer}
 .draft .same{font-size:.875rem;color:var(--muted);margin:0}
 .app-foot{display:flex;justify-content:center;margin-top:28px}
+.how{font-size:1rem;max-width:62ch;margin-top:8px}
 .few{display:grid;gap:14px}
 .few p{margin:0;max-width:62ch;font-size:1.05rem}
 .log .wrap-go{margin-top:10px}
@@ -686,7 +687,7 @@ export function appPage(): string {
 <p id="msg" role="alert" hidden></p>
 
 <section id="setup" class="screen" hidden>
-  <header><h1>What did you work on this week?</h1><p class="lede">Paste a public GitHub repo, or describe the work in a sentence or two.</p></header>
+  <header><h1>What did you work on this week?</h1><p class="lede">Paste a public GitHub repo, or describe the work in a sentence or two.</p><p class="muted how">About ten minutes, start to finish. You talk, it finds the stories, and you choose which ones go to Buffer as drafts.</p></header>
   <div class="panel">
     <label class="fieldset" id="orgWrap" hidden><span class="lbl">Buffer organization</span><select id="org"></select></label>
     <label class="fieldset"><span class="lbl">A repo or a quick note</span><span class="hint">With a repo, it reads this week's public commits, pull requests and issues. Otherwise it starts from what you write here. 500 characters maximum.</span><textarea id="work" maxlength="500" placeholder="github.com/you/project, or: I rebuilt the onboarding for…"></textarea></label>
