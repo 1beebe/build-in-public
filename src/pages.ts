@@ -59,7 +59,7 @@ a:hover{text-decoration-thickness:2px}
 .mark{width:30px;height:30px;flex:none}
 
 /* Page frame */
-.wrap{width:100%;max-width:1360px;margin:0 auto;padding-inline:var(--gut)}
+.wrap{width:100%;max-width:1360px;margin:0 auto;padding-inline:max(var(--gut),env(safe-area-inset-left)) max(var(--gut),env(safe-area-inset-right))}
 .nav{display:flex;align-items:center;justify-content:space-between;gap:20px;padding-block:20px}
 .nav ul{display:flex;gap:28px;list-style:none;margin:0;padding:0;font-size:1rem}
 .nav ul a{text-decoration:none;color:var(--muted)}
@@ -609,14 +609,14 @@ button.chip.on{background:var(--ink);color:var(--ground);box-shadow:none}
 .pick{justify-self:start;display:inline-flex;align-items:center;gap:10px;font-weight:600;cursor:pointer;min-height:44px}
 .pick input{width:22px;height:22px;margin:0;accent-color:var(--ink);cursor:pointer}
 .draft .same{font-size:.875rem;color:var(--muted);margin:0}
-.review-foot{display:flex;justify-content:center}
+.app-foot{display:flex;justify-content:center;margin-top:28px}
 .few{display:grid;gap:14px}
 .few p{margin:0;max-width:62ch;font-size:1.05rem}
 .log .wrap-go{margin-top:10px}
 #harvestBtn.nudge{background:var(--accent);color:var(--accent-ink);box-shadow:none;animation:nudge 1.6s ease-in-out 3}
 @keyframes nudge{50%{transform:scale(1.04)}}
 @media (prefers-reduced-motion:reduce){#harvestBtn.nudge{animation:none}}
-body:has(#review:not([hidden])) .feedback-open,body:has(#talk:not([hidden])) .feedback-open{display:none}
+body:has(main.app) .feedback-open{display:none}
 .draft .shape{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
 .draft .fmt{font-weight:600;font-size:1rem}
 .draft .why{color:var(--muted);font-size:.875rem;margin:0;max-width:62ch}
@@ -723,7 +723,6 @@ export function appPage(): string {
     <button id="harvestBtn" class="btn quiet" type="button">I'm done. Find my stories</button>
   </div>
 </div>
-<div class="review-foot"><button class="btn text" type="button" data-feedback-open>Feedback or bug</button></div>
 </section>
 
 <section id="review" class="screen wide" hidden>
@@ -731,7 +730,6 @@ export function appPage(): string {
   <div class="panel few" id="fewNote" hidden><p id="fewText"></p><div class="row"><button id="moreBtn" class="btn quiet" type="button">Keep talking to find more</button></div></div>
   <div id="drafts" class="drafts"></div>
   <div class="more-row"><button id="showMore" class="btn quiet small" type="button" hidden></button></div>
-  <div class="review-foot"><button class="btn text" type="button" data-feedback-open>Feedback or bug</button></div>
   <div class="savebar"><span class="count" id="saveCount"></span><div class="row"><button id="backTalk" class="btn quiet small" type="button">Keep talking</button><button id="getTranscript" class="btn quiet small" type="button">Transcript</button><button id="saveAll" class="btn" type="button">Save to Buffer</button></div></div>
 </section>
 
@@ -754,6 +752,7 @@ export function appPage(): string {
     <div class="row"><button id="again" class="btn quiet" type="button">Start a new interview</button></div>
   </div>
 </section>
+<div class="app-foot"><button class="btn text" type="button" data-feedback-open>Feedback or bug</button></div>
 </main>`,
     { style: APP_STYLE, script: APP_SCRIPT },
   );
