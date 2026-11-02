@@ -23,6 +23,7 @@ export interface Env {
   ANTHROPIC_API_KEY?: string;
   // The Buffer organization that may open /stats (the app's owner).
   OWNER_ORG_ID?: string;
+  LONGFORM?: string; // "on" offers long-form to everyone; otherwise only the owner sees it
   // App-wide voice minutes a day before voice pauses for everyone. Default 120.
   DAILY_VOICE_MINUTES?: string;
   // App-wide model-call brakes. Provider project budgets remain the hard caps.

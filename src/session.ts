@@ -39,6 +39,8 @@ export interface Draft {
   flags?: string[]; // what we changed and they should know, e.g. a softened word
   extra?: boolean; // ranked below the top three: shown behind "Show more"
   sentences?: number[]; // which of their numbered sentences it was built from
+  article?: boolean; // the long-form piece itself: copied or downloaded, kept in Buffer as an Idea
+  titles?: string[]; // candidate titles for an article, lifted from their own lines
 }
 
 export type HarvestMode = "draft" | "outline";
@@ -77,6 +79,7 @@ export interface Session {
   keepLog?: boolean; // false if they unticked "keep this transcript" at setup
   runKey?: string; // where this interview's run log lives, when kept
   runLoggedAt?: number; // last voice transcript copy to the run log
+  longform?: boolean; // one longer piece (newsletter, article) instead of this week's posts
 }
 
 const SESSION_TTL = 60 * 60 * 24 * 30; // 30 days, matches a refresh token's useful life for us
