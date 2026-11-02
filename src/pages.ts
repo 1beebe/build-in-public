@@ -175,10 +175,15 @@ const PAGE_STYLE = `
 @media (min-width:900px){.keptwrap{grid-template-columns:minmax(0,4fr) minmax(0,8fr)}}
 .keptwrap .pic{aspect-ratio:4/5}
 .keptwrap .kept{margin-top:0}
-.where{list-style:none;margin:36px 0 0;padding:0;display:grid;gap:20px;counter-reset:w;max-width:40ch}
-.where li{display:grid;grid-template-columns:2.2rem 1fr;gap:12px;align-items:baseline;counter-increment:w;font-size:clamp(1.1rem,1rem + .35vw,1.3rem);line-height:1.45}
-.where li::before{content:counter(w);font-weight:600;font-size:1.6em;line-height:1;letter-spacing:-.04em}
-.where b{font-weight:600}
+.where{list-style:none;margin:48px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:2px solid var(--ink)}
+.where li{display:grid;align-content:start;gap:14px;padding:28px 28px 8px 0;font-size:1.05rem;line-height:1.5}
+.where li+li{padding-left:28px;border-left:1px solid var(--border)}
+.where .n{font-weight:600;font-size:clamp(5rem,4rem + 6vw,10rem);letter-spacing:-.06em;line-height:.8}
+.where .k{font-weight:600;font-size:clamp(1.4rem,1.1rem + .9vw,2rem);letter-spacing:-.03em;line-height:1.1}
+.where p{margin:0;color:var(--muted);max-width:30ch}
+.where p b{font-weight:600;color:var(--ink)}
+.where-go{margin-top:40px}
+@media (max-width:760px){.where{grid-template-columns:1fr}.where li,.where li+li{grid-template-columns:4.25rem 1fr;column-gap:18px;padding:22px 0;border-left:0;border-bottom:1px solid var(--border)}.where .n{grid-row:span 2;font-size:5rem}.where p{grid-column:2}}
 @media (min-width:900px){.keptwrap .kept{grid-template-columns:1fr}}
 .kept{display:grid;gap:28px;margin-top:48px}
 @media (min-width:900px){.kept{grid-template-columns:repeat(3,minmax(0,1fr))}}
@@ -345,11 +350,11 @@ ${NAV}
   <div class="wrap">
     <h2 id="landH">Where your drafts land.</h2>
     <ol class="where">
-      <li><p>Open Buffer. On the web, click <b>Publish</b> in the left sidebar. In the mobile app, tap the menu at the top left, then <b>Channels</b>, then <b>All Channels</b>.</p></li>
-      <li><p>Switch to the <b>Drafts</b> tab. In the app it's along the bottom. There's one draft for each channel you picked, with any tag you chose.</p></li>
-      <li><p>Choose <b>Edit</b> on one, finish it in your voice, and schedule it when it's ready.</p></li>
+      <li><span class="n" aria-hidden="true">1</span><b class="k">Open Buffer</b><p>On the web, click <b>Publish</b> in the left sidebar. In the mobile app, tap the menu at the top left, then <b>Channels</b>, then <b>All Channels</b>.</p></li>
+      <li><span class="n" aria-hidden="true">2</span><b class="k">Drafts</b><p>Switch to the <b>Drafts</b> tab. In the app it's along the bottom. There's one draft for each channel you picked, with any tag you chose.</p></li>
+      <li><span class="n" aria-hidden="true">3</span><b class="k">Edit</b><p>Choose <b>Edit</b> on one, finish it in your voice, and schedule it when it's ready.</p></li>
     </ol>
-    <p style="margin-top:28px"><a class="btn quiet" href="https://publish.buffer.com/schedule?tab=drafts" target="_blank" rel="noopener">Open your drafts in Buffer</a></p>
+    <p class="where-go"><a class="btn" href="https://publish.buffer.com/schedule?tab=drafts" target="_blank" rel="noopener">Open your drafts in Buffer</a></p>
   </div>
 </section>
 
