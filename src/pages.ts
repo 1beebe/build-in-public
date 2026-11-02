@@ -712,6 +712,7 @@ export function appPage(): string {
       <label class="chip"><input type="radio" name="mode" value="transcript"><span>Just the transcript</span></label>
     </div></div>
     <button id="harvestBtn" class="btn quiet" type="button">I'm done. Find my stories</button>
+    <p class="busyline" id="harvestBusy" aria-live="polite"></p>
   </div>
 </div>
 </section>
@@ -1030,11 +1031,21 @@ $("harvestBtn").onclick = async () => {
     if (pending && !busy) { state = await api("/api/say", {text:pending, final:true}); $("say").value = ""; renderTalk(); }
     const mode = handBack();
     if (mode === "transcript") return renderTranscript();
-    orbState("thinking"); busyLines("voiceState", ["Reading the conversation back. This takes about half a minute", "Finding the stories with a turn in them", "Shaping each one for where you post", "Writing a few questions for each one"]);
+    orbState("thinking"); busyLines("harvestBusy", ["Reading the conversation back. This takes about half a minute", ...heardLines(), "Finding the stories with a turn in them", "Shaping each one for where you post", "Writing a few questions for each one"]);
     state = await api("/api/harvest", {mode}); renderReview(); window.scrollTo({top:0});
   }
-  catch(e){ err(e.message); } finally { busyDone("voiceState"); orbState("idle"); $("harvestBtn").disabled = false; $("harvestBtn").textContent = HARVEST_LABEL; }
+  catch(e){ err(e.message); } finally { busyDone("harvestBusy"); orbState("idle"); $("harvestBtn").disabled = false; $("harvestBtn").textContent = HARVEST_LABEL; }
 };
+// Delight, kept honest: while it reads back, show a few things they really said.
+function heardLines(){
+  const said = (state.turns||[]).filter(t => t.who === "you").flatMap(t => t.text.split(/(?<=[.!?])\\s+/))
+    .map(x => x.trim().replace(/[.!?,;:]+$/, "")).filter(x => { const n = x.split(/\\s+/).length; return n >= 4 && n <= 12 && x.length <= 70; });
+  if (!said.length) return [];
+  const pick = [], k = Math.min(3, said.length);
+  for (let i = 0; i < k; i++) pick.push(said[Math.floor((i + 0.5) * said.length / k)]);
+  return pick.map(x => "You said \u201c" + x + "\u201d");
+}
+function wordsSaid(){ return (state.turns||[]).filter(t => t.who === "you").reduce((n, t) => n + (t.text.trim() ? t.text.trim().split(/\\s+/).length : 0), 0); }
 function transcriptMd(){
   const day = new Date().toLocaleDateString(undefined, {month:"long", day:"numeric", year:"numeric"});
   const lines = ["# Interview, " + day, ""];
@@ -1131,7 +1142,9 @@ $("saveAll").onclick = async () => {
 };
 function renderDone(){
   const n = (state.saved||[]).length, asIdeas = state.savedAsIdeas || [];
-  $("doneLine").textContent = "You saved " + n + (n === 1 ? " story" : " stories") + ", built from your own words. They're waiting in Buffer for you to finish and schedule.";
+  const w = wordsSaid(), about = w >= 100 ? Math.round(w / 10) * 10 : w;
+  const heard = w >= 40 ? "You said " + (w >= 100 ? "about " : "") + about.toLocaleString() + " words. That became " + n + (n === 1 ? " draft" : " drafts") + ", all built from them." : "You saved " + n + (n === 1 ? " story" : " stories") + ", built from your own words.";
+  $("doneLine").textContent = heard + " " + (n === 1 ? "It's" : "They're") + " waiting in Buffer for you to finish and schedule.";
   const list = $("doneList"); list.innerHTML = "";
   (state.drafts||[]).filter(d => (state.saved||[]).includes(d.id)).forEach((d, k) => { const li = el("li", "", d.title + (d.channel ? " · " + channelName(d.channel) : "") + (asIdeas.includes(d.id) ? " (saved as an Idea)" : "")); li.style.setProperty("--i", k); list.append(li); });
   const m = asIdeas.length; $("ideaNote").hidden = !m;
