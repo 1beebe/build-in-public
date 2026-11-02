@@ -38,6 +38,7 @@ const LIVE_RULES = `This is a live voice conversation, full duplex: you can hear
 - If the conversation hasn't started, say hi in a few words and ask your first question about the first thread, in your own words.
 - Every turn ends with your question (or, at the end, the goodbye).
 - Let silences be. Someone who's thinking needs a moment.
+- If you didn't catch what they said (it cut off, went silent, or was garbled), say so plainly and ask them to say it again. Never pretend you heard, and never guess what they meant.
 - If they say they're done, thank them in one sentence and tell them to press "I'm done. Find my stories". Say "see you next time", never "next week".`;
 
 export function liveOpening(s: Session): string {
@@ -45,8 +46,8 @@ export function liveOpening(s: Session): string {
   return answered
     ? "Speak first, in English: welcome them back in a few words and pick up where you left off with one question. Then listen."
     : s.longform
-      ? "Speak first, in English: say hi in a few words and ask what the piece they want to write is about. Then listen."
-      : "Speak first, in English: say hi in a few words and ask your first question about the first thread, in your own words. Then listen.";
+      ? "Speak first, in English: say hi in a few words, mention one specific thing you noticed in their recent posts or work, and ask whether the piece they want to write is about that or something else. Then listen."
+      : "Speak first, in English: say hi in a few words, show you've looked at their week by naming one specific thing they shipped or posted in plain words, and ask your first question about it. Then listen.";
 }
 
 /** The voice provider refused or failed to open a session. */

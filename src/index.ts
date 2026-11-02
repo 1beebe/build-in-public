@@ -18,6 +18,7 @@ import {
 } from "./buffer";
 import { RepoError, getSource, parseRepo, whatShipped, type Shipped, type Source } from "./github";
 import { hasModel, planQuestions } from "./interview";
+import { clip } from "./interview";
 import { channelLabel, harvest, opening, reply, harvestArticle, LONGFORM_OPENING } from "./conversation";
 import { gptLiveSession, openaiKey, VoiceError } from "./realtime";
 import { MindStudioError } from "./mindstudio";
@@ -352,12 +353,16 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
               ? [`They publish on ${where.map(channelLabel).join(", ")}. Without saying so, lean toward moments that would make a good story there: a scene, a choice, something they could show.`]
               : [];
           })(),
-          `Their recent posts, newest first. They show who they are and who they write for; don't steer back to these topics:`,
+          `Their recent posts, newest first. They show who they are, what they care about and who they write for. Use them to show you know them and to connect what they say now to what they've said before:`,
           ...recent.posts.slice(0, 8).map((p) => `- ${p.slice(0, 200)}`),
         ].join("\n");
         if (recalled.brief) s.brief += `\n${recalled.brief}`;
-        if (s.longform) s.brief += "\nThey chose to work on one longer piece today, like a newsletter issue or an article. The threads are background; the piece is the topic.";
-        const first = s.longform ? { who: "interviewer" as const, text: LONGFORM_OPENING } : opening(s.questions);
+        if (s.longform) s.brief += "\nThey chose to work on one longer piece today, like a newsletter issue or an article. The piece is the topic; their repo, threads and posts are what you know about them, to draw on whenever it connects.";
+        // Long-form opens on something they've said lately, so it's clear the interviewer knows them.
+        const lately = recent.posts[0] ? clip(recent.posts[0].replace(/\s+/g, " "), 70) : "";
+        const first = s.longform
+          ? { who: "interviewer" as const, text: lately ? `Tell me about the piece you want to write. Is it about something you've posted lately, like "${lately}", or something new?` : LONGFORM_OPENING }
+          : opening(s.questions);
         Object.assign(s, { turns: [first], drafts: [], saved: [], savedAsIdeas: [], voice: undefined });
         beginRun(s);
         await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: `started with ${s.questions?.length ?? 0} threads${s.longform ? ", long-form" : ""}` }));
