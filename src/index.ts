@@ -85,7 +85,7 @@ const TYPED_CALLS_PER_HOUR = 20;
 const VOICE_STARTS_PER_HOUR = 4;
 const HARVESTS_PER_DAY = 6;
 // The owner runs the eval suite against production, which needs more room.
-const OWNER_CAP_FACTOR = 4;
+const OWNER_CAP_FACTOR = 10;
 
 function textInput(value: unknown, max: number, tooLong: string): string {
   const text = String(value ?? "").replace(/\0/g, "").trim();
