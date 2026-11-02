@@ -346,7 +346,11 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         s.posts = recent.posts.map((p) => p.slice(0, 300));
         s.brief = [
           s.repo
-            ? `Repo: ${shipped.repo}${shipped.description ? ` — ${shipped.description}` : ""}`
+            ? [
+                `Repo: ${shipped.repo}${shipped.description ? ` — ${shipped.description}` : ""}`,
+                shipped.readme ? `What the project is, from the start of its README (their own description; use it to know what they're building and for whom): ${shipped.readme}` : "",
+                shippedSummary(shipped) ? `What they shipped lately (newest first):\n${shippedSummary(shipped)}` : "",
+              ].filter(Boolean).join("\n")
             : "They don't have a GitHub repo for this. Everything you know about their work is what they told you below, so let them show you around it.",
           s.weekNote ? `What they said they worked on this week: ${s.weekNote}` : "They didn't add a note about their week (that's optional; it doesn't mean they did nothing).",
           ...(() => {
@@ -486,7 +490,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const note = s.longform
           ? `\n\nThey just read the draft of their piece and came back to keep talking. Welcome them back in a few words, without recapping, and ask one easy, open question about a part of the piece that's still thin.`
           : `\n\nThey just looked for stories and found ${found === 1 ? "only one" : found === 0 ? "none yet" : `only ${found}`}, so they came back to keep talking. Welcome them back in a few words, without recapping, and ask one easy, open question from a fresh angle you haven't covered yet.`;
-        const { fallback, wrapUp: _ended, ...next } = await reply(env, s.questions ?? [], s.turns, (s.brief ?? "").slice(0, 3600) + note, s.longform);
+        const { fallback, wrapUp: _ended, ...next } = await reply(env, s.questions ?? [], s.turns, (s.brief ?? "").slice(0, 6000) + note, s.longform);
         s.turns.push(next);
         s.drafts = []; // back to talking: a reload lands on the conversation, and the next harvest reads it all
         await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: fallback ? "keep talking, reply FAILED" : "keep talking" }));
@@ -676,6 +680,14 @@ async function openFromNote(env: Env, s: Session): Promise<Turn> {
   const note = "\n\nThis is the very start of the conversation. Say hi in a few words like a friend catching up, show you've read what they wrote by naming one specific thing from their note in your own words (never quote it back), and ask one easy, open question about it.";
   const { fallback: _f, wrapUp: _w, ...first } = await reply(env, s.questions ?? [], [], (s.brief ?? "") + note, false);
   return { ...first, about: first.about ?? 0 };
+}
+
+// A short list of recent work for the brief, beyond the few threads on the agenda.
+function shippedSummary(shipped: Shipped): string {
+  return [
+    ...shipped.pulls.map((p) => `- PR: ${p.title}`),
+    ...shipped.commits.map((c) => `- Commit: ${c.message.split("\n")[0]}`),
+  ].slice(0, 15).map((l) => l.slice(0, 140)).join("\n");
 }
 
 function capFactor(env: Env, s: Session): number {

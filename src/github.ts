@@ -3,6 +3,7 @@ import type { Env } from "./env";
 export interface Shipped {
   repo: string;
   description?: string;
+  readme?: string; // the start of the README, as plain text: what the project is
   commits: { sha: string; message: string; url: string; date: string }[];
   pulls: { number: number; title: string; body: string; url: string; mergedAt: string }[];
   issues: { number: number; title: string; url: string; closedAt: string }[];
@@ -76,9 +77,11 @@ async function readShipped(env: Env, repo: string, days: number): Promise<Shippe
       `/repos/${repo}/issues?state=closed&since=${since}&per_page=30`,
     ),
   ]);
+  const readme = await readmeText(env, repo);
   return {
     repo,
     description: meta.description ?? undefined,
+    readme,
     commits: commits
       .map((c) => ({ sha: c.sha, message: c.commit.message.trim(), url: c.html_url, date: c.commit.author?.date ?? "" }))
       .filter((c) => !/^Merge (pull request|branch)/.test(c.message)),
@@ -89,6 +92,28 @@ async function readShipped(env: Env, repo: string, days: number): Promise<Shippe
       .filter((i) => !i.pull_request && i.closed_at)
       .map((i) => ({ number: i.number, title: i.title, url: i.html_url, closedAt: i.closed_at! })),
   };
+}
+
+// The opening of their README, so the interviewer knows what the project is
+// and who it's for. Optional: a repo without one just goes without.
+async function readmeText(env: Env, repo: string): Promise<string | undefined> {
+  try {
+    const headers: Record<string, string> = { Accept: "application/vnd.github.raw+json", "User-Agent": "the-interviewer", "X-GitHub-Api-Version": "2022-11-28" };
+    if (env.GITHUB_TOKEN) headers.Authorization = `Bearer ${env.GITHUB_TOKEN}`;
+    const res = await fetch(`https://api.github.com/repos/${repo}/readme`, { headers });
+    if (!res.ok) return undefined;
+    const text = (await res.text())
+      .replace(/```[\s\S]*?```/g, " ")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
+      .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+      .replace(/^[#>*\-\s|]+/gm, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    return text ? text.slice(0, 1500) : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 type GhFile = { filename: string; status: string; additions: number; deletions: number; patch?: string };
