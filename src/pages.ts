@@ -977,9 +977,14 @@ function syncLive(now){
   if (now) return send();
   syncTimer = setTimeout(send, 1500);
 }
+// Keep the phone awake while voice is live: a sleeping screen cuts the mic and loses the answer.
+let wake = null;
+async function holdWake(){ try { if ("wakeLock" in navigator && !wake && document.visibilityState === "visible") { wake = await navigator.wakeLock.request("screen"); wake.addEventListener("release", () => { wake = null; }); } } catch {} }
+function dropWake(){ if (wake) { wake.release().catch(() => {}); wake = null; } }
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && liveOn()) holdWake(); });
 function liveLabel(on){ $("liveBtn").querySelector(".lt").textContent = on ? "Pause" : "Start talking"; $("liveBtn").classList.toggle("on", on); }
 async function stopLive(){
-  clearTimeout(liveTimer);
+  clearTimeout(liveTimer); dropWake();
   if (gl) { clearTimeout(gl.quiet); if (dc && dc.readyState === "open") try { dc.send(JSON.stringify({type:"session.close"})); } catch {} gl = null; }
   if (dc) try { dc.close(); } catch {}
   if (pc) try { pc.close(); } catch {}
@@ -1025,6 +1030,7 @@ async function startGptLive(){
   err(""); $("liveBtn").disabled = true; setLive("Connecting…");
   try {
     mic = await navigator.mediaDevices.getUserMedia({audio:true});
+    holdWake();
     meter(mic);
     liveTurns = (state.turns || []).some(t => t.who === "you") ? state.turns.map(t => ({...t})) : []; liveAbout = currentAbout();
     gl = {cur:{}, quiet:null};
