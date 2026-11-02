@@ -175,11 +175,20 @@ export interface Tag {
   color: string;
 }
 
-export async function getStart(client: BufferClient): Promise<{ orgs: Org[] }> {
-  const data = await client.query<{ account: { organizations: Org[] } }>(
-    `query Start { account { organizations { id name } } }`,
-  );
-  return { orgs: data.account.organizations };
+export async function getStart(client: BufferClient): Promise<{ orgs: Org[]; accountId?: string }> {
+  try {
+    const data = await client.query<{ account: { id?: string; organizations: Org[] } }>(
+      `query Start { account { id organizations { id name } } }`,
+    );
+    return { orgs: data.account.organizations, accountId: data.account.id };
+  } catch (err) {
+    // Sign-in must never depend on memory: if the account id can't be read,
+    // fall back to the query that's always worked, and memory stays off.
+    if (err instanceof RateLimited || err instanceof NeedsReconnect) throw err;
+    console.error(`account id unavailable: ${err instanceof Error ? err.message : String(err)}`);
+    const data = await client.query<{ account: { organizations: Org[] } }>(`query Start { account { organizations { id name } } }`);
+    return { orgs: data.account.organizations };
+  }
 }
 
 export async function getTags(client: BufferClient, organizationId: string): Promise<Tag[]> {

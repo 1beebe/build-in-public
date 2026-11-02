@@ -1,0 +1,13 @@
+{
+  "name": "build-in-public",
+  "owner": { "name": "Ligaya Beebe", "url": "https://github.com/1beebe" },
+  "metadata": { "description": "The Interviewer as a skill for your own agent." },
+  "plugins": [
+    {
+      "name": "interviewer",
+      "source": "./plugin",
+      "description": "A weekly interview about your work that builds a library of your own words on your own machine, then drafts posts from it.",
+      "version": "0.1.0"
+    }
+  ]
+}
