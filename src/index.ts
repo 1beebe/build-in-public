@@ -27,7 +27,7 @@ import { beginRun, logRun, runsPage } from "./runs";
 import { forget, loadMemory, memoryView, recall, remember, setMemoryOn } from "./memory";
 import { appPage, landingPage, privacyPage } from "./pages";
 import { SpendCapError, countFunnel, countInterview, modelAllowedToday, statsPage, tickVoice, voiceAllowedToday } from "./spend";
-import { cookie, createSession, destroySession, loadSession, readCookie, saveSession, type Channel, type HarvestMode, type Session } from "./session";
+import { cookie, createSession, destroySession, loadSession, readCookie, saveSession, type Channel, type HarvestMode, type Session, type Turn } from "./session";
 
 const SECURITY_HEADERS: Record<string, string> = {
   "Content-Security-Policy": [
@@ -364,7 +364,9 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const lately = recent.posts[0] ? clip(recent.posts[0].replace(/\s+/g, " "), 70) : "";
         const first = s.longform
           ? { who: "interviewer" as const, text: lately ? `Tell me about the piece you want to write. Is it about something you've posted lately, like "${lately}", or something new?` : LONGFORM_OPENING }
-          : opening(s.questions);
+          : !s.repo && !recalled.question && hasModel(env)
+            ? await openFromNote(env, s)
+            : opening(s.questions);
         Object.assign(s, { turns: [first], drafts: [], saved: [], savedAsIdeas: [], voice: undefined });
         beginRun(s);
         await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: `started with ${s.questions?.length ?? 0} threads${s.longform ? ", long-form" : ""}` }));
@@ -668,6 +670,14 @@ async function view(env: Env, client: BufferClient, s: Session, refresh = false)
 
 // Long-form is the owner's to try first; LONGFORM=on offers it to everyone.
 // The organization id is chosen from their own Buffer organizations at setup.
+// Without a repo, a canned opener can only quote their note back. Let the
+// interviewer open the way a friend would, from what they wrote.
+async function openFromNote(env: Env, s: Session): Promise<Turn> {
+  const note = "\n\nThis is the very start of the conversation. Say hi in a few words like a friend catching up, show you've read what they wrote by naming one specific thing from their note in your own words (never quote it back), and ask one easy, open question about it.";
+  const { fallback: _f, wrapUp: _w, ...first } = await reply(env, s.questions ?? [], [], (s.brief ?? "") + note, false);
+  return { ...first, about: first.about ?? 0 };
+}
+
 function capFactor(env: Env, s: Session): number {
   return env.OWNER_ORG_ID && s.organizationId === env.OWNER_ORG_ID ? OWNER_CAP_FACTOR : 1;
 }
