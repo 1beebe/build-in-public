@@ -71,5 +71,6 @@ npm run dev     # local, needs a .dev.vars file with the secrets below
 ## Later
 
 - A weekly check-in: an optional reminder to do an interview each week, picking up from what shipped since the last one.
+- A come-back reminder: an optional calendar invite on the done screen (an .ics file linking back to the app), with email reminders as a later option.
 - Search across past answers.
 - A skill so a personal agent can run the interview with more context.
