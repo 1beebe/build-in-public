@@ -35,6 +35,8 @@ a{color:inherit;text-underline-offset:.18em;text-decoration-thickness:1px}
 a:hover{text-decoration-thickness:2px}
 ::selection{background:var(--accent);color:var(--accent-ink)}
 :focus-visible{outline:3px solid var(--ink);outline-offset:3px;border-radius:6px}
+.ink :focus-visible,.hood :focus-visible,.savebar :focus-visible{outline-color:var(--accent)}
+.foot :focus-visible{outline-color:var(--field-ink)}
 [hidden]{display:none!important}
 .muted{color:var(--muted)}
 .small{font-size:.875rem;line-height:1.45}
