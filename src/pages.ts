@@ -317,7 +317,7 @@ ${NAV}
       <h2 id="keepH">Your stories, saved in your own words.</h2>
       <p class="say">It finds your real stories, helps you articulate your insights, and shapes each one for the channels you post on. Choose your own path: a draft built from your words with a light editor's touch, an outline so you can write the draft yourself, or a transcript you can pull to work on with your own tools. </p>
     </div>
-    <article class="idea" aria-label="An Idea as it lands in Buffer">
+    <article class="idea" aria-label="A draft as it lands in Buffer">
       <p class="t">Why I let people in before they sign up</p>
       <div><p class="lbl">Draft, from your words, lightly edited</p><p>Half the people who found it would hit the sign-up screen and leave. Why would they give their email to something they hadn't seen work? I wouldn't. So now you try it first and sign up after.</p></div>
       <div><p class="lbl">Questions to help you write it</p><ul><li>What did you worry you'd lose by letting people in free?</li><li>Who was the first person to try it this way?</li></ul></div>
