@@ -345,8 +345,8 @@ ${NAV}
   <div class="wrap">
     <h2 id="landH">Where your drafts land.</h2>
     <ol class="where">
-      <li><p>Open Buffer and go to <b>Publish</b>. It's in the left sidebar on the web and the bottom bar in the mobile app.</p></li>
-      <li><p>Switch to the <b>Drafts</b> tab. There's one draft for each channel you picked, with any tag you chose.</p></li>
+      <li><p>Open Buffer. On the web, click <b>Publish</b> in the left sidebar. In the mobile app, tap the menu at the top left, then <b>Channels</b>, then <b>All Channels</b>.</p></li>
+      <li><p>Switch to the <b>Drafts</b> tab. In the app it's along the bottom. There's one draft for each channel you picked, with any tag you chose.</p></li>
       <li><p>Choose <b>Edit</b> on one, finish it in your voice, and schedule it when it's ready.</p></li>
     </ol>
     <p style="margin-top:28px"><a class="btn quiet" href="https://publish.buffer.com/schedule?tab=drafts" target="_blank" rel="noopener">Open your drafts in Buffer</a></p>
@@ -740,7 +740,7 @@ export function appPage(): string {
     <div class="row"><a class="btn" href="https://publish.buffer.com/schedule?tab=drafts" target="_blank" rel="noopener">Open my drafts in Buffer</a></div>
     <ul class="done-list" id="doneList"></ul>
     <p class="muted" id="ideaNote" style="max-width:62ch" hidden></p>
-    <p class="muted" style="max-width:62ch">There's one draft for each channel. Choose <b>Edit</b> on one when you're ready to finish it.</p>
+    <p class="muted" style="max-width:62ch">There's one draft for each channel. Choose <b>Edit</b> on one when you're ready to finish it. To find them again later in Buffer's mobile app, tap the menu at the top left, then <b>Channels</b>, <b>All Channels</b>, and the <b>Drafts</b> tab at the bottom.</p>
     <div class="row"><button id="again" class="btn quiet" type="button">Start a new interview</button></div>
   </div>
 </section>
