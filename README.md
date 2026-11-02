@@ -6,6 +6,12 @@ An interview about what you built. Sign in with Buffer, paste a public GitHub re
 
 Built by Ligaya Beebe for Buffer Commit 2026. Not made by or affiliated with Buffer.
 
+**Or run it in your own agent.** The same interview is also a plugin that keeps a library of your own words on your computer and picks up where you left off each time. Nothing hosted: see [plugin/](plugin/README.md).
+
+```
+/plugin install interviewer --marketplace 1beebe/build-in-public
+```
+
 This README is for people reviewing how it works (the Buffer API use is below) and for builders who want to run their own copy. If you just want to use it, the link above is all you need.
 
 ## How it works
@@ -62,6 +68,7 @@ npm run dev     # local, needs a .dev.vars file with the secrets below
 - Work notes are capped at 500 characters; typed answers at 1,500 characters.
 - An interview holds at most 32 turns and 24,000 transcript characters. Live transcript sync is clamped to the same limits server-side.
 - Each session gets at most 20 typed model calls and four voice starts per hour, and six harvests per day.
+- Memory (opt-in): an unticked setup box keeps, under the Buffer account id rather than the browser session, up to 12 short "still working through" phrases and 30 story titles, sealed with `TOKEN_KEY`, for a year after last use. Never transcripts. Setup lists it with per-item Forget, a Markdown download and Forget everything (`/api/memory/forget`).
 - Run log (opt-out): a setup checkbox, ticked by default, keeps that interview's transcript, harvest output, flags, timings and errors, sealed with `TOKEN_KEY`, for 14 days. Only the owner (`OWNER_ORG_ID`) can read them at `/runs`. Unticked, nothing is kept.
 - Harvest is idempotent: repeating the request returns the existing cards instead of paying for another model call.
 - Model input is capped at 40,000 characters. Typed output is capped at 500 tokens and harvest output at 8,000 tokens.
@@ -72,5 +79,4 @@ npm run dev     # local, needs a .dev.vars file with the secrets below
 
 - A weekly check-in: an optional reminder to do an interview each week, picking up from what shipped since the last one.
 - A come-back reminder: an optional calendar invite on the done screen (an .ics file linking back to the app), with email reminders as a later option.
-- Search across past answers.
-- A skill so a personal agent can run the interview with more context.
+- Search across past answers in the hosted app (the plugin already does this from your own files).
