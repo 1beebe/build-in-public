@@ -286,7 +286,7 @@ const KEPT_CLOSE = "Kept close to your exact words; shape it however you like.";
 function shapedFromTheirs(post: string, picked: Sentence[], minOwn = 0.8): string | undefined {
   post = post.trim().replace(/\s*[—–]\s*/g, ", ");
   const brackets = post.match(/\[[^\]]*\]/g) ?? [];
-  if (brackets.some((b) => b.length > 260) || brackets.join("").length > post.length * 0.4) return undefined;
+  if (brackets.some((b) => b.length > 260) || brackets.join("").length > Math.max(post.length * 0.4, 220)) return undefined;
   const reader = post.replace(/\[[^\]]*\]/g, " ").replace(/^\s*\d+\s*\/\s*/gm, "");
   return organized(reader, picked, minOwn) ? post : undefined;
 }
@@ -296,7 +296,7 @@ function whyRejected(post: string, picked: Sentence[], minOwn: number): { reason
   post = post.trim().replace(/\s*[—–]\s*/g, ", ");
   const brackets = post.match(/\[[^\]]*\]/g) ?? [];
   if (brackets.some((b) => b.length > 260)) return { reason: "a direction in brackets is too long", foreign: [] };
-  if (brackets.join("").length > post.length * 0.4) return { reason: "too much of it is directions in brackets", foreign: [] };
+  if (brackets.join("").length > Math.max(post.length * 0.4, 220)) return { reason: "too much of it is directions in brackets", foreign: [] };
   const reader = post.replace(/\[[^\]]*\]/g, " ").replace(/^\s*\d+\s*\/\s*/gm, "").trim();
   if (reader.length < 40) return { reason: "too short", foreign: [] };
   const theirs = new Set(words(picked.map((x) => x.text).join(" ")));
