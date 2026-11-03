@@ -301,9 +301,9 @@ ${NAV}
 <section class="wrap hero">
   <div>
     <h1>Unblock your stories.</h1>
-    <p class="lead">Thoughtful questions about your actual work. Stories in your own words, saved to Buffer.</p>
+    <p class="lead">The Interviewer asks you thoughtful questions about your actual work and helps you shape the answers into stories in your own words. Then you edit, draft, and schedule them in Buffer.</p>
     ${error ? `<p class="alert" role="alert">${escapeHtml(error)}</p>` : ""}
-    <div class="act"><a class="btn" href="/connect">Connect with Buffer</a><span class="small muted"><a href="https://buffer.com" target="_blank" rel="noopener">The free Buffer plan</a> works.</span></div>
+    <div class="act"><a class="btn" href="/connect">Connect with Buffer</a><span class="small muted">Signs in with Buffer, the social media planner. New to it? <a href="https://buffer.com" target="_blank" rel="noopener">The free plan</a> works.</span></div>
   </div>
   <div class="demo" data-ui>
     <form id="try">
@@ -337,7 +337,10 @@ ${NAV}
 
 <section class="sec" id="sounds" style="background:var(--raised)" aria-labelledby="soundsH">
   <div class="wrap two">
-    <h2 id="soundsH">It asks. You talk or type.</h2>
+    <div>
+      <h2 id="soundsH">Centered on your work and words.</h2>
+      <p class="say">It reads about your week first, then asks the kind of questions a curious friend would. Talk it through out loud or type, whichever comes easier.</p>
+    </div>
     <ol class="talk" aria-label="An example conversation">
       <li class="them rise"><span class="who">The Interviewer</span><p>You let people try it before signing up. What were you seeing before that?</p></li>
       <li class="you rise" style="--i:1"><span class="who">You</span><p>Like half the people who found it would hit the sign-up screen and just leave.</p></li>
@@ -348,11 +351,14 @@ ${NAV}
 
 <section class="sec field" id="keep" aria-labelledby="keepH">
   <div class="wrap two flip">
-    <h2 id="keepH">Saved to Buffer, in your words.</h2>
+    <div>
+      <h2 id="keepH">Your stories, saved in your own words.</h2>
+      <p class="say">It finds the stories in what you said and shapes each one for the channels you post on. Take a draft built from your words with a light editor\u2019s touch, an outline to write from yourself, or the transcript to use with your own tools.</p>
+    </div>
     <article class="idea" aria-label="A draft as it lands in Buffer">
       <p class="t">Why I let people in before they sign up</p>
       <div><p class="lbl">Draft, from your words, lightly edited</p><p>Half the people who found it would hit the sign-up screen and leave. Why would they give their email to something they hadn't seen work? I wouldn't. So now you try it first and sign up after.</p></div>
-      <p class="tag">Or take an outline, or the transcript.</p>
+      <p class="tag">Tag: Building</p>
     </article>
   </div>
 </section>
@@ -362,7 +368,7 @@ ${NAV}
     <figure class="pic"><img src="/img/cafe.webp" alt="Two people talking across a small cafe table, one laughing mid-story" width="960" height="1190" loading="lazy" decoding="async"></figure>
     <div>
       <h2 id="whyH">It won't make things up.</h2>
-      <p class="say">A scaffold, not a ghostwriter. Drafts keep your sentences and never add a new claim. The final word stays with you.</p>
+      <p class="say">Writing is thinking, and your words are powerful. The Interviewer is a scaffold, not a ghostwriter. Drafts keep your sentences and add only what a good editor would, never a new claim. The final word, and your voice, stay with you.</p>
     </div>
   </div>
 </section>
@@ -371,12 +377,12 @@ ${NAV}
   <div class="wrap keptwrap">
     <figure class="pic"><img src="/img/couch.webp" alt="Someone on a couch at night with a laptop, talking and smiling" width="960" height="1190" loading="lazy" decoding="async"></figure>
     <div>
-      <h2 id="keptH">When you connect.</h2>
+      <h2 id="keptH">What happens when you connect.</h2>
       <ul class="conn">
-        <li><b>Buffer:</b> reads your tags and recent posts. Saves only the drafts you approve. Never publishes.</li>
-        <li><b>GitHub:</b> public repos only. No sign-in, and no GitHub needed at all.</li>
-        <li><b>Your interview:</b> encrypted, and gone when you disconnect. Ligaya reads it only if you leave that box ticked.</li>
-        <li><b>Memory:</b> off unless you turn it on.</li>
+        <li><b>Buffer.</b> It reads your tags and recent posts so its questions fit. It only saves the drafts you approve, and never publishes or schedules anything.</li>
+        <li><b>GitHub.</b> It reads your repo\u2019s README and one week of public work. There\u2019s no GitHub sign-in, and you don\u2019t need a repo at all.</li>
+        <li><b>Your interview.</b> It\u2019s encrypted and deleted when you disconnect. If you leave the box ticked at setup, Ligaya can read the transcript for 14 days to improve the interviewer.</li>
+        <li><b>Memory.</b> Off unless you tick it at setup. It remembers what you\u2019re still working through, never the transcript.</li>
       </ul>
       <p class="conn-more"><a href="/privacy">The full privacy note</a></p>
     </div>
