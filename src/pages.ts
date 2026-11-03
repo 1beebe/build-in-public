@@ -183,6 +183,8 @@ const PAGE_STYLE = `
 .where p{margin:0;color:var(--muted);max-width:30ch}
 .where p b{font-weight:600;color:var(--ink)}
 .where-go{margin-top:40px}
+.take .lede{max-width:60ch;margin-top:16px}
+.take-go{margin-top:28px;gap:12px;flex-wrap:wrap}
 @media (max-width:760px){.where{grid-template-columns:1fr}.where li,.where li+li{grid-template-columns:4.25rem 1fr;column-gap:18px;padding:22px 0;border-left:0;border-bottom:1px solid var(--border)}.where .n{grid-row:span 2;font-size:5rem}.where p{grid-column:2}}
 @media (min-width:900px){.keptwrap .kept{grid-template-columns:1fr}}
 .kept{display:grid;gap:28px;margin-top:48px}
@@ -336,7 +338,7 @@ ${NAV}
       <p class="say">See exactly where AI is used, and where it isn't. The models hold the conversation, then shape your stories from what you said.</p>
     </div>
     <ol class="flow-mini" aria-label="A simplified technical workflow">
-      <li><span class="k">No AI</span><b>Read context</b><p>Public GitHub work and recent Buffer posts.</p></li>
+      <li><span class="k">No AI</span><b>Read context</b><p>Your repo's README, this week's public work, and recent Buffer posts.</p></li>
       <li><span class="k">App logic</span><b>Rank threads</b><p>Deterministic rules choose useful starting points.</p></li>
       <li class="ai"><span class="k">AI call</span><b>Hold the interview</b><p>GPT-Live 1 for voice; DeepSeek Flash for typed follow-ups.</p></li>
       <li class="ai"><span class="k">AI call</span><b>Find the stories</b><p>Claude Sonnet 5.5 finds your stories, shapes each for your channels, and lightly edits drafts. No new claims.</p></li>
@@ -358,6 +360,14 @@ ${NAV}
   </div>
 </section>
 
+<section class="sec take" aria-labelledby="takeH">
+  <div class="wrap">
+    <h2 id="takeH">Take it with you.</h2>
+    <p class="lede">The same interview also runs in your own agent. It's a free plugin that keeps a library of your own words on your computer and picks up where you left off each time. If The Interviewer helped you, a star on GitHub helps other builders find it.</p>
+    <div class="row take-go"><a class="btn quiet" href="https://github.com/1beebe/build-in-public/tree/main/plugin" target="_blank" rel="noopener">Get the plugin</a><a class="btn text" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Star it on GitHub</a></div>
+  </div>
+</section>
+
 <section class="sec" id="data" style="background:var(--raised)" aria-labelledby="keptH">
   <div class="wrap">
     <h2 id="keptH">What happens when you connect.</h2>
@@ -365,8 +375,9 @@ ${NAV}
     <figure class="pic"><img src="/img/couch.webp" alt="Someone on a couch at night with a laptop, talking and smiling" width="960" height="1190" loading="lazy" decoding="async"></figure>
     <div class="kept">
       <div><h3>Buffer</h3><p>It reads your tags and recent posts so its questions fit. It only saves the drafts you approve. It never publishes or schedules anything.</p></div>
-      <div><h3>GitHub</h3><p>It reads one week of public commits, pull requests, and issues. There is no GitHub sign-in or access to private code.</p></div>
+      <div><h3>GitHub</h3><p>It reads your repo's README and one week of public commits, pull requests, and issues. There is no GitHub sign-in or access to private code.</p></div>
       <div><h3>Your interview</h3><p>Your current conversation and sign-in are encrypted, expire after 30 days of inactivity, and disappear when you disconnect. If you leave the box ticked at setup, Ligaya can read that transcript for 14 days to improve the interviewer.</p></div>
+      <div><h3>Memory, if you want it</h3><p>Off unless you tick it at setup. It remembers a few things you're still working through and the titles of stories it found, never the transcript, so the next interview picks up where this one stopped. You can forget any of it from setup.</p></div>
       <div><h3>Your privacy</h3><p>No third-party trackers, ads, or data sales. Anonymous funnel counts show what works. <a href="/privacy">The full privacy note</a> has the details.</p></div>
 </div>
     </div>
@@ -608,6 +619,7 @@ button.chip.on{background:var(--ink);color:var(--ground);box-shadow:none}
 .draft .same{font-size:.875rem;color:var(--muted);margin:0}
 .app-foot{display:flex;justify-content:center;margin-top:28px}
 .how{font-size:1rem;max-width:62ch;margin-top:8px}
+.take-done{border-top:1px solid var(--border);padding-top:18px;display:grid;gap:8px;width:100%}.take-done p{max-width:62ch;margin:0}
 .draft .alts{font-size:.875rem;color:var(--muted);margin:0}
 .draft .art-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .few{display:grid;gap:14px}
@@ -694,8 +706,8 @@ export function appPage(): string {
   <header><h1>What did you work on this week?</h1><p class="lede">Paste a public GitHub repo, or describe the work in a sentence or two.</p><p class="muted how" id="howLine">About ten minutes, start to finish. You talk, it finds the stories, and you choose which ones go to Buffer as drafts.</p></header>
   <div class="panel">
     <label class="fieldset" id="orgWrap" hidden><span class="lbl">Buffer organization</span><select id="org"></select></label>
-    <label class="fieldset"><span class="lbl">A repo or a quick note</span><span class="hint">With a repo, it reads this week's public commits, pull requests and issues. Otherwise it starts from what you write here. 500 characters maximum.</span><textarea id="work" maxlength="500" placeholder="github.com/you/project, or: I rebuilt the onboarding for…"></textarea></label>
-    <div class="fieldset" id="kindWrap" hidden><span class="lbl">What are you making?</span><span class="hint" id="kindHint"></span><div class="chips" role="radiogroup" aria-label="What are you making?"><label class="chip"><input type="radio" name="kind" value="posts" checked><span>Posts about my week</span></label><label class="chip"><input type="radio" name="kind" value="long"><span>A longer piece, like a newsletter or article</span></label></div></div>
+    <label class="fieldset"><span class="lbl">A repo or a quick note</span><span class="hint">With a repo, it reads the README and this week's public commits, pull requests and issues. Otherwise it starts from what you write here. 500 characters maximum.</span><textarea id="work" maxlength="500" placeholder="github.com/you/project, or: I rebuilt the onboarding for…"></textarea></label>
+    <div class="fieldset" id="kindWrap" hidden><span class="lbl">What are you making?</span><span class="hint" id="kindHint"></span><div class="chips" role="radiogroup" aria-label="What are you making?"><label class="chip"><input type="radio" name="kind" value="posts" checked><span>Posts about my week</span></label><label class="chip"><input type="radio" name="kind" value="long"><span>A longer piece, like a newsletter or article</span></label><label class="chip"><input type="radio" name="kind" value="both"><span>Both: a longer piece plus a few short posts</span></label></div></div>
     <div class="fieldset" id="chanWrap" hidden><span class="lbl">Shape stories for</span><span class="hint" id="chanHint"></span><div class="chips" id="chans" aria-label="Channels to shape stories for"></div></div>
     <label class="keep"><input type="checkbox" id="keepLog" checked><span>Keep this transcript for 14 days so Ligaya can improve the interviewer. Only she can read it. <a href="/privacy#kept" target="_blank" rel="noopener">What's kept</a></span></label>
     <label class="keep"><input type="checkbox" id="keepMemory"><span>Remember what I'm still working through, so next time the interview picks up where this one stopped. Kept under your Buffer account until you delete it. <a href="/privacy#memory" target="_blank" rel="noopener">What's remembered</a></span></label>
@@ -760,6 +772,7 @@ export function appPage(): string {
     <div id="articleDone" hidden><p class="muted" style="max-width:62ch">Your article is kept in Buffer under Create, then Ideas. Buffer can't publish long pieces, so copy it into Substack or LinkedIn when you're ready.</p><div class="row"><button class="btn quiet" type="button" id="copyArticle">Copy the article</button><button class="btn text" type="button" id="downloadArticle">Download it</button></div></div>
     <p class="muted" style="max-width:62ch">There's one draft for each channel. Choose <b>Edit</b> on one when you're ready to finish it. To find them again later in Buffer's mobile app, tap the menu at the top left, then <b>Channels</b>, <b>All Channels</b>, and the <b>Drafts</b> tab at the bottom.</p>
     <div class="row"><button id="again" class="btn quiet" type="button">Start a new interview</button></div>
+    <div class="take-done"><p class="muted">Got something out of this? The same interview runs in your own agent as a free plugin that remembers your words between interviews. A star on GitHub helps other builders find it.</p><div class="row"><a class="btn text" href="https://github.com/1beebe/build-in-public/tree/main/plugin" target="_blank" rel="noopener">Get the plugin</a><a class="btn text" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Star it on GitHub</a></div></div>
   </div>
 </section>
 <div class="app-foot"><button class="btn text" type="button" data-feedback-open>Feedback or bug</button></div>
@@ -841,7 +854,7 @@ function renderSetup(){
   $("keepLog").checked = state.keepLog !== false;
   drawMemory();
   $("kindWrap").hidden = !state.longformOffered;
-  document.querySelector('input[name=kind][value=' + (state.longform ? "long" : "posts") + ']').checked = true;
+  document.querySelector('input[name=kind][value=' + (state.longform ? (state.alsoShort ? "both" : "long") : "posts") + ']').checked = true;
   $("kindHint").textContent = seen.has("substack") ? "You post on Substack, so a longer piece might fit." : "";
   kindChanged();
   const main = (state.targets || []).map(t => (chans.find(c => c.service === t) || {}).label).filter(Boolean);
@@ -849,11 +862,14 @@ function renderSetup(){
   show("setup");
 }
 
-function longChosen(){ return !$("kindWrap").hidden && document.querySelector("input[name=kind]:checked").value === "long"; }
+function kindChosen(){ return $("kindWrap").hidden ? "short" : ({posts:"short", long:"long", both:"both"})[document.querySelector("input[name=kind]:checked").value] || "short"; }
 function kindChanged(){
-  $("howLine").textContent = longChosen()
+  const k = kindChosen();
+  $("howLine").textContent = k === "long"
     ? "About fifteen to twenty minutes. You talk through one piece, it drafts the piece from your words, and you copy it out. Short posts that share it go to Buffer as drafts."
-    : "About ten minutes, start to finish. You talk, it finds the stories, and you choose which ones go to Buffer as drafts.";
+    : k === "both"
+      ? "About fifteen to twenty minutes. You talk through one piece and whatever else comes up. You get the piece to copy out, plus short posts for the side stories, saved to Buffer as drafts."
+      : "About ten minutes, start to finish. You talk, it finds the stories, and you choose which ones go to Buffer as drafts.";
 }
 document.querySelectorAll("input[name=kind]").forEach(i => i.addEventListener("change", kindChanged));
 
@@ -1114,9 +1130,9 @@ function countPicked(){
 function renderReview(){
   const box = $("drafts"); box.innerHTML = "";
   const outline = state.harvestMode === "outline";
-  $("reviewHead").textContent = state.longform ? "Your piece, from your interview" : "Stories from your interview";
+  $("reviewHead").textContent = state.longform ? (state.alsoShort ? "Your piece and your stories" : "Your piece, from your interview") : "Stories from your interview";
   $("reviewLede").textContent = state.longform
-    ? "Your piece, built from what you said, plus short posts to share it. Edit anything and untick what you don't want. The article is kept in Buffer as an Idea; the short posts go to Drafts when you press Save."
+    ? "Your piece, built from what you said, plus short posts to share it" + (state.alsoShort ? " and short posts for the other stories you told" : "") + ". Edit anything and untick what you don't want. The article is kept in Buffer as an Idea; the short posts go to Drafts when you press Save."
     : outline
     ? "Each card is one post for one channel, outlined in your words. Write it your way and untick what you don't want. Nothing goes to Buffer until you press Save at the bottom."
     : "Each card is one post for one channel, built from what you said and tidied by an editor. Edit anything and untick what you don't want. Nothing goes to Buffer until you press Save at the bottom.";
@@ -1255,7 +1271,7 @@ $("saveSetup").onclick = async () => {
   busyLines("setupBusy", ["Reading this week's public work", "Looking at what you've posted lately", "Choosing a few threads to pull on", "Getting your first question ready"]);
   try {
     const targets = [...document.querySelectorAll("#chans input:checked")].map(i => i.value);
-    state = await api("/api/setup", {organizationId:$("org").value, work:$("work").value, targets: $("chanWrap").hidden ? undefined : targets, keepLog: $("keepLog").checked, keepMemory: $("keepMemory").checked, longform: longChosen()});
+    state = await api("/api/setup", {organizationId:$("org").value, work:$("work").value, targets: $("chanWrap").hidden ? undefined : targets, keepLog: $("keepLog").checked, keepMemory: $("keepMemory").checked, format: kindChosen()});
     state = await api("/api/start", {}); shown = null; drawn = 0; renderTalk(); $("say").focus({preventScroll:true});
   }
   catch(e){ err(e.message); }
