@@ -382,7 +382,7 @@ ${NAV}
     <div>
       <h2 id="keptH">What happens when you connect.</h2>
       <ul class="conn">
-        <li><b>Buffer.</b> It reads your tags and recent posts so its questions fit. It only saves the drafts you approve, and never publishes or schedules anything.</li>
+        <li><b>Buffer.</b> The Interviewer reads your tags and recent posts so its questions fit. It only saves the drafts you approve, and never publishes or schedules anything.</li>
         <li><b>GitHub.</b> It reads your repo\u2019s README and one week of public work. There\u2019s no GitHub sign-in, and you don\u2019t need a repo at all.</li>
         <li><b>Your interview.</b> It\u2019s encrypted and deleted when you disconnect. If you leave the box ticked at setup, Ligaya can read the transcript for 14 days to improve the interviewer.</li>
         <li><b>Memory.</b> Off unless you tick it at setup. It remembers what you\u2019re still working through, never the transcript.</li>
