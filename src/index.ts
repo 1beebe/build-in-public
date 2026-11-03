@@ -340,10 +340,12 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         // Without a repo, the setup note is all the interviewer has to start from.
         if (!s.repo && (s.weekNote ?? "").trim().length < 15) throw new UserError("Tell me a sentence or two about what you're working on, so I know where to start.");
         const noShip: Shipped = { repo: "", commits: [], pulls: [], issues: [] };
-        const [shipped, recent] = await Promise.all([s.repo ? whatShipped(env, s.repo) : noShip, getRecent(client, s.organizationId)]);
+        const began = Date.now();
+        // Memory doesn't depend on the repo or posts, so it's read at the same time.
+        const [shipped, recent, recalled] = await Promise.all([s.repo ? whatShipped(env, s.repo) : noShip, getRecent(client, s.organizationId), recall(env, s)]);
+        const fetched = Date.now() - began;
         s.questions = await planQuestions(shipped, recent, s.weekNote ?? "");
         // If they asked to be remembered, open on what they were in the middle of last time.
-        const recalled = await recall(env, s);
         if (recalled.question) s.questions = [recalled.question, ...s.questions].slice(0, 5);
         s.posts = recent.posts.map((p) => p.slice(0, 300));
         s.brief = [
@@ -376,6 +378,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           : !recalled.question && hasModel(env)
             ? await modelOpener(env, s)
             : opening(s.questions);
+        console.log(`start timings: fetch ${fetched}ms, total ${Date.now() - began}ms`);
         Object.assign(s, { turns: [first], drafts: [], saved: [], savedAsIdeas: [], voice: undefined });
         beginRun(s);
         await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: `started with ${s.questions?.length ?? 0} threads${s.longform ? ", long-form" : ""}` }));

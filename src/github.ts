@@ -63,7 +63,7 @@ export async function whatShipped(env: Env, repo: string, days = 7): Promise<Shi
 
 async function readShipped(env: Env, repo: string, days: number): Promise<Shipped> {
   const since = new Date(Date.now() - days * 86400_000).toISOString();
-  const [meta, commits, pulls, issues] = await Promise.all([
+  const [meta, commits, pulls, issues, readme, layout] = await Promise.all([
     gh<{ description?: string; private?: boolean }>(env, `/repos/${repo}`),
     gh<{ sha: string; html_url: string; commit: { message: string; author?: { date: string } } }[]>(
       env,
@@ -77,8 +77,9 @@ async function readShipped(env: Env, repo: string, days: number): Promise<Shippe
       env,
       `/repos/${repo}/issues?state=closed&since=${since}&per_page=30`,
     ),
+    readmeText(env, repo),
+    topLevel(env, repo),
   ]);
-  const [readme, layout] = await Promise.all([readmeText(env, repo), topLevel(env, repo)]);
   return {
     repo,
     description: meta.description ?? undefined,

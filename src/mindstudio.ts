@@ -18,7 +18,9 @@ export async function step<T>(env: Env, type: string, input: Record<string, unkn
   const { executionToken } = (await start.json()) as { executionToken: string };
 
   const deadline = Date.now() + timeoutMs;
-  for (let delay = 150; Date.now() < deadline; delay = Math.min(delay * 2, 2000)) {
+  // Poll often: a reply is usually ready in 2 to 6 seconds, and a long gap
+  // between polls adds straight to what the person waits.
+  for (let delay = 150; Date.now() < deadline; delay = Math.min(delay * 2, 400)) {
     await new Promise((r) => setTimeout(r, delay));
     const res = await fetch(`${BASE}/steps/${type}/execute-async/poll/${executionToken}`);
     if (res.status >= 502 && res.status <= 504) continue;
