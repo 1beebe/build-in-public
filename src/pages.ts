@@ -391,12 +391,20 @@ ${NAV}
     </div>
   </div>
 </section>
+
+<section class="sec take" style="background:var(--raised)" aria-labelledby="takeH">
+  <div class="wrap">
+    <h2 id="takeH">Take it with you.</h2>
+    <p class="lede">The same interview also runs in your own agent. It's a free plugin that keeps a library of your own words on your computer and picks up where you left off each time. If The Interviewer helped you, a star on GitHub helps other builders find it.</p>
+    <div class="row take-go"><a class="btn quiet" href="https://github.com/1beebe/build-in-public/tree/main/plugin" target="_blank" rel="noopener">Get the plugin</a><a class="btn text" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Star it on GitHub</a></div>
+  </div>
+</section>
 </main>
 
 <footer class="foot">
   <div class="wrap">
     <p class="big" aria-hidden="true">The Interviewer</p>
-    <div class="row"><a class="btn" href="/connect">Connect with Buffer</a><p>Built in public for Buffer Commit by Ligaya Beebe. <a href="/build-flow">See where AI is used</a>. <a href="https://github.com/1beebe/build-in-public/tree/main/plugin" target="_blank" rel="noopener">Get the plugin</a>. <a href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Source on GitHub</a>. Not made by or affiliated with Buffer. <a href="/privacy">Privacy</a>. <button class="foot-link" type="button" data-feedback-open>Feedback</button></p></div>
+    <div class="row"><a class="btn" href="/connect">Connect with Buffer</a><p>Built in public for Buffer Commit by Ligaya Beebe. <a href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Source on GitHub</a>. Not made by or affiliated with Buffer. <a href="/privacy">Privacy</a>. <button class="foot-link" type="button" data-feedback-open>Feedback</button></p></div>
   </div>
 </footer>`,
     { style: PAGE_STYLE, script: LANDING_SCRIPT, pill: false },
