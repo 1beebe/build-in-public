@@ -118,6 +118,50 @@ const PAGE_STYLE = `
 .reply{display:flex;align-items:center;gap:12px;background:var(--ground);border-radius:var(--r-ctl);padding:10px 16px;color:var(--muted);font-size:1rem}
 .demo .note{font-size:1rem;color:var(--muted);max-width:62ch}
 
+/* How it works: three steps inside the live fragment */
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+@media (min-width:560px){.steps{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.step{display:grid;gap:10px;align-content:start;border-radius:16px;padding:14px;background:var(--ground);min-width:0}
+.step>.n{font:500 .75rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.step>b{font-size:1.05rem;line-height:1.2;letter-spacing:-.02em}
+.step .work{background:var(--surface);padding:12px;gap:6px;border:1px solid var(--border)}
+.step .work .ttl{font-size:.9375rem}
+.step .work .meta{font-size:.8125rem}
+.bub{margin:0;font-size:.9375rem;line-height:1.35;padding:10px 12px;border-radius:14px 14px 14px 4px;background:var(--surface);border:1px solid var(--border);overflow-wrap:anywhere}
+.say-how{display:flex;gap:6px;align-items:center;justify-self:end}
+.wave{display:flex;align-items:center;gap:3px;height:28px;padding:0 10px;border-radius:var(--r-ctl);background:var(--accent)}
+.wave i{width:3px;height:8px;border-radius:2px;background:var(--accent-ink)}
+.or{font-size:.8125rem;color:var(--muted);padding:4px 10px;border-radius:var(--r-ctl);border:1px solid var(--border);background:var(--surface)}
+.draft{background:#fffef5;color:#0d2a1c;border-radius:12px;padding:12px;display:grid;gap:6px;box-shadow:0 10px 24px -18px rgba(13,42,28,.5)}
+.draft .t{font-size:.9375rem;font-weight:600;line-height:1.2}
+.draft .l{font-size:.6875rem;text-transform:uppercase;letter-spacing:.07em;color:#3d5446}
+.draft p{margin:0;font-size:.875rem;line-height:1.4;color:#3d5446}
+.draft mark{background:#f6e016;color:#0d2a1c;border-radius:3px;padding:0 2px}
+.chip{font-size:.75rem;font-weight:600;justify-self:start;padding:3px 10px;border-radius:var(--r-ctl);background:var(--ink);color:var(--ground)}
+.demo .note:empty{display:none}
+@media (prefers-reduced-motion:no-preference){
+  .step{animation:stepOn 9s infinite}
+  .step:nth-child(2){animation-delay:3s}.step:nth-child(3){animation-delay:6s}
+  .wave i{animation:waveBar .5s ease-in-out infinite alternate}
+  .wave i:nth-child(2){animation-delay:.1s}.wave i:nth-child(3){animation-delay:.2s}.wave i:nth-child(4){animation-delay:.3s}.wave i:nth-child(5){animation-delay:.15s}
+  .draft mark{animation:markOn 9s infinite both;animation-delay:6.3s}
+}
+@keyframes stepOn{0%,33%{box-shadow:inset 0 0 0 2px var(--ink)}34%,100%{box-shadow:inset 0 0 0 0 transparent}}
+@keyframes waveBar{to{height:20px}}
+@keyframes markOn{0%{background:transparent}6%,100%{background:#f6e016}}
+
+/* Trust and connect */
+.trust{display:grid;gap:clamp(32px,5vw,72px);align-items:center}
+@media (min-width:900px){.trust{grid-template-columns:minmax(0,4fr) minmax(0,8fr)}}
+.trust .pic{aspect-ratio:1/1;max-width:420px}
+.conn{list-style:none;margin:32px 0 0;padding:0;display:grid;gap:16px 40px;font-size:1.1rem}
+@media (min-width:900px){.conn{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.conn li{position:relative;padding-left:26px;max-width:40ch}
+.conn li::before{content:"";position:absolute;left:0;top:.45em;width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:inset 0 0 0 2.5px var(--ink)}
+.conn b{font-weight:600}
+.conn-more{margin-top:24px}
+#data .keptwrap{margin-top:0;align-items:center}
+
 /* Sections */
 .sec{padding-block:clamp(72px,10vw,180px)}
 .sec h2{font-size:clamp(2.1rem,1.3rem + 3vw,3.75rem)}
@@ -170,7 +214,7 @@ const PAGE_STYLE = `
 /* Kept */
 .pic{margin:0;border-radius:var(--r-card);overflow:hidden;background:var(--raised)}
 .pic img{display:block;width:100%;height:100%;object-fit:cover}
-.band{margin:0;height:clamp(240px,40vw,600px);overflow:hidden;background:var(--raised)}
+.band{margin:0;height:clamp(200px,28vw,420px);overflow:hidden;background:var(--raised)}
 .band img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 58%}
 #sounds .pic{margin-top:48px;aspect-ratio:4/5;max-width:440px}
 .keptwrap{display:grid;gap:clamp(36px,5vw,80px);margin-top:48px;align-items:start}
@@ -256,7 +300,7 @@ ${FONTS}
 
 const NAV = `<header class="wrap nav">
   <a class="wordmark" href="/">${MARK}The Interviewer</a>
-  <nav aria-label="Main"><ul><li><a href="/#sounds">How it sounds</a></li><li><a href="/#keep">What you keep</a></li><li><a href="/#hood">Under the hood</a></li><li><a href="/#data">Your data</a></li><li><a href="/privacy">Privacy</a></li></ul></nav>
+  <nav aria-label="Main"><ul><li><a href="/#sounds">How it sounds</a></li><li><a href="/#data">Your data</a></li><li><a href="/privacy">Privacy</a></li></ul></nav>
   <a class="btn small" href="/connect">Connect<span class="long">&nbsp;with Buffer</span></a>
 </header>`;
 
@@ -269,9 +313,9 @@ ${NAV}
 <section class="wrap hero">
   <div>
     <h1>Unblock your stories.</h1>
-    <p class="lead">The Interviewer asks you thoughtful questions, grounded in your actual work, to help you develop stories in your own words. Then edit, draft, and schedule your posts in Buffer.</p>
+    <p class="lead">Thoughtful questions about your actual work. Stories in your own words, saved to Buffer.</p>
     ${error ? `<p class="alert" role="alert">${escapeHtml(error)}</p>` : ""}
-    <div class="act"><a class="btn" href="/connect">Connect with Buffer</a><span class="small muted">Signs in with Buffer, the social media planner. New to it? <a href="https://buffer.com" target="_blank" rel="noopener">The free plan</a> works.</span></div>
+    <div class="act"><a class="btn" href="/connect">Connect with Buffer</a><span class="small muted"><a href="https://buffer.com" target="_blank" rel="noopener">The free Buffer plan</a> works.</span></div>
   </div>
   <div class="demo" data-ui>
     <form id="try">
@@ -279,113 +323,66 @@ ${NAV}
       <input id="tryRepo" name="repo" placeholder="owner/repo" autocomplete="off" spellcheck="false" maxlength="200">
       <button class="btn small" type="submit">Ask me</button>
     </form>
-    <div class="stage">
-      <div class="work" id="tryWork">
-        <span class="kind">Merged pull request</span>
-        <span class="ttl">Let people try it before they sign up</span>
-        <span class="meta"><span>example</span><span>this week</span></span>
-        <pre aria-hidden="true"><span class="d">- requireAccount()</span><span class="a">+ letGuestsTryIt()</span><span>  askToSignUpAfter()</span></pre>
-      </div>
-      <div class="asks">
-        <span class="who">${MARK.replace('class="mark"', 'class="mark" style="width:20px;height:20px"')}The Interviewer</span>
-        <p class="q" id="tryQ" aria-live="polite">You let people try it before signing up. What were you seeing that made you change it?</p>
-        <div class="reply"><span>Your answer, out loud or typed</span></div>
-      </div>
-    </div>
-    <p class="note" id="tryNote">An example opening question. Paste a public repo above to see one about your own latest work.</p>
+    <ol class="steps" aria-label="How it works">
+      <li class="step"><span class="n">1 · Reads</span><b>Your week</b>
+        <div class="work" id="tryWork">
+          <span class="kind">Merged pull request</span>
+          <span class="ttl">Let people try it before they sign up</span>
+          <span class="meta"><span>example</span><span>this week</span></span>
+        </div>
+      </li>
+      <li class="step"><span class="n">2 · Asks</span><b>You talk or type</b>
+        <p class="bub" id="tryQ" aria-live="polite">You merged “Let people try it before they sign up” this week. What made it worth doing now?</p>
+        <span class="say-how" aria-hidden="true"><span class="wave"><i></i><i></i><i></i><i></i><i></i></span><span class="or">or type</span></span>
+      </li>
+      <li class="step"><span class="n">3 · Saves</span><b>Drafts in Buffer</b>
+        <div class="draft">
+          <span class="t">Why I let people in before they sign up</span>
+          <span class="l">Your words, lightly edited</span>
+          <p><mark>Half the people</mark> would hit the sign-up screen <mark>and leave.</mark></p>
+        </div>
+        <span class="chip">LinkedIn · X</span>
+      </li>
+    </ol>
+    <p class="note" id="tryNote"></p>
   </div>
 </section>
 
 <figure class="band" aria-hidden="true"><img src="/img/desk.webp" alt="" width="1600" height="1067" loading="lazy" decoding="async"></figure>
 
-<section class="sec" id="sounds" style="background:var(--raised)">
+<section class="sec" id="sounds" style="background:var(--raised)" aria-labelledby="soundsH">
   <div class="wrap two">
-    <div>
-      <h2 id="soundsH">Centered on your work and words</h2>
-      <p class="say">It reads about your week first, then asks you questions to help you turn your scattered thoughts into a polished narrative arc.</p>
-      <figure class="pic"><img src="/img/cafe.webp" alt="Two people talking across a small cafe table, one laughing mid-story" width="960" height="1190" loading="lazy" decoding="async"></figure>
-    </div>
+    <h2 id="soundsH">It asks. You talk or type.</h2>
     <ol class="talk" aria-label="An example conversation">
       <li class="them rise"><span class="who">The Interviewer</span><p>You let people try it before signing up. What were you seeing before that?</p></li>
       <li class="you rise" style="--i:1"><span class="who">You</span><p>Like half the people who found it would hit the sign-up screen and just leave.</p></li>
-      <li class="flag rise" style="--i:2">Opened beside you: the change you made</li>
-      <li class="them rise" style="--i:3"><span class="who">The Interviewer</span><p>Half is a lot. How did you figure out that's where they were going?</p></li>
-      <li class="you rise" style="--i:4"><span class="who">You</span><p>At first I guessed. Then I checked where people dropped off and watched a few of them hesitate at the sign-up screen.</p></li>
+      <li class="them rise" style="--i:2"><span class="who">The Interviewer</span><p>Half, right at the door. Walk me through the moment you decided to let them in first.</p></li>
     </ol>
-  </div>
-</section>
-
-<section class="sec field" id="keep" aria-labelledby="keepH">
-  <div class="wrap two flip">
-    <div>
-      <h2 id="keepH">Your stories, saved in your own words.</h2>
-      <p class="say">It finds your real stories, helps you articulate your insights, and shapes each one for the channels you post on. Choose your own path: a draft built from your words with a light editor's touch, an outline so you can write the draft yourself, or a transcript you can pull to work on with your own tools. </p>
-    </div>
-    <article class="idea" aria-label="A draft as it lands in Buffer">
-      <p class="t">Why I let people in before they sign up</p>
-      <div><p class="lbl">Draft, from your words, lightly edited</p><p>Half the people who found it would hit the sign-up screen and leave. Why would they give their email to something they hadn't seen work? I wouldn't. So now you try it first and sign up after.</p></div>
-      <div><p class="lbl">Questions to help you write it</p><ul><li>What did you worry you'd lose by letting people in free?</li><li>Who was the first person to try it this way?</li></ul></div>
-      <p class="tag">Tag: Building</p>
-    </article>
   </div>
 </section>
 
 <section class="sec ink" aria-labelledby="whyH">
-  <div class="wrap two">
-    <h2 id="whyH">It won't make things up.</h2>
-    <p class="say">Writing is thinking. Your words are powerful. The Interviewer is a scaffold, not a ghostwriter: it helps you find a stronger place to start. Drafts keep your sentences and add only what a good editor would, a transition here, a tighter line there, never a new claim. Outlines are all you. The final word, and your voice, stay with you.</p>
-  </div>
-</section>
-
-<section class="sec hood" id="hood" aria-labelledby="hoodH">
-  <div class="wrap">
-    <div class="two">
-      <h2 id="hoodH">A peek under the hood.</h2>
-      <p class="say">See exactly where AI is used, and where it isn't. The models hold the conversation, then shape your stories from what you said.</p>
+  <div class="wrap trust">
+    <figure class="pic"><img src="/img/cafe.webp" alt="Two people talking across a small cafe table, one laughing mid-story" width="960" height="1190" loading="lazy" decoding="async"></figure>
+    <div>
+      <h2 id="whyH">It won't make things up.</h2>
+      <p class="say">A scaffold, not a ghostwriter. Drafts keep your sentences and never add a new claim. The final word stays with you.</p>
     </div>
-    <ol class="flow-mini" aria-label="A simplified technical workflow">
-      <li><span class="k">No AI</span><b>Read context</b><p>Your repo's README, this week's public work, and recent Buffer posts.</p></li>
-      <li><span class="k">App logic</span><b>Rank threads</b><p>Deterministic rules choose useful starting points.</p></li>
-      <li class="ai"><span class="k">AI call</span><b>Hold the interview</b><p>GPT-Live 1 for voice; DeepSeek Flash for typed follow-ups.</p></li>
-      <li class="ai"><span class="k">AI call</span><b>Find the stories</b><p>Claude Sonnet 5.5 finds your stories, shapes each for your channels, and lightly edits drafts. No new claims.</p></li>
-      <li><span class="k">Human decision</span><b>Review and save</b><p>You edit, choose, optionally tag, and finish the post.</p></li>
-    </ol>
-    <div class="hood-links"><a class="btn" href="/build-flow">Explore the full workflow</a><a class="btn quiet" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Browse the source on GitHub</a></div>
   </div>
 </section>
 
-<section class="sec land" aria-labelledby="landH">
-  <div class="wrap">
-    <h2 id="landH">Where your drafts land.</h2>
-    <ol class="where">
-      <li><span class="n" aria-hidden="true">1</span><b class="k">Open Buffer</b><p>On the web, <b>Publish</b> in the left sidebar. In the app, the menu at top left, then <b>Channels</b>, then <b>All Channels</b>.</p></li>
-      <li><span class="n" aria-hidden="true">2</span><b class="k">Drafts</b><p>Open the <b>Drafts</b> tab (along the bottom in the app). There's one per channel you picked.</p></li>
-      <li><span class="n" aria-hidden="true">3</span><b class="k">Edit</b><p>Finish it in your voice, then schedule it.</p></li>
-    </ol>
-    <p class="where-go"><a class="btn" href="https://publish.buffer.com/schedule?tab=drafts" target="_blank" rel="noopener">Open your drafts in Buffer</a></p>
-  </div>
-</section>
-
-<section class="sec take" aria-labelledby="takeH">
-  <div class="wrap">
-    <h2 id="takeH">Take it with you.</h2>
-    <p class="lede">The same interview also runs in your own agent. It's a free plugin that keeps a library of your own words on your computer and picks up where you left off each time. If The Interviewer helped you, a star on GitHub helps other builders find it.</p>
-    <div class="row take-go"><a class="btn quiet" href="https://github.com/1beebe/build-in-public/tree/main/plugin" target="_blank" rel="noopener">Get the plugin</a><a class="btn text" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Star it on GitHub</a></div>
-  </div>
-</section>
-
-<section class="sec" id="data" style="background:var(--raised)" aria-labelledby="keptH">
-  <div class="wrap">
-    <h2 id="keptH">What happens when you connect.</h2>
-    <div class="keptwrap">
+<section class="sec" id="data" aria-labelledby="keptH">
+  <div class="wrap keptwrap">
     <figure class="pic"><img src="/img/couch.webp" alt="Someone on a couch at night with a laptop, talking and smiling" width="960" height="1190" loading="lazy" decoding="async"></figure>
-    <div class="kept">
-      <div><h3>Buffer</h3><p>It reads your tags and recent posts so its questions fit. It only saves the drafts you approve. It never publishes or schedules anything.</p></div>
-      <div><h3>GitHub</h3><p>It reads your repo's README and one week of public commits, pull requests, and issues. There is no GitHub sign-in or access to private code.</p></div>
-      <div><h3>Your interview</h3><p>Your current conversation and sign-in are encrypted, expire after 30 days of inactivity, and disappear when you disconnect. If you leave the box ticked at setup, Ligaya can read that transcript for 14 days to improve the interviewer.</p></div>
-      <div><h3>Memory, if you want it</h3><p>Off unless you tick it at setup. It remembers a few things you're still working through and the titles of stories it found, never the transcript, so the next interview picks up where this one stopped. You can forget any of it from setup.</p></div>
-      <div><h3>Your privacy</h3><p>No third-party trackers, ads, or data sales. Anonymous funnel counts show what works. <a href="/privacy">The full privacy note</a> has the details.</p></div>
-</div>
+    <div>
+      <h2 id="keptH">When you connect.</h2>
+      <ul class="conn">
+        <li><b>Buffer:</b> reads your tags and recent posts. Saves only the drafts you approve. Never publishes.</li>
+        <li><b>GitHub:</b> public repos only. No sign-in, and no GitHub needed at all.</li>
+        <li><b>Your interview:</b> encrypted, and gone when you disconnect. Ligaya reads it only if you leave that box ticked.</li>
+        <li><b>Memory:</b> off unless you turn it on.</li>
+      </ul>
+      <p class="conn-more"><a href="/privacy">The full privacy note</a></p>
     </div>
   </div>
 </section>
@@ -394,7 +391,7 @@ ${NAV}
 <footer class="foot">
   <div class="wrap">
     <p class="big" aria-hidden="true">The Interviewer</p>
-    <div class="row"><a class="btn" href="/connect">Connect with Buffer</a><p>Built in public for Buffer Commit by Ligaya Beebe. <a href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Source on GitHub</a>. Not made by or affiliated with Buffer. <a href="/privacy">Privacy</a>. <button class="foot-link" type="button" data-feedback-open>Feedback</button></p></div>
+    <div class="row"><a class="btn" href="/connect">Connect with Buffer</a><p>Built in public for Buffer Commit by Ligaya Beebe. <a href="/build-flow">See where AI is used</a>. <a href="https://github.com/1beebe/build-in-public/tree/main/plugin" target="_blank" rel="noopener">Get the plugin</a>. <a href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Source on GitHub</a>. Not made by or affiliated with Buffer. <a href="/privacy">Privacy</a>. <button class="foot-link" type="button" data-feedback-open>Feedback</button></p></div>
   </div>
 </footer>`,
     { style: PAGE_STYLE, script: LANDING_SCRIPT, pill: false },
