@@ -238,7 +238,7 @@ const FEEDBACK_SCRIPT = `(() => {
 })();`;
 
 function shell(title: string, body: string, opts: { style?: string; script?: string; pill?: boolean } = {}): string {
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <title>${title}</title>
 <meta name="description" content="Talk through what you built, find the stories worth telling, and save them to Buffer in your own words. A thinking scaffold for building in public, not an AI ghostwriter.">
 <meta name="theme-color" content="#f6f6f3" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#07150e" media="(prefers-color-scheme: dark)">
@@ -576,7 +576,7 @@ textarea{resize:vertical;min-height:120px;line-height:1.5}
 #liveBtn.on{background:var(--ink);color:var(--ground)}
 #liveBtn.on .rec{background:var(--accent);border-radius:2px}
 .composer{display:grid;gap:10px}
-.composer textarea{min-height:88px}
+.composer textarea{min-height:88px;overflow-y:auto}
 .done-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding-top:18px;border-top:1px solid var(--border)}
 .topics{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:thin}
 .topics:empty{display:none}
@@ -617,6 +617,11 @@ button.chip.on{background:var(--ink);color:var(--ground);box-shadow:none}
 .pick{justify-self:start;display:inline-flex;align-items:center;gap:10px;font-weight:600;cursor:pointer;min-height:44px}
 .pick input{width:22px;height:22px;margin:0;accent-color:var(--ink);cursor:pointer}
 .draft .same{font-size:.875rem;color:var(--muted);margin:0}
+.draft .fold > summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px;min-height:44px;margin:0}
+.draft .fold > summary::-webkit-details-marker{display:none}
+.draft .fold > summary::after{content:"";width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px);margin-left:4px}
+.draft .fold[open] > summary::after{transform:rotate(225deg) translateY(-1px)}
+.draft .fold[open] > summary{margin-bottom:6px}
 .app-foot{display:flex;justify-content:center;margin-top:28px}
 /* Until the first screen renders, show nothing below the header (the footer link used to flash alone). */
 main.app:not(:has(.screen:not([hidden]))) .app-foot{display:none}
@@ -673,7 +678,7 @@ body:has(main.app) .feedback-open{display:none}
   .live{display:grid;grid-template-columns:1fr;padding:10px}
   #liveBtn{width:100%;min-width:0}
   .live .state{min-width:0;text-align:center}
-  .composer textarea{min-height:112px}
+  .composer textarea{min-height:96px;resize:none}
   .composer .row{display:grid;grid-template-columns:auto 1fr}
   .composer .row .btn.text{justify-self:start}
   .done-row{display:grid;gap:10px}
@@ -916,6 +921,26 @@ async function renderSource(about){
 // The conversation
 let drawn = 0;
 function currentAbout(){ const t = [...(state.turns||[])].reverse().find(t => t.about != null); return t ? t.about : null; }
+// Keep the newest line in view while they talk, unless they've scrolled up to reread.
+let followAt = 0;
+function viewH(){ return window.visualViewport ? window.visualViewport.height : window.innerHeight; }
+function isFollowing(log){
+  if (log.hidden || !log.lastElementChild) return true;
+  if (log.scrollHeight > log.clientHeight + 2) return log.scrollHeight - log.scrollTop - log.clientHeight < 120;
+  return log.getBoundingClientRect().bottom < viewH() + 160;
+}
+function follow(log){
+  if (log.scrollHeight > log.clientHeight + 2) { log.scrollTop = log.scrollHeight; return; }
+  const last = log.lastElementChild; if (!last) return;
+  const over = last.getBoundingClientRect().bottom - (viewH() - 24);
+  if (over > 0) { const now = Date.now(); window.scrollBy({top: over, behavior: now - followAt < 400 ? "auto" : "smooth"}); followAt = now; }
+}
+// The typing box grows with what they write, up to about 40% of what's visible, so the top of the answer stays readable.
+function fitSay(){
+  const t = $("say"); t.style.height = "auto";
+  const max = Math.max(120, Math.round(viewH() * 0.4));
+  t.style.height = Math.min(t.scrollHeight + 2, max) + "px";
+}
 function renderTalk(){
   const about = currentAbout();
   $("topics").innerHTML = "";
@@ -924,7 +949,7 @@ function renderTalk(){
     b.type = "button"; b.title = q.source; b.onclick = () => { renderSource(k); markTopics(); };
     $("topics").append(b);
   });
-  const log = $("log"); log.innerHTML = "";
+  const log = $("log"), following = isFollowing(log); log.innerHTML = "";
   const turns = state.turns || [];
   turns.forEach((t, k) => {
     const li = el("li", (t.who === "you" ? "you" : "them") + (k >= drawn ? " new" : ""));
@@ -948,7 +973,7 @@ function renderTalk(){
   if (busy) { const li = el("li", "them typing new"), p = el("p"); p.textContent = "Thinking about what you said"; li.append(el("span", "who", "The Interviewer"), p); log.append(li); }
   $("liveBox").hidden = !state.live || !window.RTCPeerConnection;
   if (!liveOn()) { orbState(busy ? "thinking" : "idle"); if (!$("liveBox").hidden && !$("liveState").textContent) setLive(""); }
-  show("talk"); log.scrollTop = log.scrollHeight;
+  show("talk"); if (following) follow(log);
   if (about != null && about !== shown) renderSource(about).then(markTopics); else if (shown == null) renderSource(null);
   markTopics();
 }
@@ -960,9 +985,9 @@ async function say(){
   // writer and one interviewer response at a time.
   if (liveOn()) await stopLive();
   err(""); busy = true; $("sendBtn").disabled = true;
-  state.turns = [...(state.turns||[]), {who:"you", text}]; $("say").value = ""; renderTalk();
+  state.turns = [...(state.turns||[]), {who:"you", text}]; $("say").value = ""; fitSay(); renderTalk();
   try { state = await api("/api/say", {text}); busy = false; renderTalk(); }
-  catch(e){ busy = false; state.turns.pop(); drawn = state.turns.length; $("say").value = text; renderTalk(); err(e.message); }
+  catch(e){ busy = false; state.turns.pop(); drawn = state.turns.length; $("say").value = text; fitSay(); renderTalk(); err(e.message); }
   finally { $("sendBtn").disabled = false; $("say").focus(); }
 }
 $("sendBtn").onclick = say;
@@ -977,6 +1002,9 @@ $("nextBtn").onclick = () => {
   if (busy) return;
   $("say").value = "That's enough on that one. Let's move on to something else."; say();
 };
+$("say").addEventListener("input", fitSay);
+$("say").addEventListener("focus", () => { if (matchMedia("(max-width:640px)").matches) setTimeout(() => $("say").closest(".composer").scrollIntoView({block:"end", behavior:"smooth"}), 300); });
+if (window.visualViewport) window.visualViewport.addEventListener("resize", () => { if (document.activeElement === $("say")) fitSay(); });
 $("say").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); say(); } });
 
 // GPT-Live voice. The transcript is synced back so the harvest can read it.
@@ -1094,13 +1122,20 @@ $("harvestBtn").onclick = async () => {
   catch(e){ err(e.message); } finally { busyDone("harvestBusy"); orbState("idle"); $("harvestBtn").disabled = false; $("harvestBtn").textContent = HARVEST_LABEL; }
 };
 // Delight, kept honest: while it reads back, show a few things they really said.
+// Only whole, clean sentences: leading fillers trimmed, anything with filler inside or a dangling end dropped.
 function heardLines(){
-  const said = (state.turns||[]).filter(t => t.who === "you").flatMap(t => t.text.split(/(?<=[.!?])\\s+/))
-    .map(x => x.trim().replace(/[.!?,;:]+$/, "")).filter(x => { const n = x.split(/\\s+/).length; return n >= 4 && n <= 12 && x.length <= 70; });
+  const lead = /^(?:(?:so|and|but|um+|uh+|erm|like|yeah|yes|okay|ok|well|right|oh|i mean|you know|basically|honestly|actually)[,\\s]+)+/i;
+  const filler = /\\b(?:um+|uh+|erm|you know|i mean|kind of like|sort of like|like,)\\b/i;
+  const dangling = /\\b(?:and|but|or|so|the|a|an|to|of|for|with|that|because|which|like|is|was|my|our|it's|i)$/i;
+  const said = (state.turns||[]).filter(t => t.who === "you")
+    .flatMap(t => (t.text.match(/[^.!?]+[.!?]+/g) || []))
+    .map(x => x.trim().replace(lead, "").replace(/[.!?,;:]+$/, "").trim())
+    .filter(x => { const n = x.split(/\\s+/).length; return n >= 6 && n <= 14 && x.length <= 80 && !filler.test(x) && !dangling.test(x) && !/\\*/.test(x) && !/\\b(?:shit|fuck|damn|crap|hell|ass)/i.test(x); })
+    .map(x => x.charAt(0).toUpperCase() + x.slice(1));
   if (!said.length) return [];
   const pick = [], k = Math.min(3, said.length);
   for (let i = 0; i < k; i++) pick.push(said[Math.floor((i + 0.5) * said.length / k)]);
-  return pick.map(x => "You said \u201c" + x + "\u201d");
+  return [...new Set(pick)].map(x => "You said “" + x + "”");
 }
 function wordsSaid(){ return (state.turns||[]).filter(t => t.who === "you").reduce((n, t) => n + (t.text.trim() ? t.text.trim().split(/\\s+/).length : 0), 0); }
 function transcriptMd(){
@@ -1153,12 +1188,15 @@ function renderReview(){
     cb.onchange = countPicked;
     if (d.format) {
       const sh = el("div", "shape"); sh.append(el("span", "fmt", d.article ? "Article · for your newsletter or a LinkedIn article" : "For " + channelName(d.channel) + " · " + d.format)); card.append(sh);
-      const key = (d.title || "").trim().toLowerCase();
-      if (key && seen[key]) card.append(el("p", "same", "Same story as the " + seen[key] + " card, shaped for " + channelName(d.channel) + "."));
+      const key = (d.title || "").trim().toLowerCase(), share = /^sharing: /i.test(d.title || "");
+      if (share) card.append(el("p", "same", "A post to share your piece."));
+      else if (key && seen[key]) card.append(el("p", "same", "Same story as the " + seen[key] + " card."));
       else if (key) seen[key] = channelName(d.channel);
-      if (d.why && !d.article) card.append(el("p", "why", d.why));
+      if (d.why && !d.article && !share && !seen[key + "#"]) card.append(el("p", "why", d.why));
+      if (share || (key && seen[key + "#"])) card.classList.add("repeat"); else if (key) seen[key + "#"] = 1;
     }
     const t = el("input", "title"); t.type = "text"; t.maxLength = 200; t.value = d.title; t.setAttribute("aria-label", "Story title"); card.append(t);
+    if (card.classList.contains("repeat")) t.hidden = true;
     if (d.article && (d.titles||[]).length > 1) card.append(el("p", "alts", "Other titles from your words: " + d.titles.slice(1).join(" · ")));
     const words = el("div"); words.append(el("span", "lbl", d.later ? "A question for later" : outline ? "Outline, in your words" : "Draft, from your words, lightly edited"));
     const x = el("textarea", "text"); x.maxLength = 10000; x.value = d.text; x.setAttribute("aria-label", d.article ? "Article text" : "Post text"); words.append(x); card.append(words);
@@ -1171,12 +1209,15 @@ function renderReview(){
     }
     for (const f of d.flags || []) card.append(el("p", "flag", f));
     if ((d.prompts||[]).length) {
-      const pw = el("div"); pw.append(el("span", "lbl", outline ? "Questions to help you write it, added under your outline" : "Questions to help you finish it. Just for you, not added to the post"));
+      const pw = el("details", "fold"); pw.append(el("summary", "lbl", (outline ? "Questions to help you write it, added under your outline" : "Questions to help you finish it, just for you") + " (" + d.prompts.length + ")"));
+      pw.addEventListener("toggle", () => pw.querySelectorAll("textarea").forEach(grow));
       const pr = el("textarea", "prompts"); pr.maxLength = 1000; pr.value = d.prompts.join("\\n"); pr.setAttribute("aria-label", "Questions, one per line"); pw.append(pr); card.append(pw);
     }
     if (tags().length) {
-      const tagWrap = el("div"); tagWrap.append(el("span", "lbl", "Buffer tag (optional)"));
+      const tagWrap = el("details", "fold"), cur = tags().find(p => p.id === d.tagId), sum = el("summary", "lbl", "Buffer tag: " + (cur ? cur.name : "none"));
+      tagWrap.append(sum);
       const chips = el("div", "chips"); chips.setAttribute("aria-label", "Buffer tag"); tags().forEach((p) => chips.append(chip(p, "pl-" + d.id, "radio", d.tagId === p.id))); tagWrap.append(chips); card.append(tagWrap);
+      chips.addEventListener("change", () => { const on = tags().find(p => chips.querySelector("input:checked")?.value === p.id); sum.textContent = "Buffer tag: " + (on ? on.name : "none"); });
     }
     box.append(card);
   }
