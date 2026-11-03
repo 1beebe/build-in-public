@@ -1131,6 +1131,11 @@ function onGptLiveEvent(ev){
       glFragment("interviewer", ev.delta); setLive("Speaking");
       clearTimeout(gl.quiet); gl.quiet = setTimeout(() => { if (liveOn()) setLive("Your turn"); }, 900);
       break;
+    // The model sometimes hands off a "let me think" task to the app and waits for an answer.
+    // There's nothing to look up, so answer at once and tell it to carry on, or it goes silent.
+    case "session.delegation.created":
+      if (ev.delegation && ev.delegation.target === "client" && dc && dc.readyState === "open") dc.send(JSON.stringify({type:"session.commentary.append", event_id:"deleg_" + Date.now(), delegation_id:ev.delegation.id, content:"Nothing to look up. Don't mention thinking or checking. Respond to what they just said and ask one short question now."}));
+      break;
     case "session.closed": if (liveOn()) stopLive(); break;
     case "error": console.warn("gpt-live", ev.error || ev); break;
   }

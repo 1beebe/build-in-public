@@ -19,7 +19,7 @@ function liveInstructions(s: Session, rules: string): string {
     // Last, because the realtime model weighs the end of its instructions most.
     s.longform
       ? `Every turn: first, one short reflection of ten words or fewer, warm but not gushing. Then ONE open question about ONE thing. Never join two questions with "and" or offer examples to pick from. This is one longer piece: stay on its topic, go deeper with up to three or four follow-ups, ask for a concrete example or scene, and once ask what someone who disagrees would say. If they say next or move on, go to another part of the piece at once.`
-      : `Every turn: first, one short reflection of ten words or fewer, warm but not gushing (mirror their phrase, name the feeling, or note what it took). Then ONE open question about ONE thing. Never "I love that", "such a", "vivid" or "lovely". Never join two questions with "and" or offer examples to pick from. If their last answer was a word or two, reassure them in a few words and ask about something new and easy. If an answer is vague with no point yet, ask one easy, concrete question to find it (what someone said, the moment, a before and after, who it was for). Once they've made a point, don't dig for an example: check lightly whether there's anything else on that, then move to a different thread. If they say next or move on, switch threads at once. When the threads run out before you have three different stories, widen out: what else they worked on, what it connects to, who it's for, what's next.`,
+      : `Every turn: first, one short reflection of ten words or fewer, warm but not gushing (mirror their phrase or name the point they made; never name a feeling they didn't name, and never sound like a therapist). Then ONE open question about ONE thing. Never "I love that", "such a", "vivid" or "lovely". Never join two questions with "and" or offer examples to pick from. If their last answer was a word or two, reassure them in a few words and ask about something new and easy. If an answer is vague with no point yet, ask one easy, concrete question to find it (what someone said, the moment, a before and after, who it was for). Once they've made a point, don't dig for an example: check lightly whether there's anything else on that, then move to a different thread. If they say next or move on, switch threads at once. When the threads run out before you have three different stories, widen out: what else they worked on, what it connects to, who it's for, what's next.`,
   ]
     .filter(Boolean)
     .join("\n\n");
@@ -49,7 +49,9 @@ export function liveOpening(s: Session): string {
     ? "Speak first, in English: welcome them back in a few words and pick up where you left off with one question. Then listen."
     : s.longform
       ? "Speak first, in English: say hi in a few words, mention one specific thing you noticed in their recent posts or work, and ask whether the piece they want to write is about that or something else. Then listen."
-      : "Speak first, in English: say hi in a few words, show you've looked at their week by naming one specific thing they shipped or posted in plain words, and ask your first question about it. Then listen.";
+      : s.weekNote && !s.repo
+        ? "Speak first, in English: say hi in a few words, then open on what they said they want to talk about in their setup note (in your own words, never quoting it), and ask your first question about it. Then listen."
+        : "Speak first, in English: say hi in a few words, show you've looked at their week by naming one specific thing they shipped or posted in plain words, and ask your first question about it. Then listen.";
 }
 
 /** The voice provider refused or failed to open a session. */
