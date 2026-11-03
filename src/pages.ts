@@ -1082,9 +1082,16 @@ function liveOn(){ return pc && pc.connectionState !== "closed"; }
 function drawLive(){ state.turns = liveTurns.filter(t => t.text.trim()).map(t => ({who:t.who, text:t.text, about:t.about})); renderTalk(); }
 function syncLive(now){
   clearTimeout(syncTimer);
-  const send = () => api("/api/voice-turns", {turns: state.turns}).catch(() => {});
+  const send = () => api("/api/voice-turns", {turns: state.turns}).then(nearlyFull).catch(() => {});
   if (now) return send();
   syncTimer = setTimeout(send, 1500);
+}
+// When the transcript is nearly full, ask the voice to wrap up once, so nothing said after is lost.
+const WRAP_UP = "The interview is almost full. Ask one last short question, say it's the last one, and after their answer thank them and tell them to tap \"I'm done. Find my stories\".";
+function nearlyFull(r){
+  if (!r || typeof r.answersLeft !== "number" || r.answersLeft > 2 || !gl || gl.wrapSent || !dc || dc.readyState !== "open") return;
+  gl.wrapSent = true;
+  dc.send(JSON.stringify({type:"session.instructions.append", event_id:"wrap_" + Date.now(), delegation_id:null, content:WRAP_UP}));
 }
 // Keep the phone awake while voice is live: a sleeping screen cuts the mic and loses the answer.
 let wake = null;

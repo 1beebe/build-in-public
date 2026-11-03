@@ -80,7 +80,7 @@ class RequestTooLarge extends Error {}
 const MAX_BODY_BYTES = 64_000;
 const MAX_TURN_CHARS = 1_500;
 const MAX_TRANSCRIPT_CHARS = 24_000;
-const MAX_TURNS = 32;
+const MAX_TURNS = 60;
 const TYPED_CALLS_PER_HOUR = 20;
 const VOICE_STARTS_PER_HOUR = 4;
 const HARVESTS_PER_DAY = 6;
@@ -96,6 +96,17 @@ function textInput(value: unknown, max: number, tooLong: string): string {
 function transcriptSize(turns: Session["turns"] = []): number {
   return turns.reduce((n, t) => n + t.text.length, 0);
 }
+
+// Roughly how many more answers fit, by turn count and by transcript size.
+// The interviewer uses it to wrap up on time instead of hitting a wall.
+function answersLeft(turns: Session["turns"] = []): number {
+  const byTurns = Math.floor((MAX_TURNS - turns.length) / 2);
+  const byChars = Math.floor((MAX_TRANSCRIPT_CHARS - transcriptSize(turns)) / 700);
+  return Math.max(0, Math.min(byTurns, byChars));
+}
+
+const LAST_QUESTION = "\n\nThe interview is almost full: there's room for one more answer. Ask your last question, and say it's the last one.";
+const OUT_OF_ROOM = "\n\nThe interview is full. Ask nothing more: thank them in a line, tell them to tap \"I'm done. Find my stories\" below, and set wrapUp to true.";
 
 function reserveWindow(list: number[] | undefined, windowMs: number, cap: number, message: string): number[] {
   const now = Date.now();
@@ -407,7 +418,8 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         }
         s.turns.push({ who: "you", text });
         const asked = Date.now();
-        const { fallback, ...next } = await reply(env, s.questions, s.turns, s.brief ?? "", s.longform);
+        const left = answersLeft(s.turns);
+        const { fallback, ...next } = await reply(env, s.questions, s.turns, (s.brief ?? "") + (left <= 0 ? OUT_OF_ROOM : left === 1 ? LAST_QUESTION : ""), s.longform);
         s.turns.push(next);
         await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: fallback ? "typed reply FAILED, used the canned agenda question" : "typed reply", ms: Date.now() - asked }));
         result = { ...(await view(env, client, s)), replyFallback: Boolean(fallback), replyMs: Date.now() - asked };
@@ -447,7 +459,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           s.runLoggedAt = Date.now();
           await logRun(env, s, () => {});
         }
-        result = { ok: true };
+        result = { ok: true, answersLeft: answersLeft(s.turns) };
         break;
       }
       case "/api/harvest": {
@@ -687,6 +699,7 @@ async function view(env: Env, client: BufferClient, s: Session, refresh = false)
     saved: s.saved ?? [],
     savedAsIdeas: s.savedAsIdeas ?? [],
     live: Boolean(openaiKey(env)),
+    answersLeft: answersLeft(s.turns),
   };
 }
 

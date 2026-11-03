@@ -68,7 +68,7 @@ npm run dev     # local, needs a .dev.vars file with the secrets below
 
 - POST bodies are rejected above 64 KB before model work starts.
 - Work notes are capped at 500 characters; typed answers at 1,500 characters.
-- An interview holds at most 32 turns and 24,000 transcript characters. Live transcript sync is clamped to the same limits server-side.
+- An interview holds at most 60 turns and 24,000 transcript characters. When there's room for about one more answer, the interviewer asks its last question and then points to "I'm done. Find my stories", in typed and voice alike. Live transcript sync is clamped to the same limits server-side.
 - Each session gets at most 20 typed model calls and four voice starts per hour, and six harvests per day.
 - Memory (opt-in): an unticked setup box keeps, under the Buffer account id rather than the browser session, up to 12 short "still working through" phrases and 30 story titles, sealed with `TOKEN_KEY`, for a year after last use. Never transcripts. Setup lists it with per-item Forget, a Markdown download and Forget everything (`/api/memory/forget`).
 - Run log (opt-out): a setup checkbox, ticked by default, keeps that interview's transcript, harvest output, flags, timings and errors, sealed with `TOKEN_KEY`, for 14 days. Only the owner (`OWNER_ORG_ID`) can read them at `/runs`. Unticked, nothing is kept.

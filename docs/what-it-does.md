@@ -17,6 +17,7 @@ Checked through: `68c8b6a`
    - Long mode stays on one piece and goes deeper. It wraps up when you say "that's the piece".
    - Both goes deep on the piece and takes one easy follow-up on any side story that could stand alone.
    - There's a "Next topic" button.
+   - An interview holds about 30 answers (60 turns, 24,000 characters). Near the end the interviewer asks its last question, then wraps up and points to "I'm done. Find my stories", so nothing said is silently dropped.
 5. **Hand back.** You choose what comes back: story drafts, an outline, or the transcript. The transcript is built in the browser with no model call. Drafts and outlines come from Claude Sonnet.
    - Draft mode works as a light editor: it adds transitions, tightens and fixes grammar, but adds no new claims.
    - Outlines use only your sentences.
@@ -56,7 +57,7 @@ Checked through: `68c8b6a`
 | TYPED_CALLS_PER_HOUR | 20 | src/index.ts |
 | VOICE_STARTS_PER_HOUR | 4 | src/index.ts |
 | HARVESTS_PER_DAY | 6 | src/index.ts |
-| MAX_TURNS | 32 | src/index.ts |
+| MAX_TURNS | 60 | src/index.ts |
 | MAX_TRANSCRIPT_CHARS | 24_000 | src/index.ts |
 | MAX_TURN_CHARS | 1_500 | src/index.ts |
 | MAX_POSTS | 20 | src/buffer.ts |
