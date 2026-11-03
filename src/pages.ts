@@ -183,6 +183,8 @@ const PAGE_STYLE = `
 .where p{margin:0;color:var(--muted);max-width:30ch}
 .where p b{font-weight:600;color:var(--ink)}
 .where-go{margin-top:40px}
+.take .lede{max-width:60ch;margin-top:16px}
+.take-go{margin-top:28px;gap:12px;flex-wrap:wrap}
 @media (max-width:760px){.where{grid-template-columns:1fr}.where li,.where li+li{grid-template-columns:4.25rem 1fr;column-gap:18px;padding:22px 0;border-left:0;border-bottom:1px solid var(--border)}.where .n{grid-row:span 2;font-size:5rem}.where p{grid-column:2}}
 @media (min-width:900px){.keptwrap .kept{grid-template-columns:1fr}}
 .kept{display:grid;gap:28px;margin-top:48px}
@@ -336,7 +338,7 @@ ${NAV}
       <p class="say">See exactly where AI is used, and where it isn't. The models hold the conversation, then shape your stories from what you said.</p>
     </div>
     <ol class="flow-mini" aria-label="A simplified technical workflow">
-      <li><span class="k">No AI</span><b>Read context</b><p>Public GitHub work and recent Buffer posts.</p></li>
+      <li><span class="k">No AI</span><b>Read context</b><p>Your repo's README, this week's public work, and recent Buffer posts.</p></li>
       <li><span class="k">App logic</span><b>Rank threads</b><p>Deterministic rules choose useful starting points.</p></li>
       <li class="ai"><span class="k">AI call</span><b>Hold the interview</b><p>GPT-Live 1 for voice; DeepSeek Flash for typed follow-ups.</p></li>
       <li class="ai"><span class="k">AI call</span><b>Find the stories</b><p>Claude Sonnet 5.5 finds your stories, shapes each for your channels, and lightly edits drafts. No new claims.</p></li>
@@ -358,6 +360,14 @@ ${NAV}
   </div>
 </section>
 
+<section class="sec take" aria-labelledby="takeH">
+  <div class="wrap">
+    <h2 id="takeH">Take it with you.</h2>
+    <p class="lede">The same interview also runs in your own agent. It's a free plugin that keeps a library of your own words on your computer and picks up where you left off each time. If The Interviewer helped you, a star on GitHub helps other builders find it.</p>
+    <div class="row take-go"><a class="btn quiet" href="https://github.com/1beebe/build-in-public/tree/main/plugin" target="_blank" rel="noopener">Get the plugin</a><a class="btn text" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Star it on GitHub</a></div>
+  </div>
+</section>
+
 <section class="sec" id="data" style="background:var(--raised)" aria-labelledby="keptH">
   <div class="wrap">
     <h2 id="keptH">What happens when you connect.</h2>
@@ -365,8 +375,9 @@ ${NAV}
     <figure class="pic"><img src="/img/couch.webp" alt="Someone on a couch at night with a laptop, talking and smiling" width="960" height="1190" loading="lazy" decoding="async"></figure>
     <div class="kept">
       <div><h3>Buffer</h3><p>It reads your tags and recent posts so its questions fit. It only saves the drafts you approve. It never publishes or schedules anything.</p></div>
-      <div><h3>GitHub</h3><p>It reads one week of public commits, pull requests, and issues. There is no GitHub sign-in or access to private code.</p></div>
+      <div><h3>GitHub</h3><p>It reads your repo's README and one week of public commits, pull requests, and issues. There is no GitHub sign-in or access to private code.</p></div>
       <div><h3>Your interview</h3><p>Your current conversation and sign-in are encrypted, expire after 30 days of inactivity, and disappear when you disconnect. If you leave the box ticked at setup, Ligaya can read that transcript for 14 days to improve the interviewer.</p></div>
+      <div><h3>Memory, if you want it</h3><p>Off unless you tick it at setup. It remembers a few things you're still working through and the titles of stories it found, never the transcript, so the next interview picks up where this one stopped. You can forget any of it from setup.</p></div>
       <div><h3>Your privacy</h3><p>No third-party trackers, ads, or data sales. Anonymous funnel counts show what works. <a href="/privacy">The full privacy note</a> has the details.</p></div>
 </div>
     </div>
@@ -608,6 +619,7 @@ button.chip.on{background:var(--ink);color:var(--ground);box-shadow:none}
 .draft .same{font-size:.875rem;color:var(--muted);margin:0}
 .app-foot{display:flex;justify-content:center;margin-top:28px}
 .how{font-size:1rem;max-width:62ch;margin-top:8px}
+.take-done{border-top:1px solid var(--border);padding-top:18px;display:grid;gap:8px;width:100%}.take-done p{max-width:62ch;margin:0}
 .draft .alts{font-size:.875rem;color:var(--muted);margin:0}
 .draft .art-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .few{display:grid;gap:14px}
@@ -760,6 +772,7 @@ export function appPage(): string {
     <div id="articleDone" hidden><p class="muted" style="max-width:62ch">Your article is kept in Buffer under Create, then Ideas. Buffer can't publish long pieces, so copy it into Substack or LinkedIn when you're ready.</p><div class="row"><button class="btn quiet" type="button" id="copyArticle">Copy the article</button><button class="btn text" type="button" id="downloadArticle">Download it</button></div></div>
     <p class="muted" style="max-width:62ch">There's one draft for each channel. Choose <b>Edit</b> on one when you're ready to finish it. To find them again later in Buffer's mobile app, tap the menu at the top left, then <b>Channels</b>, <b>All Channels</b>, and the <b>Drafts</b> tab at the bottom.</p>
     <div class="row"><button id="again" class="btn quiet" type="button">Start a new interview</button></div>
+    <div class="take-done"><p class="muted">Got something out of this? The same interview runs in your own agent as a free plugin that remembers your words between interviews. A star on GitHub helps other builders find it.</p><div class="row"><a class="btn text" href="https://github.com/1beebe/build-in-public/tree/main/plugin" target="_blank" rel="noopener">Get the plugin</a><a class="btn text" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Star it on GitHub</a></div></div>
   </div>
 </section>
 <div class="app-foot"><button class="btn text" type="button" data-feedback-open>Feedback or bug</button></div>
