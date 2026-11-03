@@ -36,6 +36,15 @@ Checked through: `8b5b8e6`
 
 - Run log: opt-out. Ticked by default, it keeps the transcript, harvest output and timings, sealed, for 14 days. Only the owner can read it, at `/runs`.
 - Memory: opt-in. It keeps up to 12 open threads and 30 story titles, never transcripts, for one year after last use. Each item can be forgotten individually.
+  - The next interview opens on the newest open thread it hasn't asked about yet, and steers away from stories already found.
+  - It's filed under the Buffer account, not the browser, so Disconnect doesn't erase it. Setup lists it with Forget per item, Download as Markdown, and Forget everything, which deletes it at once.
+
+## Plugin
+
+- Installs from this repo (`/plugin install interviewer --marketplace 1beebe/build-in-public`) and mirrors the interviewer and editor above, typed only.
+- Keeps a `voice-library` folder of Markdown on the person's own computer: transcripts, stories, positions, open loops, phrases, people, and what's been used. Nothing is hosted.
+- Saves to Buffer Drafts only through the person's own Buffer connection; otherwise drafts are shown to copy.
+- Not mirrored: voice, usage limits, the run log, and the hosted memory screen. The own-words check is an instruction the agent follows, not code.
 
 ## Numbers the checker verifies
 
