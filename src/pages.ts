@@ -244,7 +244,11 @@ function shell(title: string, body: string, opts: { style?: string; script?: str
 <title>${title}</title>
 <meta name="description" content="Talk through what you built, find the stories worth telling, and save them to Buffer in your own words. A thinking scaffold for building in public, not an AI ghostwriter.">
 <meta name="theme-color" content="#f6f6f3" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#07150e" media="(prefers-color-scheme: dark)">
-<link rel="icon" href="data:image/svg+xml,${encodeURIComponent(MARK.replace('class="mark" ', 'xmlns="http://www.w3.org/2000/svg" '))}">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website"><meta property="og:site_name" content="The Interviewer"><meta property="og:url" content="https://interviewer.lbeebe.com/">
+<meta property="og:title" content="The Interviewer: unblock your stories"><meta property="og:description" content="Thoughtful questions about your actual work. Stories in your own words, saved to Buffer.">
+<meta property="og:image" content="https://interviewer.lbeebe.com/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="The Interviewer. Unblock your stories. A shimmering thread of code characters on a dark green ground.">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://interviewer.lbeebe.com/og.png">
 ${FONTS}
 <script>document.documentElement.classList.add("js")</script>
 <style>${STYLE}${opts.style ?? ""}</style></head><body>${body}${opts.pill === false ? "" : FEEDBACK_PILL}${FEEDBACK_WIDGET}<script>${FEEDBACK_SCRIPT}</script>${opts.script ? `<script>${opts.script}</script>` : ""}</body></html>`;
@@ -553,6 +557,7 @@ textarea{resize:vertical;min-height:120px;line-height:1.5}
 .shimmer-line .q{display:block;font-size:.8rem;color:var(--muted);margin-bottom:2px}
 @media (prefers-reduced-motion:reduce){.shimmer-line{transition:none}}
 .busyline span,#voiceState span{display:inline-block;animation:fadein .5s var(--ease)}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
 /* Talk */
@@ -635,7 +640,8 @@ button.chip.on{background:var(--ink);color:var(--ground);box-shadow:none}
 .app-foot{display:flex;justify-content:center;margin-top:28px}
 /* Until the first screen renders, show nothing below the header (the footer link used to flash alone). */
 main.app:not(:has(.screen:not([hidden]))) .app-foot{display:none}
-.how{font-size:1rem;max-width:62ch;margin-top:8px}
+.steps{margin:12px 0 0;padding-left:1.2em;color:var(--muted);display:grid;gap:4px;max-width:56ch}
+.steps b{color:var(--ink);font-weight:600}
 .take-done{border-top:1px solid var(--border);padding-top:18px;display:grid;gap:8px;width:100%}.take-done p{max-width:62ch;margin:0}
 .draft .alts{font-size:.875rem;color:var(--muted);margin:0}
 .draft .art-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
@@ -720,14 +726,14 @@ export function appPage(): string {
 <p id="msg" role="alert" hidden></p>
 
 <section id="setup" class="screen" hidden>
-  <header><h1>What did you work on this week?</h1><p class="lede">Paste a public GitHub repo, or describe the work in a sentence or two.</p><p class="muted how" id="howLine">About ten minutes, start to finish. You talk, it finds the stories, and you choose which ones go to Buffer as drafts.</p></header>
+  <header><h1>What did you work on this week?</h1><ul class="steps"><li><b>No GitHub needed.</b> A sentence about your work is enough.</li><li>Have a public repo? Paste it and I'll read this week's work.</li><li id="howLine">Talk for about 10 minutes, then pick the stories to save to Buffer.</li></ul></header>
   <div class="panel">
     <label class="fieldset" id="orgWrap" hidden><span class="lbl">Buffer organization</span><select id="org"></select></label>
-    <label class="fieldset"><span class="lbl">A repo or a quick note</span><span class="hint">With a repo, it reads the README and this week's public commits, pull requests and issues. Otherwise it starts from what you write here. 500 characters maximum.</span><textarea id="work" maxlength="500" placeholder="github.com/you/project, or: I rebuilt the onboarding for…"></textarea></label>
+    <label class="fieldset"><span class="lbl">A quick note or a repo link</span><span class="hint">Up to 500 characters.</span><textarea id="work" maxlength="500" placeholder="I rebuilt the onboarding for… or github.com/you/project"></textarea></label>
     <div class="fieldset" id="kindWrap" hidden><span class="lbl">What are you making?</span><span class="hint" id="kindHint"></span><div class="chips" role="radiogroup" aria-label="What are you making?"><label class="chip"><input type="radio" name="kind" value="posts" checked><span>Posts about my week</span></label><label class="chip"><input type="radio" name="kind" value="long"><span>A longer piece, like a newsletter or article</span></label><label class="chip"><input type="radio" name="kind" value="both"><span>Both: a longer piece plus a few short posts</span></label></div></div>
     <div class="fieldset" id="chanWrap" hidden><span class="lbl">Shape stories for</span><span class="hint" id="chanHint"></span><div class="chips" id="chans" aria-label="Channels to shape stories for"></div></div>
-    <label class="keep"><input type="checkbox" id="keepLog" checked><span>Keep this transcript for 14 days so Ligaya can improve the interviewer. Only she can read it. <a href="/privacy#kept" target="_blank" rel="noopener">What's kept</a></span></label>
-    <label class="keep"><input type="checkbox" id="keepMemory"><span>Remember what I'm still working through, so next time the interview picks up where this one stopped. Kept under your Buffer account until you delete it. <a href="/privacy#memory" target="_blank" rel="noopener">What's remembered</a></span></label>
+    <label class="keep"><input type="checkbox" id="keepLog" checked><span>Keep this transcript 14 days to help Ligaya improve the app. Only she sees it. <a href="/privacy#kept" target="_blank" rel="noopener">What's kept</a></span></label>
+    <label class="keep"><input type="checkbox" id="keepMemory"><span>Remember open threads so next time picks up where this one stopped. <a href="/privacy#memory" target="_blank" rel="noopener">What's remembered</a></span></label>
     <details class="memory" id="memWrap" hidden><summary>What I remember about your work (<span id="memCount"></span>)</summary><ul id="memList"></ul><div class="row"><button class="btn text" type="button" id="memExport">Download as Markdown</button><button class="btn text" type="button" id="memForgetAll">Forget everything</button></div></details>
     <div class="row"><button id="saveSetup" class="btn" type="button"><span class="rec"></span>Start the interview</button></div>
     <p class="busyline" id="setupBusy" aria-live="polite"></p>
@@ -887,10 +893,10 @@ function kindChosen(){ return $("kindWrap").hidden ? "short" : ({posts:"short", 
 function kindChanged(){
   const k = kindChosen();
   $("howLine").textContent = k === "long"
-    ? "About fifteen to twenty minutes. You talk through one piece, it drafts the piece from your words, and you copy it out. Short posts that share it go to Buffer as drafts."
+    ? "Talk for 15 to 20 minutes. You get the piece to copy out, plus short posts saved to Buffer."
     : k === "both"
-      ? "About fifteen to twenty minutes. You talk through one piece and whatever else comes up. You get the piece to copy out, plus short posts for the side stories, saved to Buffer as drafts."
-      : "About ten minutes, start to finish. You talk, it finds the stories, and you choose which ones go to Buffer as drafts.";
+      ? "Talk for 15 to 20 minutes. You get the piece, plus short posts for the side stories, saved to Buffer."
+      : "Talk for about 10 minutes, then pick the stories to save to Buffer.";
 }
 document.querySelectorAll("input[name=kind]").forEach(i => i.addEventListener("change", kindChanged));
 
@@ -1140,6 +1146,7 @@ $("harvestBtn").onclick = async () => {
     const n = (state.drafts || []).filter(d => !d.later && !d.extra && !d.article).length, art = (state.drafts || []).some(d => d.article);
     if (art || n) await shimmer.finish(art ? "Your piece is ready" : n === 1 ? "One story, ready for you" : (n === 2 ? "Two" : n === 3 ? "Three" : n) + " stories, ready for you");
     shimmer.stop(); renderReview(); window.scrollTo({top:0});
+    if (!matchMedia("(prefers-reduced-motion: reduce)").matches) [...$("drafts").children].slice(0, 4).forEach((c, i) => { c.style.animation = "rise .6s cubic-bezier(.2,.7,.2,1) " + (i * 0.12) + "s both"; c.addEventListener("animationend", () => { c.style.animation = ""; }, {once: true}); });
   }
   catch(e){ err(e.message); } finally { busyDone("harvestBusy"); orbState("idle"); $("harvestBtn").disabled = false; $("harvestBtn").textContent = HARVEST_LABEL; }
 };
@@ -1165,25 +1172,29 @@ const shimmer = (() => {
   const curve = (x, t) => H * 0.5 + H * 0.22 * Math.sin(x / W * 5.2 + t * 0.55) + H * 0.09 * Math.sin(x / W * 11.3 - t * 0.9);
   const patch = (c, r, t) => 0.7 + 0.22 * Math.sin(c * 0.23 + t * 0.9) * Math.sin(r * 0.37 - t * 0.6) + 0.15 * Math.sin((c + r) * 0.11 - t * 0.4);
   function draw(now){
-    const t = (now - t0) / 1000, head = ((t * 0.12) % 1.25) * W, glow = glowAt ? Math.max(0, 1 - (now - glowAt) / 1400) : 0;
+    const t = (now - t0) / 1000, head = ((t * 0.12) % 1.25) * W, dt = glowAt && now >= glowAt ? (now - glowAt) / 1000 : -1;
+    const SW = 0.9, sweepX = dt >= 0 ? dt / SW * W * 1.3 - W * 0.15 : -1e9;
     rings = rings.filter(p => t - p.t < 2.2); ctx.clearRect(0, 0, W, H);
     for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
       const x = c * cw, y = r * LH, behind = head - x;
-      const tail = Math.max(behind < -cw * 2 ? 0 : behind < 0 ? 1 + behind / (cw * 2) : Math.exp(-behind / (W * 1.1)), glow * 0.9);
+      // The ending: a hot front sweeps along the thread, and everything it has passed stays lit and wider, then eases off.
+      let lit = 0, front = 0;
+      if (dt >= 0) { const d = (x - sweepX) / (W * 0.07); front = Math.exp(-d * d); const since = dt - (x + W * 0.15) / (W * 1.3 / SW); lit = Math.max(front, since > 0 ? Math.exp(-since / 1.1) * 0.85 : 0); }
+      const tail = Math.max(behind < -cw * 2 ? 0 : behind < 0 ? 1 + behind / (cw * 2) : Math.exp(-behind / (W * 1.1)), lit);
       let v = 0;
-      if (tail > 0.02) { const off = (y - curve(x, t)) / 20; v = (Math.exp(-off * off * 1.4) + 0.22 * Math.exp(-off * off * 0.18)) * tail; }
+      if (tail > 0.02) { const off = (y - curve(x, t)) / (20 * (1 + lit * 0.9)); v = (Math.exp(-off * off * 1.4) + 0.22 * Math.exp(-off * off * 0.18)) * tail; }
       for (const p of rings) {
         const age = t - p.t, rad = age * 200, band = 22 + age * 24, fade = Math.pow(1 - age / 2.2, 1.6);
         const off = (Math.hypot(x - p.x, y - p.y) - rad) / band; v += Math.exp(-off * off * 2.2) * fade * p.s;
       }
-      v *= patch(c, r, t); if (v < 0.05) continue;
+      v *= patch(c, r, t) * (1 + lit * 0.5); if (v < 0.05) continue;
       const i = r * cols + c; if (Math.random() < 0.2 * v) chars[i] = glyph();
       const near = behind >= 0 && behind < W * 0.12 ? 1 - behind / (W * 0.12) : 0;
-      const h = Math.min(1, Math.max(near * v * 1.4, glow * v, (v - 0.55) / 0.4, 0));
+      const h = Math.min(1, Math.max(near * v * 1.4, front * 1.2, lit * v * 1.1, (v - 0.55) / 0.4, 0));
       // Behind the yellow head the thread shifts slowly through mint, sky, lilac and rose, like light on a soap film.
       const pearl = hsl(150 + 90 * (1 + Math.sin(x / W * 3.1 + y / H * 2.3 + t * 0.35))), pe = Math.min(1, 0.35 + v * 1.6) * (1 - h);
       const mix = k => (cool[k] + (pearl[k] - cool[k]) * pe + (hot[k] - cool[k]) * h) | 0;
-      ctx.fillStyle = "rgba(" + mix(0) + "," + mix(1) + "," + mix(2) + "," + Math.min(0.75, v * 0.85).toFixed(3) + ")";
+      ctx.fillStyle = "rgba(" + mix(0) + "," + mix(1) + "," + mix(2) + "," + Math.min(0.75 + front * 0.25, v * (0.85 + lit * 0.4)).toFixed(3) + ")";
       ctx.fillText(chars[i], x, y);
     }
     if (on && !still()) raf = requestAnimationFrame(draw);
@@ -1208,11 +1219,11 @@ const shimmer = (() => {
       lineTimer = setInterval(() => { if (k < lines.length) put(lines[k++]); }, 3600);
       cancelAnimationFrame(raf); raf = requestAnimationFrame(draw);
     },
-    // One bright breath across the whole field, then the stories take over.
+    // A bright sweep along the thread, then the stories rise into place.
     finish(text){
       clearInterval(lineTimer); if (!on) return Promise.resolve();
       put(text); if (still()) return new Promise(r => setTimeout(r, 700));
-      glowAt = performance.now() + 450; return new Promise(r => setTimeout(r, 1400));
+      glowAt = performance.now() + 450; return new Promise(r => setTimeout(r, 2300));
     },
     stop(){ on = false; clearInterval(lineTimer); cancelAnimationFrame(raf); ctx.clearRect(0, 0, W, H); }
   };
