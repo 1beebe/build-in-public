@@ -12,6 +12,8 @@ Built by Ligaya Beebe for Buffer Commit 2026. Not made by or affiliated with Buf
 /plugin install interviewer --marketplace 1beebe/build-in-public
 ```
 
+The plain list of what the app does lives in [docs/what-it-does.md](docs/what-it-does.md); this README and the landing page are checked against it before each deploy (`npm run docs:check`).
+
 This README is for people reviewing how it works (the Buffer API use is below) and for builders who want to run their own copy. If you just want to use it, the link above is all you need.
 
 ## How it works

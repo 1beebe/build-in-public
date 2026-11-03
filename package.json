@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "check": "tsc"
+    "check": "tsc",
+    "docs:check": "node scripts/docs-check.mjs"
   },
   "repository": {
     "type": "git",
