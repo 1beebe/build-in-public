@@ -727,7 +727,7 @@ export function appPage(): string {
 </div></header>
 <main class="app wrap">
 <p id="msg" role="alert" hidden></p>
-<section id="loading" class="screen" aria-busy="true" aria-live="polite">
+<section id="loading" class="screen" aria-busy="true" aria-live="polite" hidden>
   <header>
     <div class="orb" data-s="connecting" aria-hidden="true"><i></i><i></i><b></b></div>
     <h1>Opening your interview</h1>
@@ -1522,24 +1522,42 @@ function route(){
   renderSetup();
 }
 let opening = false;
+const LOADING_AFTER = 500;
+const LOADING_HOLD = 700;
 function withTimeout(promise, ms, message){
   return new Promise((resolve, reject) => {
     const t = setTimeout(() => reject(new Error(message)), ms);
     promise.then((v) => { clearTimeout(t); resolve(v); }, (e) => { clearTimeout(t); reject(e); });
   });
 }
+function holdLoading(shownAt){
+  if (!shownAt) return Promise.resolve();
+  const wait = LOADING_HOLD - (Date.now() - shownAt);
+  return wait > 0 ? new Promise((r) => setTimeout(r, wait)) : Promise.resolve();
+}
 async function load(){
   if (opening) return;
   opening = true;
+  let shownAt = 0;
+  const slowTimer = setTimeout(() => {
+    shownAt = Date.now();
+    $("boot").hidden = true;
+    for (const s of SCREENS) $(s).hidden = true;
+    $("loading").hidden = false;
+  }, LOADING_AFTER);
   try {
     state = await withTimeout(api("/api/state"), 30000, "This is taking too long. Check your connection and try again.");
+    clearTimeout(slowTimer);
+    await holdLoading(shownAt);
     route();
   } catch(e){
+    clearTimeout(slowTimer);
     if (e && e.message === "reconnect") return;
+    await holdLoading(shownAt);
     showFault(e && e.message);
   } finally { opening = false; }
 }
-window.__interviewRetry = () => { $("boot").hidden = true; $("loading").hidden = false; err(""); load(); };
+window.__interviewRetry = () => { $("boot").hidden = true; err(""); load(); };
 $("saveSetup").onclick = async () => {
   err(""); $("saveSetup").disabled = true; orbState("thinking");
   busyLines("setupBusy", ["Reading this week's public work", "Looking at what you've posted lately", "Choosing a few threads to pull on", "Getting your first question ready"]);
