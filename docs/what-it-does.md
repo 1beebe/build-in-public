@@ -2,12 +2,12 @@
 
 The single source of truth for user-facing behavior. When a change alters what a person sees, what the interviewer does, what comes back, or where it's saved, update this file in the same commit. Every other surface (landing page, README, build-flow diagram, plugin references) is checked against it before each deploy.
 
-Checked through: `8752472`
+Checked through: `18d382e`
 
 ## The flow
 
 1. **Sign in with Buffer.** OAuth with PKCE is the only sign-in. Users never paste an API key.
-2. **Name the work.** A single field takes either a public GitHub repo or a sentence about what you're working on. With a repo, the interviewer reads the README, the repo's top level, and that week's commits, pull requests (with their descriptions) and issues before it asks the first question. Its first question names something you shipped in plain words, never a PR title or commit hash, and skips housekeeping like version bumps, syncs and docs bookkeeping. Early on it asks once whether you want to get into the technical decisions or keep it big picture. Technical questions are about choices and tradeoffs (why this over that, what you dropped), never how the code works. It also reads up to 20 Buffer posts from the last 30 days, so it knows who you write for.
+2. **Name the work.** A single field takes either a public GitHub repo or a sentence about what you're working on. Setup is three short bullets that say up front that no GitHub is needed. With a repo, the interviewer reads the README, the repo's top level, and that week's commits, pull requests (with their descriptions) and issues before it asks the first question. Its first question names something you shipped in plain words, never a PR title or commit hash, and skips housekeeping like version bumps, syncs and docs bookkeeping. Early on it asks once whether you want to get into the technical decisions or keep it big picture. Technical questions are about choices and tradeoffs (why this over that, what you dropped), never how the code works. It also reads up to 20 Buffer posts from the last 30 days, so it knows who you write for.
 3. **Choose what you're making.** The options are posts about my week, a longer piece, or both. Long and both are owner-only unless `LONGFORM=on`.
 4. **Talk.**
    - Voice runs on GPT-Live, which speaks first. Typed answers go to DeepSeek Flash.
@@ -23,7 +23,7 @@ Checked through: `8752472`
    - An own-words check requires 65% of the words to be yours for drafts and 80% for outlines. A post that fails is retried once, then falls back to your cleaned-up words.
    - Swear words are masked and flagged.
    - The top three stories show first, and the rest sit behind "Show more".
-   - While it works, a waiting screen shows a shimmering thread of code characters and one line at a time: what it's doing, and now and then a clean sentence you said (no fillers, fragments or swearing). Reduced motion shows a still thread.
+   - While it works, a waiting screen shows a shimmering thread of code characters and one line at a time: what it's doing, and now and then a clean sentence you said (no fillers, fragments or swearing). When the stories are ready, a yellow sweep runs along the thread and the cards rise into place. Reduced motion shows a still thread.
 6. **What comes back, by mode.**
    - **Short:** stories with a tension and a turn, each shaped for one of your channels and formats.
    - **Long:** one article of up to about 1,200 words in sections, plus title options from your own lines and a short share post per channel.
