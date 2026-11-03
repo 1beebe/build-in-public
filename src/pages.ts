@@ -442,7 +442,7 @@ const LANDING_SCRIPT = `
     if (!m) { $("tryNote").textContent = "Paste a public repo like owner/name."; return; }
     const repo = m[1] + "/" + m[2]; const btn = form.querySelector("button"); btn.disabled = true; $("tryNote").textContent = "Reading " + repo + "…";
     try {
-      const gh = (p) => fetch("https://api.github.com/repos/" + repo + p, {headers:{Accept:"application/vnd.github+json"}}).then(r => { if (r.status === 404) throw new Error("That repo isn't public, or doesn't exist."); if (!r.ok) throw new Error("GitHub is busy right now. Try again in a minute."); return r.json(); });
+      const gh = (p) => fetch("https://api.github.com/repos/" + repo + p, {headers:{Accept:"application/vnd.github+json"}}).then(r => { if (r.status === 404) throw new Error("That repo isn't public, or doesn't exist."); if (!r.ok) throw new Error("Couldn't load that just now. Try again in a minute."); return r.json(); });
       const pulls = await gh("/pulls?state=closed&sort=updated&direction=desc&per_page=15");
       const pr = pulls.filter(p => p.merged_at).sort((a, b) => b.merged_at.localeCompare(a.merged_at))[0];
       let kind, title, when, seed, meta;
@@ -643,6 +643,15 @@ button.chip.on{background:var(--ink);color:var(--ground);box-shadow:none}
 .app-foot{display:flex;justify-content:center;margin-top:28px}
 /* Until the first screen renders, show nothing below the header (the footer link used to flash alone). */
 main.app:not(:has(.screen:not([hidden]))) .app-foot{display:none}
+/* Sign-in failure: one card, centered in the space under the header, not a few lines stuck at the top. */
+main.app:has(#boot:not([hidden])){display:flex;flex-direction:column;padding-block:0;min-height:calc(100vh - 64px);min-height:calc(100dvh - 64px)}
+main.app:has(#boot:not([hidden])) .app-foot{display:none}
+#boot{flex:1;width:100%;max-width:440px;align-content:center;padding-block:28px}
+#boot .panel{gap:14px;padding:clamp(22px,4vw,28px)}
+#boot h1{font-size:clamp(1.65rem,1.35rem + .8vw,2rem)}
+#boot .lede{max-width:none}
+#boot .boot-actions{display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px;margin-top:6px}
+#boot .boot-actions .btn.text{min-height:48px}
 .steps{margin:12px 0 0;padding-left:1.2em;color:var(--muted);display:grid;gap:4px;max-width:56ch}
 .steps b{color:var(--ink);font-weight:600}
 .take-done{border-top:1px solid var(--border);padding-top:18px;display:grid;gap:8px;width:100%}.take-done p{max-width:62ch;margin:0}
@@ -686,6 +695,11 @@ body:has(main.app) .feedback-open{display:none}
   .top .mark{width:26px;height:26px}
   .top .btn.text{min-height:44px;padding-inline:8px;font-size:.875rem}
   main.app{padding-block:16px calc(72px + env(safe-area-inset-bottom))}
+  main.app:has(#boot:not([hidden])){min-height:calc(100vh - 56px);min-height:calc(100dvh - 56px - env(safe-area-inset-bottom))}
+  #boot{padding-block:20px}
+  #boot .boot-actions{display:grid;justify-items:stretch;gap:2px}
+  #boot .boot-actions .btn{width:100%}
+  #boot .boot-actions .btn.text{width:auto;justify-self:center}
   .screen{gap:16px}
   .panel{padding:16px;border-radius:16px;gap:16px}
   .convo .head{gap:12px}
@@ -727,21 +741,17 @@ export function appPage(): string {
 </div></header>
 <main class="app wrap">
 <p id="msg" role="alert" hidden></p>
-<section id="loading" class="screen" aria-busy="true" aria-live="polite" hidden>
-  <header>
-    <div class="orb" data-s="connecting" aria-hidden="true"><i></i><i></i><b></b></div>
-    <h1>Opening your interview</h1>
-    <p class="lede">Getting your Buffer account. This takes a moment.</p>
-  </header>
-</section>
 <section id="boot" class="screen" hidden>
-  <header>
+  <div class="panel">
     <h1>The interview didn't open</h1>
-    <p class="lede" id="bootText" role="alert">Something went wrong, so there's nothing to show yet.</p>
-  </header>
-  <div class="row"><button id="retryBoot" class="btn" type="button">Try again</button></div>
+    <p class="lede" id="bootText" role="alert">Something went wrong on our side. Try again in a moment.</p>
+    <div class="boot-actions">
+      <button id="retryBoot" class="btn" type="button">Try again</button>
+      <button class="btn text" type="button" data-feedback-open>Feedback or bug</button>
+    </div>
+  </div>
 </section>
-<noscript><style>#loading{display:none!important}</style>
+<noscript>
 <section class="screen"><div class="panel"><header><h1>JavaScript is off</h1><p class="lede">The interview needs JavaScript to open. Turn it on and reload this page.</p></header></div></section>
 </noscript>
 
@@ -816,7 +826,7 @@ export function appPage(): string {
     <div class="row"><a class="btn" href="https://publish.buffer.com/schedule?tab=drafts" target="_blank" rel="noopener">Open my drafts in Buffer</a></div>
     <ul class="done-list" id="doneList"></ul>
     <p class="muted" id="ideaNote" style="max-width:62ch" hidden></p>
-    <div id="articleDone" hidden><p class="muted" style="max-width:62ch">Your article is kept in Buffer under Create, then Ideas. Buffer can't publish long pieces, so copy it into Substack or LinkedIn when you're ready.</p><div class="row"><button class="btn quiet" type="button" id="copyArticle">Copy the article</button><button class="btn text" type="button" id="downloadArticle">Download it</button></div></div>
+    <div id="articleDone" hidden><p class="muted" style="max-width:62ch">Your article is kept in Buffer under Create, then Ideas. Long pieces aren't published from here, so copy it into Substack or LinkedIn when you're ready.</p><div class="row"><button class="btn quiet" type="button" id="copyArticle">Copy the article</button><button class="btn text" type="button" id="downloadArticle">Download it</button></div></div>
     <p class="muted" style="max-width:62ch">There's one draft for each channel. Choose <b>Edit</b> on one when you're ready to finish it. To find them again later in Buffer's mobile app, tap the menu at the top left, then <b>Channels</b>, <b>All Channels</b>, and the <b>Drafts</b> tab at the bottom.</p>
     <div class="row"><button id="again" class="btn quiet" type="button">Start a new interview</button></div>
     <div class="take-done"><p class="muted">Got something out of this? The same interview runs in your own agent as a free plugin that remembers your words between interviews. A star on GitHub helps other builders find it.</p><div class="row"><a class="btn text" href="https://github.com/1beebe/build-in-public/tree/main/plugin" target="_blank" rel="noopener">Get the plugin</a><a class="btn text" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Star it on GitHub</a></div></div>
@@ -826,11 +836,10 @@ export function appPage(): string {
 </main>
 <script>
 (function () {
-  function shown() { return document.querySelector("main.app .screen:not(#loading):not(#boot):not([hidden])"); }
+  function shown() { return document.querySelector("main.app .screen:not(#boot):not([hidden])"); }
   function showBoot(message) {
     if (shown()) return;
-    var loading = document.getElementById("loading"), boot = document.getElementById("boot"), text = document.getElementById("bootText");
-    if (loading) loading.hidden = true;
+    var boot = document.getElementById("boot"), text = document.getElementById("bootText");
     if (boot) boot.hidden = false;
     if (text) text.textContent = message || "The page couldn't open your interview. Reload to try again.";
   }
@@ -838,7 +847,7 @@ export function appPage(): string {
     var msg = (e && e.message) || "";
     if (msg.indexOf("ResizeObserver") === 0) return;
     if (e && e.filename && e.filename.indexOf(location.origin) !== 0) return;
-    showBoot("The page couldn't open your interview. Reload to try again.");
+    showBoot("The page ran into a problem. Try again.");
   });
   var retry = document.getElementById("retryBoot");
   if (retry) retry.addEventListener("click", function () {
@@ -856,14 +865,14 @@ const $ = (id) => document.getElementById(id);
 let state = null, shown = null, busy = false;
 const SCREENS = ["setup","talk","waiting","review","transcript","done"];
 function show(id){
-  $("loading").hidden = true; $("boot").hidden = true;
+  $("boot").hidden = true;
   for (const s of SCREENS) $(s).hidden = s !== id;
   $("scope").textContent = state && state.repo ? state.repo : "";
 }
 function err(m){ $("msg").textContent = m || ""; $("msg").hidden = !m; if (m) $("msg").scrollIntoView({block:"nearest", behavior:"smooth"}); }
 function showFault(m){
   for (const s of SCREENS) $(s).hidden = true;
-  $("loading").hidden = true; $("boot").hidden = false;
+  $("boot").hidden = false;
   $("bootText").textContent = m || "Something went wrong. Try again.";
   err(""); window.scrollTo({top:0});
 }
@@ -1510,7 +1519,7 @@ function renderDone(){
   const list = $("doneList"); list.innerHTML = "";
   (state.drafts||[]).filter(d => (state.saved||[]).includes(d.id)).forEach((d, k) => { const li = el("li", "", d.title + (d.channel ? " · " + channelName(d.channel) : "") + (d.article ? " · article, kept as an Idea" : asIdeas.includes(d.id) ? " (saved as an Idea)" : "")); li.style.setProperty("--i", k); list.append(li); });
   const m = asIdeas.length; $("ideaNote").hidden = !m;
-  if (m) $("ideaNote").textContent = "Buffer wouldn't take " + (m === 1 ? "one of these" : m + " of these") + " as a draft. Some channels need an image or video, and plans have a draft limit. " + (m === 1 ? "It's" : "They're") + " in Create, under Ideas, instead.";
+  if (m) $("ideaNote").textContent = (m === 1 ? "One of these couldn't be saved as a draft." : m + " of these couldn't be saved as drafts.") + " Some channels need an image or video, and plans have a draft limit. " + (m === 1 ? "It's" : "They're") + " in Create, under Ideas, instead.";
   $("articleDone").hidden = !articleForDone();
   show("done"); window.scrollTo({top:0});
 }
@@ -1522,38 +1531,20 @@ function route(){
   renderSetup();
 }
 let opening = false;
-const LOADING_AFTER = 2000;
-const LOADING_HOLD = 700;
 function withTimeout(promise, ms, message){
   return new Promise((resolve, reject) => {
     const t = setTimeout(() => reject(new Error(message)), ms);
     promise.then((v) => { clearTimeout(t); resolve(v); }, (e) => { clearTimeout(t); reject(e); });
   });
 }
-function holdLoading(shownAt){
-  if (!shownAt) return Promise.resolve();
-  const wait = LOADING_HOLD - (Date.now() - shownAt);
-  return wait > 0 ? new Promise((r) => setTimeout(r, wait)) : Promise.resolve();
-}
 async function load(){
   if (opening) return;
   opening = true;
-  let shownAt = 0;
-  const slowTimer = setTimeout(() => {
-    shownAt = Date.now();
-    $("boot").hidden = true;
-    for (const s of SCREENS) $(s).hidden = true;
-    $("loading").hidden = false;
-  }, LOADING_AFTER);
   try {
-    state = await withTimeout(api("/api/state"), 30000, "This is taking too long. Check your connection and try again.");
-    clearTimeout(slowTimer);
-    await holdLoading(shownAt);
+    state = await withTimeout(api("/api/state"), 30000, "This is taking longer than it should. Check your connection, then try again.");
     route();
   } catch(e){
-    clearTimeout(slowTimer);
     if (e && e.message === "reconnect") return;
-    await holdLoading(shownAt);
     showFault(e && e.message);
   } finally { opening = false; }
 }

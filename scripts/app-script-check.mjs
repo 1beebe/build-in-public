@@ -1,8 +1,8 @@
 // The signed-in page is drawn by a script embedded in a template literal.
 // A bad escape there is still valid TypeScript, but the browser throws the
 // whole script away and the interview never appears. This check parses every
-// inline script the page would send, and checks the loading and error screens
-// are in the first HTML.
+// inline script the page would send, and checks the error screen is present
+// while the removed opening screen stays gone.
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -25,9 +25,8 @@ scripts.forEach((source, i) => {
   execFileSync(process.execPath, ["--check", file], { stdio: "inherit" });
 });
 
-const loading = html.match(/<section id="loading"[^>]*>/);
-if (!loading || !/\shidden\b/.test(loading[0])) {
-  console.error("The loading screen must start hidden, so a fast load does not flash it.");
+if (html.includes("Opening your interview") || html.includes('id="loading"')) {
+  console.error('The "Opening your interview" screen is back. Sign-in should go straight to the interview.');
   process.exit(1);
 }
 const boot = html.match(/<section id="boot"[^>]*>/);
@@ -36,12 +35,12 @@ if (!boot || !/\shidden\b/.test(boot[0])) {
   process.exit(1);
 }
 const app = scripts[scripts.length - 1];
-if (!app.includes("const LOADING_AFTER = 2000") || !app.includes("const LOADING_HOLD = 700")) {
-  console.error("The page script must wait 2s before showing the loading screen, and keep it up for 700ms once shown.");
+if (app.includes("LOADING_AFTER") || app.includes("LOADING_HOLD")) {
+  console.error("The page script still waits to show an opening screen.");
   process.exit(1);
 }
 if (!app.includes('tap \\"I\'m done. Find my stories\\".')) {
   console.error('The voice wrap-up line is not escaped, so the page script will not parse.');
   process.exit(1);
 }
-console.log(`App page scripts parse (${scripts.length}). Loading and error screens are in the first HTML.`);
+console.log(`App page scripts parse (${scripts.length}). No opening screen; the error screen stays hidden until a failure.`);

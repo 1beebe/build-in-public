@@ -43,8 +43,8 @@ async function gh<T>(env: Env, path: string): Promise<T> {
   const res = await fetch(`https://api.github.com${path}`, { headers });
   if (res.status === 404) throw new RepoError("That repo isn't public, or the link has a typo.");
   if (res.status === 409) return [] as T; // empty repo: nothing shipped yet
-  if (res.status === 403 || res.status === 429) throw new RepoError("GitHub is rate-limiting us. Try again in a few minutes.");
-  if (!res.ok) throw new RepoError(`GitHub returned ${res.status}.`);
+  if (res.status === 403 || res.status === 429) throw new RepoError("Too many requests right now. Try again in a few minutes.");
+  if (!res.ok) throw new RepoError("That repo couldn't be read just now. Try again in a few minutes.");
   return (await res.json()) as T;
 }
 
