@@ -56,7 +56,7 @@ The title is yours, a few plain words naming the story. Everything after `>` is 
 
 **used.md.** Filled in by drafting: which story became which post, on which channel, on what date.
 
-Skip non-answers, filler, and anything that only makes sense next to the question. Fewer, fuller entries beat many thin ones.
+Skip non-answers, filler, anything that only makes sense next to the question, and talk about the session itself (testing this tool, whether the interviewer heard them, their mic), unless that's the story. For people they mention, never guess gender: use their words or "they". Fewer, fuller entries beat many thin ones.
 
 ## README template
 

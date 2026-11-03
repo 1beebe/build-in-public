@@ -13,9 +13,9 @@ This is the self-hosted companion to [The Interviewer](https://interviewer.lbeeb
 
 Pick the one that matches what they asked. If it's unclear, start an interview.
 
-1. **Interview** ("interview me", "weekly interview", "help me find stories in my week"). Read [references/interview.md](references/interview.md), then run the conversation. When they're done, do job 2 straight away.
+1. **Interview** ("interview me", "weekly interview", "help me find stories in my week", "help me with a newsletter piece"). Read [references/interview.md](references/interview.md), then run the conversation. When they're done, do job 2, then offer job 3 with this interview as the material.
 2. **Update the library** (after every interview, or when they paste notes or a transcript of their own). Read [references/library.md](references/library.md) and file what they said.
-3. **Draft from the library** ("write me a post about…", "what have I said about pricing?", "turn last week's story into a LinkedIn post"). Read [references/drafting.md](references/drafting.md).
+3. **Draft** (straight after an interview, or from the library: "write me a post about…", "what have I said about pricing?", "turn last week's story into a LinkedIn post"). Read [references/drafting.md](references/drafting.md).
 
 ## Where the library lives
 
