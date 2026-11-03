@@ -3,7 +3,8 @@ import type { Env } from "./env";
 export interface Shipped {
   repo: string;
   description?: string;
-  readme?: string; // the start of the README, as plain text: what the project is
+  readme?: string; // the README as plain text (up to 5,000 characters): what the project is and how it works
+  layout?: string[]; // top-level files and folders, so the interviewer can see how it's put together
   commits: { sha: string; message: string; url: string; date: string }[];
   pulls: { number: number; title: string; body: string; url: string; mergedAt: string }[];
   issues: { number: number; title: string; url: string; closedAt: string }[];
@@ -77,11 +78,12 @@ async function readShipped(env: Env, repo: string, days: number): Promise<Shippe
       `/repos/${repo}/issues?state=closed&since=${since}&per_page=30`,
     ),
   ]);
-  const readme = await readmeText(env, repo);
+  const [readme, layout] = await Promise.all([readmeText(env, repo), topLevel(env, repo)]);
   return {
     repo,
     description: meta.description ?? undefined,
     readme,
+    layout,
     commits: commits
       .map((c) => ({ sha: c.sha, message: c.commit.message.trim(), url: c.html_url, date: c.commit.author?.date ?? "" }))
       .filter((c) => !/^Merge (pull request|branch)/.test(c.message)),
@@ -110,7 +112,18 @@ async function readmeText(env: Env, repo: string): Promise<string | undefined> {
       .replace(/^[#>*\-\s|]+/gm, "")
       .replace(/\s+/g, " ")
       .trim();
-    return text ? text.slice(0, 1500) : undefined;
+    return text ? text.slice(0, 5000) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+// The repo's top level ("src/", "plugin/", "wrangler.toml"), for a sense of how it's built.
+async function topLevel(env: Env, repo: string): Promise<string[] | undefined> {
+  try {
+    const items = await gh<{ name: string; type: string }[]>(env, `/repos/${repo}/contents`);
+    if (!Array.isArray(items)) return undefined;
+    return items.filter((i) => !i.name.startsWith(".")).slice(0, 40).map((i) => (i.type === "dir" ? `${i.name}/` : i.name));
   } catch {
     return undefined;
   }

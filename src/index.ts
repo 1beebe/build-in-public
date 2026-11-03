@@ -350,8 +350,10 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           s.repo
             ? [
                 `Repo: ${shipped.repo}${shipped.description ? ` — ${shipped.description}` : ""}`,
-                shipped.readme ? `What the project is, from the start of its README (their own description; use it to know what they're building and for whom): ${shipped.readme}` : "",
+                shipped.readme ? `What the project is, from the start of its README (their own description; use it to know what they're building and for whom): ${shipped.readme.slice(0, 1500)}` : "",
                 shippedSummary(shipped) ? `What they shipped lately (newest first):\n${shippedSummary(shipped)}` : "",
+                buildNotes(shipped),
+                TECH_DEPTH,
               ].filter(Boolean).join("\n")
             : "They don't have a GitHub repo for this. Everything you know about their work is what they told you below, so let them show you around it.",
           s.weekNote ? `What they said they worked on this week: ${s.weekNote}` : "They didn't add a note about their week (that's optional; it doesn't mean they did nothing).",
@@ -502,7 +504,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const note = s.longform
           ? `\n\nThey just read the draft of their piece and came back to keep talking. Welcome them back in a few words, without recapping, and ask one easy, open question about a part of the piece that's still thin.`
           : `\n\nThey just looked for stories and found ${found === 1 ? "only one" : found === 0 ? "none yet" : `only ${found}`}, so they came back to keep talking. Welcome them back in a few words, without recapping, and ask one easy, open question from a fresh angle you haven't covered yet.`;
-        const { fallback, wrapUp: _ended, ...next } = await reply(env, s.questions ?? [], s.turns, (s.brief ?? "").slice(0, 6000) + note, s.longform);
+        const { fallback, wrapUp: _ended, ...next } = await reply(env, s.questions ?? [], s.turns, (s.brief ?? "").slice(0, 12000) + note, s.longform);
         s.turns.push(next);
         s.drafts = []; // back to talking: a reload lands on the conversation, and the next harvest reads it all
         await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: fallback ? "keep talking, reply FAILED" : "keep talking" }));
@@ -693,6 +695,25 @@ async function openFromNote(env: Env, s: Session): Promise<Turn> {
   const note = "\n\nThis is the very start of the conversation. Say hi in a few words like a friend catching up, show you've read what they wrote by naming one specific thing from their note in your own words (never quote it back), and ask one easy, open question about it.";
   const { fallback: _f, wrapUp: _w, ...first } = await reply(env, s.questions ?? [], [], (s.brief ?? "") + note, false);
   return { ...first, about: first.about ?? 0 };
+}
+
+// How deep to go on the build is their call, asked once. The interviewer
+// asks about choices and tradeoffs, never how the code works: people who
+// built with AI often can't (and shouldn't have to) explain implementation.
+const TECH_DEPTH = `Technical depth is their choice. Within your first two or three questions, ask once, in your own words, whether they want to get into the technical decisions behind it or keep it big picture. If they say technical, use the build notes: ask why they chose one approach over another, what they tried first, what they dropped, a tradeoff they made, naming the specific thing in plain words. If they say big picture, leave the build notes alone unless they bring it up. Either way, never ask how the code works, how something is implemented or what a file does. Ask about decisions, not mechanics. If they change their mind later, follow them.`;
+
+// What the build looks like under the hood: recent PR descriptions, the rest
+// of the README and the repo's top level. Background for technical questions.
+function buildNotes(shipped: Shipped): string {
+  const clean = (t: string) => t.replace(/```[\s\S]*?```/g, " ").replace(/<!--[\s\S]*?-->/g, " ").replace(/^.*(Co-Authored-By|Generated with|claude\.ai\/code).*$/gim, "").replace(/[#*`>|]/g, "").replace(/\s+/g, " ").trim();
+  const prs = shipped.pulls.filter((p) => clean(p.body).length > 40).slice(0, 6).map((p) => `- ${p.title}: ${clean(p.body).slice(0, 450)}`);
+  const more = (shipped.readme ?? "").slice(1500, 4500).trim();
+  const parts = [
+    prs.length ? `Why they made recent changes, from their pull request descriptions:\n${prs.join("\n")}` : "",
+    more ? `How it works, from further down the README: ${more}` : "",
+    shipped.layout?.length ? `Top level of the repo: ${shipped.layout.join(", ")}` : "",
+  ].filter(Boolean);
+  return parts.length ? `Build notes (background for technical questions; never read file names or code aloud):\n${parts.join("\n")}` : "";
 }
 
 // A short list of recent work for the brief, beyond the few threads on the agenda.
