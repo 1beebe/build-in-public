@@ -204,7 +204,7 @@ const PAGE_STYLE = `
 .pic img{display:block;width:100%;height:100%;object-fit:cover}
 .band{margin:0;height:clamp(200px,28vw,420px);overflow:hidden;background:var(--raised)}
 .band img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 58%}
-#sounds .pic{margin-top:48px;aspect-ratio:4/5;max-width:440px}
+#sounds .two{align-items:center}
 .keptwrap{display:grid;gap:clamp(36px,5vw,80px);margin-top:48px;align-items:start}
 @media (min-width:900px){.keptwrap{grid-template-columns:minmax(0,4fr) minmax(0,8fr)}}
 .keptwrap .pic{aspect-ratio:4/5}
