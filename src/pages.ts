@@ -706,8 +706,8 @@ export function appPage(): string {
   <header><h1>What did you work on this week?</h1><p class="lede">Paste a public GitHub repo, or describe the work in a sentence or two.</p><p class="muted how" id="howLine">About ten minutes, start to finish. You talk, it finds the stories, and you choose which ones go to Buffer as drafts.</p></header>
   <div class="panel">
     <label class="fieldset" id="orgWrap" hidden><span class="lbl">Buffer organization</span><select id="org"></select></label>
-    <label class="fieldset"><span class="lbl">A repo or a quick note</span><span class="hint">With a repo, it reads this week's public commits, pull requests and issues. Otherwise it starts from what you write here. 500 characters maximum.</span><textarea id="work" maxlength="500" placeholder="github.com/you/project, or: I rebuilt the onboarding for…"></textarea></label>
-    <div class="fieldset" id="kindWrap" hidden><span class="lbl">What are you making?</span><span class="hint" id="kindHint"></span><div class="chips" role="radiogroup" aria-label="What are you making?"><label class="chip"><input type="radio" name="kind" value="posts" checked><span>Posts about my week</span></label><label class="chip"><input type="radio" name="kind" value="long"><span>A longer piece, like a newsletter or article</span></label></div></div>
+    <label class="fieldset"><span class="lbl">A repo or a quick note</span><span class="hint">With a repo, it reads the README and this week's public commits, pull requests and issues. Otherwise it starts from what you write here. 500 characters maximum.</span><textarea id="work" maxlength="500" placeholder="github.com/you/project, or: I rebuilt the onboarding for…"></textarea></label>
+    <div class="fieldset" id="kindWrap" hidden><span class="lbl">What are you making?</span><span class="hint" id="kindHint"></span><div class="chips" role="radiogroup" aria-label="What are you making?"><label class="chip"><input type="radio" name="kind" value="posts" checked><span>Posts about my week</span></label><label class="chip"><input type="radio" name="kind" value="long"><span>A longer piece, like a newsletter or article</span></label><label class="chip"><input type="radio" name="kind" value="both"><span>Both: a longer piece plus a few short posts</span></label></div></div>
     <div class="fieldset" id="chanWrap" hidden><span class="lbl">Shape stories for</span><span class="hint" id="chanHint"></span><div class="chips" id="chans" aria-label="Channels to shape stories for"></div></div>
     <label class="keep"><input type="checkbox" id="keepLog" checked><span>Keep this transcript for 14 days so Ligaya can improve the interviewer. Only she can read it. <a href="/privacy#kept" target="_blank" rel="noopener">What's kept</a></span></label>
     <label class="keep"><input type="checkbox" id="keepMemory"><span>Remember what I'm still working through, so next time the interview picks up where this one stopped. Kept under your Buffer account until you delete it. <a href="/privacy#memory" target="_blank" rel="noopener">What's remembered</a></span></label>
@@ -854,7 +854,7 @@ function renderSetup(){
   $("keepLog").checked = state.keepLog !== false;
   drawMemory();
   $("kindWrap").hidden = !state.longformOffered;
-  document.querySelector('input[name=kind][value=' + (state.longform ? "long" : "posts") + ']').checked = true;
+  document.querySelector('input[name=kind][value=' + (state.longform ? (state.alsoShort ? "both" : "long") : "posts") + ']').checked = true;
   $("kindHint").textContent = seen.has("substack") ? "You post on Substack, so a longer piece might fit." : "";
   kindChanged();
   const main = (state.targets || []).map(t => (chans.find(c => c.service === t) || {}).label).filter(Boolean);
@@ -862,11 +862,14 @@ function renderSetup(){
   show("setup");
 }
 
-function longChosen(){ return !$("kindWrap").hidden && document.querySelector("input[name=kind]:checked").value === "long"; }
+function kindChosen(){ return $("kindWrap").hidden ? "short" : ({posts:"short", long:"long", both:"both"})[document.querySelector("input[name=kind]:checked").value] || "short"; }
 function kindChanged(){
-  $("howLine").textContent = longChosen()
+  const k = kindChosen();
+  $("howLine").textContent = k === "long"
     ? "About fifteen to twenty minutes. You talk through one piece, it drafts the piece from your words, and you copy it out. Short posts that share it go to Buffer as drafts."
-    : "About ten minutes, start to finish. You talk, it finds the stories, and you choose which ones go to Buffer as drafts.";
+    : k === "both"
+      ? "About fifteen to twenty minutes. You talk through one piece and whatever else comes up. You get the piece to copy out, plus short posts for the side stories, saved to Buffer as drafts."
+      : "About ten minutes, start to finish. You talk, it finds the stories, and you choose which ones go to Buffer as drafts.";
 }
 document.querySelectorAll("input[name=kind]").forEach(i => i.addEventListener("change", kindChanged));
 
@@ -1127,9 +1130,9 @@ function countPicked(){
 function renderReview(){
   const box = $("drafts"); box.innerHTML = "";
   const outline = state.harvestMode === "outline";
-  $("reviewHead").textContent = state.longform ? "Your piece, from your interview" : "Stories from your interview";
+  $("reviewHead").textContent = state.longform ? (state.alsoShort ? "Your piece and your stories" : "Your piece, from your interview") : "Stories from your interview";
   $("reviewLede").textContent = state.longform
-    ? "Your piece, built from what you said, plus short posts to share it. Edit anything and untick what you don't want. The article is kept in Buffer as an Idea; the short posts go to Drafts when you press Save."
+    ? "Your piece, built from what you said, plus short posts to share it" + (state.alsoShort ? " and short posts for the other stories you told" : "") + ". Edit anything and untick what you don't want. The article is kept in Buffer as an Idea; the short posts go to Drafts when you press Save."
     : outline
     ? "Each card is one post for one channel, outlined in your words. Write it your way and untick what you don't want. Nothing goes to Buffer until you press Save at the bottom."
     : "Each card is one post for one channel, built from what you said and tidied by an editor. Edit anything and untick what you don't want. Nothing goes to Buffer until you press Save at the bottom.";
@@ -1268,7 +1271,7 @@ $("saveSetup").onclick = async () => {
   busyLines("setupBusy", ["Reading this week's public work", "Looking at what you've posted lately", "Choosing a few threads to pull on", "Getting your first question ready"]);
   try {
     const targets = [...document.querySelectorAll("#chans input:checked")].map(i => i.value);
-    state = await api("/api/setup", {organizationId:$("org").value, work:$("work").value, targets: $("chanWrap").hidden ? undefined : targets, keepLog: $("keepLog").checked, keepMemory: $("keepMemory").checked, longform: longChosen()});
+    state = await api("/api/setup", {organizationId:$("org").value, work:$("work").value, targets: $("chanWrap").hidden ? undefined : targets, keepLog: $("keepLog").checked, keepMemory: $("keepMemory").checked, format: kindChosen()});
     state = await api("/api/start", {}); shown = null; drawn = 0; renderTalk(); $("say").focus({preventScroll:true});
   }
   catch(e){ err(e.message); }
