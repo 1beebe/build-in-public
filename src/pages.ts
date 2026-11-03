@@ -731,7 +731,7 @@ export function appPage(): string {
     <label class="fieldset" id="orgWrap" hidden><span class="lbl">Buffer organization</span><select id="org"></select></label>
     <label class="fieldset"><span class="lbl">A quick note or a repo link</span><span class="hint">Up to 500 characters.</span><textarea id="work" maxlength="500" placeholder="I rebuilt the onboarding for… or github.com/you/project"></textarea></label>
     <div class="fieldset" id="kindWrap" hidden><span class="lbl">What are you making?</span><span class="hint" id="kindHint"></span><div class="chips" role="radiogroup" aria-label="What are you making?"><label class="chip"><input type="radio" name="kind" value="posts" checked><span>Posts about my week</span></label><label class="chip"><input type="radio" name="kind" value="long"><span>A longer piece, like a newsletter or article</span></label><label class="chip"><input type="radio" name="kind" value="both"><span>Both: a longer piece plus a few short posts</span></label></div></div>
-    <div class="fieldset" id="chanWrap" hidden><span class="lbl">Shape stories for</span><span class="hint" id="chanHint"></span><div class="chips" id="chans" aria-label="Channels to shape stories for"></div></div>
+    <div class="fieldset" id="chanWrap" hidden><span class="lbl" id="chanLbl">Write drafts for</span><span class="hint" id="chanHint"></span><div class="chips" id="chans" aria-label="Channels to shape stories for"></div></div>
     <label class="keep"><input type="checkbox" id="keepLog" checked><span>Keep this transcript 14 days to help Ligaya improve the app. Only she sees it. <a href="/privacy#kept" target="_blank" rel="noopener">What's kept</a></span></label>
     <label class="keep"><input type="checkbox" id="keepMemory"><span>Remember open threads so next time picks up where this one stopped. <a href="/privacy#memory" target="_blank" rel="noopener">What's remembered</a></span></label>
     <details class="memory" id="memWrap" hidden><summary>What I remember about your work (<span id="memCount"></span>)</summary><ul id="memList"></ul><div class="row"><button class="btn text" type="button" id="memExport">Download as Markdown</button><button class="btn text" type="button" id="memForgetAll">Forget everything</button></div></details>
@@ -884,8 +884,12 @@ function renderSetup(){
   document.querySelector('input[name=kind][value=' + (state.longform ? (state.alsoShort ? "both" : "long") : "posts") + ']').checked = true;
   $("kindHint").textContent = seen.has("substack") ? "You post on Substack, so a longer piece might fit." : "";
   kindChanged();
-  const main = (state.targets || []).map(t => (chans.find(c => c.service === t) || {}).label).filter(Boolean);
-  $("chanHint").textContent = main.length ? "Looks like you post mostly on " + main.join(" and ") + ". Change it if you like." : "Pick where you'd like to post these stories.";
+  // One channel: nothing to choose, so just say where the drafts go. Several: plain instruction, most-used ones pre-ticked.
+  const only = seen.size === 1 ? chans.find(c => seen.has(c.service)) : null;
+  if (only) $("chans").querySelector("input").checked = true;
+  $("chans").hidden = !!only;
+  $("chanLbl").textContent = only ? "Drafts will be written for " + only.label : "Write drafts for";
+  $("chanHint").textContent = only ? "That's the channel you have connected in Buffer." : (state.targets || []).length ? "Tap each channel you want drafts for. The ones you post on most are already picked." : "Tap each channel you want drafts for.";
   show("setup");
 }
 
