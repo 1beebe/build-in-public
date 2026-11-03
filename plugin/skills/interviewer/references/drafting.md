@@ -72,6 +72,8 @@ For each post, three questions that help them finish or adapt it, the way a shar
 
 For one longer piece, find its one main idea, who it's for, the moment that carries it, the tension and the turn. Draft (or outline) 800 to 1,200 words when the material supports it, shorter when it doesn't, never padded. Open on their line that carries the tension, use three to five sections each starting `[Section: …]` on its own line, and end on their line about what they believe now. Offer two or three title options lifted from phrases they actually said, three finishing questions, and one short post per channel pointing to the piece (40 to 100 words, ending `[Link to the piece]`).
 
+For both (a piece plus short posts), prepare the piece and its share posts first, then run steps 1 to 5 on the same conversation for standalone posts, leaving out anything the piece already covers.
+
 ## Saving
 
 If Buffer is connected as a tool, offer to save each post to its channel's Drafts, never scheduled or published. For an outline, put the finishing questions under it. A long-form piece can't be a Buffer post: offer it as a Markdown file, or save it as a Buffer Idea. If Buffer refuses a draft (a plan limit, or a channel like Instagram that needs media), save it as an Idea instead and say so. Without Buffer, show everything ready to copy.
