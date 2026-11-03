@@ -404,7 +404,7 @@ ${NAV}
 <footer class="foot">
   <div class="wrap">
     <p class="big" aria-hidden="true">The Interviewer</p>
-    <div class="row"><a class="btn" href="/connect">Connect with Buffer</a><p>Built in public for Buffer Commit by Ligaya Beebe. <a href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Source on GitHub</a>. Not made by or affiliated with Buffer. <a href="/privacy">Privacy</a>. <button class="foot-link" type="button" data-feedback-open>Feedback</button></p></div>
+    <div class="row"><a class="btn" href="/connect">Connect with Buffer</a><p>Built in public for Buffer Commit by Ligaya Beebe. Not made by or affiliated with Buffer. <a href="/privacy">Privacy</a>. <button class="foot-link" type="button" data-feedback-open>Feedback</button></p></div>
   </div>
 </footer>`,
     { style: PAGE_STYLE, script: LANDING_SCRIPT, pill: false },
