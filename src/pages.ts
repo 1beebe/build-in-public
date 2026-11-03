@@ -139,6 +139,8 @@ const PAGE_STYLE = `
 @keyframes waveBar{to{height:18px}}
 
 /* Trust and connect */
+.on-ink{color:#f6f6f3;text-underline-offset:4px}
+.on-ink:hover{color:var(--accent)}
 .trust{display:grid;gap:clamp(32px,5vw,72px);align-items:center}
 @media (min-width:900px){.trust{grid-template-columns:minmax(0,4fr) minmax(0,8fr)}}
 .trust .pic{aspect-ratio:1/1;max-width:420px}
@@ -369,6 +371,7 @@ ${NAV}
     <div>
       <h2 id="whyH">It won't make things up.</h2>
       <p class="say">Writing is thinking, and your words are powerful. The Interviewer is a scaffold, not a ghostwriter. Drafts keep your sentences and add only what a good editor would, never a new claim. The final word, and your voice, stay with you.</p>
+      <p class="say"><a class="on-ink" href="/build-flow">See exactly where AI is used</a></p>
     </div>
   </div>
 </section>
