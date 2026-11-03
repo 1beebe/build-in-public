@@ -727,6 +727,23 @@ export function appPage(): string {
 </div></header>
 <main class="app wrap">
 <p id="msg" role="alert" hidden></p>
+<section id="loading" class="screen" aria-busy="true" aria-live="polite">
+  <header>
+    <div class="orb" data-s="connecting" aria-hidden="true"><i></i><i></i><b></b></div>
+    <h1>Opening your interview</h1>
+    <p class="lede">Getting your Buffer account. This takes a moment.</p>
+  </header>
+</section>
+<section id="boot" class="screen" hidden>
+  <header>
+    <h1>The interview didn't open</h1>
+    <p class="lede" id="bootText" role="alert">Something went wrong, so there's nothing to show yet.</p>
+  </header>
+  <div class="row"><button id="retryBoot" class="btn" type="button">Try again</button></div>
+</section>
+<noscript><style>#loading{display:none!important}</style>
+<section class="screen"><div class="panel"><header><h1>JavaScript is off</h1><p class="lede">The interview needs JavaScript to open. Turn it on and reload this page.</p></header></div></section>
+</noscript>
 
 <section id="setup" class="screen" hidden>
   <header><h1>What did you work on this week?</h1><ul class="steps"><li><b>No GitHub needed.</b> A sentence about your work is enough.</li><li>Have a public repo? Paste it and I'll read this week's work.</li><li id="howLine">Talk for about 10 minutes, then pick the stories to save to Buffer.</li></ul></header>
@@ -806,7 +823,30 @@ export function appPage(): string {
   </div>
 </section>
 <div class="app-foot"><button class="btn text" type="button" data-feedback-open>Feedback or bug</button></div>
-</main>`,
+</main>
+<script>
+(function () {
+  function shown() { return document.querySelector("main.app .screen:not(#loading):not(#boot):not([hidden])"); }
+  function showBoot(message) {
+    if (shown()) return;
+    var loading = document.getElementById("loading"), boot = document.getElementById("boot"), text = document.getElementById("bootText");
+    if (loading) loading.hidden = true;
+    if (boot) boot.hidden = false;
+    if (text) text.textContent = message || "The page couldn't open your interview. Reload to try again.";
+  }
+  window.addEventListener("error", function (e) {
+    var msg = (e && e.message) || "";
+    if (msg.indexOf("ResizeObserver") === 0) return;
+    if (e && e.filename && e.filename.indexOf(location.origin) !== 0) return;
+    showBoot("The page couldn't open your interview. Reload to try again.");
+  });
+  var retry = document.getElementById("retryBoot");
+  if (retry) retry.addEventListener("click", function () {
+    if (typeof window.__interviewRetry === "function") window.__interviewRetry();
+    else location.reload();
+  });
+})();
+</script>`,
     { style: APP_STYLE, script: APP_SCRIPT },
   );
 }
@@ -815,8 +855,18 @@ const APP_SCRIPT = `
 const $ = (id) => document.getElementById(id);
 let state = null, shown = null, busy = false;
 const SCREENS = ["setup","talk","waiting","review","transcript","done"];
-function show(id){ for (const s of SCREENS) $(s).hidden = s !== id; $("scope").textContent = state && state.repo ? state.repo : ""; }
+function show(id){
+  $("loading").hidden = true; $("boot").hidden = true;
+  for (const s of SCREENS) $(s).hidden = s !== id;
+  $("scope").textContent = state && state.repo ? state.repo : "";
+}
 function err(m){ $("msg").textContent = m || ""; $("msg").hidden = !m; if (m) $("msg").scrollIntoView({block:"nearest", behavior:"smooth"}); }
+function showFault(m){
+  for (const s of SCREENS) $(s).hidden = true;
+  $("loading").hidden = true; $("boot").hidden = false;
+  $("bootText").textContent = m || "Something went wrong. Try again.";
+  err(""); window.scrollTo({top:0});
+}
 function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 async function api(path, body){
   let res;
@@ -1087,7 +1137,8 @@ function syncLive(now){
   syncTimer = setTimeout(send, 1500);
 }
 // When the transcript is nearly full, ask the voice to wrap up once, so nothing said after is lost.
-const WRAP_UP = "The interview is almost full. Ask one last short question, say it's the last one, and after their answer thank them and tell them to tap \"I'm done. Find my stories\".";
+// The backslashes are doubled on purpose: this script is inside a template literal, and a single \" becomes a raw quote that makes the whole page script invalid.
+const WRAP_UP = "The interview is almost full. Ask one last short question, say it's the last one, and after their answer thank them and tell them to tap \\"I'm done. Find my stories\\".";
 function nearlyFull(r){
   if (!r || typeof r.answersLeft !== "number" || r.answersLeft > 2 || !gl || gl.wrapSent || !dc || dc.readyState !== "open") return;
   gl.wrapSent = true;
@@ -1470,7 +1521,25 @@ function route(){
   if ((state.turns||[]).length) return renderTalk();
   renderSetup();
 }
-async function load(){ try { state = await api("/api/state"); route(); } catch(e){ err(e.message); } }
+let opening = false;
+function withTimeout(promise, ms, message){
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(message)), ms);
+    promise.then((v) => { clearTimeout(t); resolve(v); }, (e) => { clearTimeout(t); reject(e); });
+  });
+}
+async function load(){
+  if (opening) return;
+  opening = true;
+  try {
+    state = await withTimeout(api("/api/state"), 30000, "This is taking too long. Check your connection and try again.");
+    route();
+  } catch(e){
+    if (e && e.message === "reconnect") return;
+    showFault(e && e.message);
+  } finally { opening = false; }
+}
+window.__interviewRetry = () => { $("boot").hidden = true; $("loading").hidden = false; err(""); load(); };
 $("saveSetup").onclick = async () => {
   err(""); $("saveSetup").disabled = true; orbState("thinking");
   busyLines("setupBusy", ["Reading this week's public work", "Looking at what you've posted lately", "Choosing a few threads to pull on", "Getting your first question ready"]);

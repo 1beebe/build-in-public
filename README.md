@@ -39,7 +39,7 @@ Everything below is only for builders hosting their own instance. Cloudflare Wor
 
 ```sh
 npm install
-npm run check   # type-check
+npm run check   # type-check, and confirm the signed-in page's script still parses
 npm run dev     # local, needs a .dev.vars file with the secrets below
 ```
 
