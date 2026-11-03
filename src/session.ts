@@ -80,6 +80,7 @@ export interface Session {
   runKey?: string; // where this interview's run log lives, when kept
   runLoggedAt?: number; // last voice transcript copy to the run log
   longform?: boolean; // one longer piece (newsletter, article) instead of this week's posts
+  alsoShort?: boolean; // long-form plus standalone short posts from the same conversation
   accountId?: string; // their Buffer account: where memory between interviews is filed
   keepMemory?: boolean; // they ticked "remember my interviews" at setup
   memRun?: string; // this interview, as memory knows it
