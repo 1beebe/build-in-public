@@ -87,11 +87,11 @@ function ruleQuestions(shipped: Shipped, items: Item[], weekNote: string, latest
     (t: string) => `What did you decide not to do in "${t}", and why?`,
   ];
   const ranked = items
-    .filter((it) => !NOISE.test(it.label))
+    .filter((it) => !NOISE.test(it.label.split(" — ")[0]))
     .sort((a, b) => weight(b.label) - weight(a.label))
     .slice(0, latestPost ? MAX_QUESTIONS - 1 : MAX_QUESTIONS);
   const out: Question[] = ranked.map((it, i) => {
-    const title = it.label.replace(/^(Merged PR|Closed issue|Commit): /, "").split(" — ")[0];
+    const title = plainTitle(it.label.replace(/^(Merged PR|Closed issue|Commit): /, "").split(" — ")[0]);
     return { id: randomToken(8), text: prompts[i % prompts.length](clip(title, 80)), source: it.label.split(" — ")[0], sourceUrl: it.url, ref: it.ref };
   });
   // One follow-up on what they last posted, after the GitHub questions.
@@ -108,8 +108,19 @@ function ruleQuestions(shipped: Shipped, items: Item[], weekNote: string, latest
   return out;
 }
 
-// Housekeeping commits nobody wants to be interviewed about.
-const NOISE = /\b(typo|bump|formatting|lint|wip|merge|chore)\b/i;
+// Housekeeping nobody wants to be interviewed about: version bumps, syncs,
+// mirrors, docs bookkeeping, reverts.
+const NOISE = /\b(typo|bump|formatting|lint|wip|merge|chore|mirror(s|ed|ing)?|sync(s|ed|ing)?|checked through|changelog|version|revert|docs?|dependenc(y|ies)|deps)\b/i;
+
+// A title read as words: no PR numbers, commit hashes or empty brackets.
+function plainTitle(t: string): string {
+  return t
+    .replace(/\(#\d+\)/g, "")
+    .replace(/\b[0-9a-f]{7,40}\b/g, "")
+    .replace(/\(\s*[,;]?\s*\)/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
 
 function weight(label: string): number {
   const kind = label.startsWith("Merged PR") ? 300 : label.startsWith("Closed issue") ? 200 : 0;

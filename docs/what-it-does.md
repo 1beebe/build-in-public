@@ -7,7 +7,7 @@ Checked through: `e66d8bc`
 ## The flow
 
 1. **Sign in with Buffer.** OAuth with PKCE is the only sign-in. Users never paste an API key.
-2. **Name the work.** A single field takes either a public GitHub repo or a sentence about what you're working on. With a repo, the interviewer reads the README, the repo's top level, and that week's commits, pull requests (with their descriptions) and issues before it asks the first question. Early on it asks once whether you want to get into the technical decisions or keep it big picture. Technical questions are about choices and tradeoffs (why this over that, what you dropped), never how the code works. It also reads up to 20 Buffer posts from the last 30 days, so it knows who you write for.
+2. **Name the work.** A single field takes either a public GitHub repo or a sentence about what you're working on. With a repo, the interviewer reads the README, the repo's top level, and that week's commits, pull requests (with their descriptions) and issues before it asks the first question. Its first question names something you shipped in plain words, never a PR title or commit hash, and skips housekeeping like version bumps, syncs and docs bookkeeping. Early on it asks once whether you want to get into the technical decisions or keep it big picture. Technical questions are about choices and tradeoffs (why this over that, what you dropped), never how the code works. It also reads up to 20 Buffer posts from the last 30 days, so it knows who you write for.
 3. **Choose what you're making.** The options are posts about my week, a longer piece, or both. Long and both are owner-only unless `LONGFORM=on`.
 4. **Talk.**
    - Voice runs on GPT-Live, which speaks first. Typed answers go to DeepSeek Flash.

@@ -373,8 +373,8 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const lately = recent.posts[0] ? clip(recent.posts[0].replace(/\s+/g, " "), 70) : "";
         const first = s.longform
           ? { who: "interviewer" as const, text: lately ? `Tell me about the piece you want to write. Is it about something you've posted lately, like "${lately}", or something new?` : LONGFORM_OPENING }
-          : !s.repo && !recalled.question && hasModel(env)
-            ? await openFromNote(env, s)
+          : !recalled.question && hasModel(env)
+            ? await modelOpener(env, s)
             : opening(s.questions);
         Object.assign(s, { turns: [first], drafts: [], saved: [], savedAsIdeas: [], voice: undefined });
         beginRun(s);
@@ -691,9 +691,14 @@ async function view(env: Env, client: BufferClient, s: Session, refresh = false)
 // The organization id is chosen from their own Buffer organizations at setup.
 // Without a repo, a canned opener can only quote their note back. Let the
 // interviewer open the way a friend would, from what they wrote.
-async function openFromNote(env: Env, s: Session): Promise<Turn> {
-  const note = "\n\nThis is the very start of the conversation. Say hi in a few words like a friend catching up, show you've read what they wrote by naming one specific thing from their note in your own words (never quote it back), and ask one easy, open question about it.";
-  const { fallback: _f, wrapUp: _w, ...first } = await reply(env, s.questions ?? [], [], (s.brief ?? "") + note, false);
+// The first question, written by the model so it sounds like a person who
+// read up, not a template around a PR title. Falls back to the rule-based one.
+async function modelOpener(env: Env, s: Session): Promise<Turn> {
+  const note = s.repo
+    ? "\n\nThis is the very start of the conversation. Say hi in a few words like a friend catching up, show you've looked at their work by naming one specific thing they shipped lately in plain words (what it does for people; never a PR title, number, commit hash or file name, and skip housekeeping like docs syncs or version bumps), and ask one easy, open question about it."
+    : "\n\nThis is the very start of the conversation. Say hi in a few words like a friend catching up, show you've read what they wrote by naming one specific thing from their note in your own words (never quote it back), and ask one easy, open question about it.";
+  const { fallback, wrapUp: _w, ...first } = await reply(env, s.questions ?? [], [], (s.brief ?? "") + note, false);
+  if (fallback && s.repo) return opening(s.questions ?? []);
   return { ...first, about: first.about ?? 0 };
 }
 
