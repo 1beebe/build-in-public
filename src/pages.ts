@@ -541,10 +541,11 @@ textarea{resize:vertical;min-height:120px;line-height:1.5}
 .orb i{position:absolute;inset:0;border-radius:50%;background:var(--accent);transform:scale(calc(.78 + var(--lvl) * .5));transition:transform .09s linear}
 .orb i + i{background:transparent;box-shadow:inset 0 0 0 2px var(--accent);transform:scale(calc(.9 + var(--lvl) * .9));opacity:calc(.25 + var(--lvl));transition:transform .14s linear,opacity .14s linear}
 .orb b{position:absolute;inset:34%;border-radius:50%;background:var(--ink);transition:transform .3s var(--ease),background-color .3s}
-.orb[data-s=connecting] i:first-child{animation:breathe 3.2s ease-in-out infinite}
+.orb[data-s=connecting] i:first-child{animation:breathe 3.2s ease-in-out infinite,pearl 9.6s linear infinite}
 .orb[data-s=thinking] b{animation:think 1s ease-in-out infinite}
 .orb[data-s=listening] b{background:var(--live)}
 .orb[data-s=speaking] b{transform:scale(.7)}
+@keyframes pearl{0%,100%{background:var(--accent)}25%{background:color-mix(in oklab,var(--accent) 55%,hsl(150 70% 72%))}50%{background:color-mix(in oklab,var(--accent) 50%,hsl(205 75% 76%))}75%{background:color-mix(in oklab,var(--accent) 55%,hsl(285 60% 80%))}}
 @keyframes breathe{0%,100%{transform:scale(.74)}50%{transform:scale(.86)}}
 @keyframes think{0%,100%{transform:scale(.6)}50%{transform:scale(1)}}
 .busyline{min-height:1.5em;color:var(--muted)}
@@ -584,6 +585,8 @@ textarea{resize:vertical;min-height:120px;line-height:1.5}
 .log .you{align-self:flex-end;background:var(--raised);border-radius:20px 20px 6px 20px;padding:12px 16px}
 .log .new{animation:fadein .45s var(--ease)}
 .log .typing p{color:var(--muted);font-weight:400}
+/* Thinking: one faint line of code characters in the shimmer's pearl colors, where the question will land. */
+.log .ghost-line{font:400 1rem/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.06em;white-space:nowrap;overflow:hidden;max-width:100%;user-select:none;-webkit-mask-image:linear-gradient(90deg,#000 75%,transparent);mask-image:linear-gradient(90deg,#000 75%,transparent)}
 .saylbl{display:block;font-size:.875rem;color:var(--muted);margin-bottom:6px}
 .live{display:flex;flex-wrap:wrap;align-items:center;gap:12px;background:var(--raised);border-radius:var(--r-card);padding:12px 12px 12px 12px}
 .live .state{color:var(--muted);font-size:.875rem;flex:1;min-width:10em}
@@ -965,6 +968,39 @@ function fitSay(){
   const max = Math.max(120, Math.round(viewH() * 0.4));
   t.style.height = Math.min(t.scrollHeight + 2, max) + "px";
 }
+// The interviewer thinking: a sentence-wide line of glyphs drifting through the pearl colors.
+const GLYPHS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+const glyph = () => GLYPHS[(Math.random() * GLYPHS.length) | 0];
+const ghost = (() => {
+  const li = el("li", "them typing ghost"), p = el("p", "ghost-line"), N = 30, spans = [];
+  p.setAttribute("role", "status"); p.setAttribute("aria-label", "The Interviewer is thinking");
+  for (let i = 0; i < N; i++) { const sp = el("span", "", glyph()); sp.setAttribute("aria-hidden", "true"); spans.push(sp); }
+  p.append(...spans); li.append(el("span", "who", "The Interviewer"), p);
+  let timer = 0, t0 = 0, miss = 0;
+  function paint(){
+    const iris = getComputedStyle(document.documentElement).getPropertyValue("--code-iris").split(",").map(Number), t = (performance.now() - t0) / 1000;
+    spans.forEach((sp, i) => {
+      if (!still && Math.random() < 0.3) sp.textContent = glyph();
+      const hue = 150 + 90 * (1 + Math.sin(i * 0.16 + t * 0.7)), a = still ? 0.35 : 0.14 + 0.42 * (0.5 + 0.5 * Math.sin(i * 0.32 - t * 2.4));
+      sp.style.color = "hsl(" + hue.toFixed(0) + " " + (iris[0] || 62) + "% " + (iris[1] || 44) + "% / " + a.toFixed(2) + ")";
+    });
+  }
+  function tick(){ if (!li.isConnected) { if (++miss > 3) { clearInterval(timer); timer = 0; } return; } miss = 0; paint(); }
+  return () => { if (!timer) { t0 = performance.now(); miss = 0; paint(); if (!still) timer = setInterval(tick, 90); } return li; };
+})();
+// When the question lands, the glyphs resolve into its words, left to right.
+function decode(p, text){
+  if (still) return;
+  const n = text.length, dur = Math.min(800, 260 + n * 5), t0 = performance.now();
+  const step = (now) => {
+    if (!p.isConnected) return;
+    const k = Math.min(n, Math.floor((now - t0) / dur * n)); let out = text.slice(0, k);
+    for (let i = k; i < Math.min(n, k + 8); i++) out += /\s/.test(text[i]) ? text[i] : glyph();
+    p.textContent = out; if (k < n) requestAnimationFrame(step); else p.textContent = text;
+  };
+  requestAnimationFrame(step);
+}
+let ghostShown = false;
 function renderTalk(){
   const about = currentAbout();
   $("topics").innerHTML = "";
@@ -977,7 +1013,9 @@ function renderTalk(){
   const turns = state.turns || [];
   turns.forEach((t, k) => {
     const li = el("li", (t.who === "you" ? "you" : "them") + (k >= drawn ? " new" : ""));
-    li.append(el("span", "who", t.who === "you" ? "You" : "The Interviewer"), el("p", "", t.text));
+    const tp = el("p", "", t.text);
+    li.append(el("span", "who", t.who === "you" ? "You" : "The Interviewer"), tp);
+    if (ghostShown && !busy && t.who !== "you" && k >= drawn && k === turns.length - 1) decode(tp, t.text);
     // The opening quotes a short piece of their note; let them read it all.
     if (k === 0 && state.noRepo && state.weekNote && t.text.includes("…")) {
       const more = el("details", "note-more"), sum = el("summary", "small muted", "See more");
@@ -994,7 +1032,8 @@ function renderTalk(){
     go.onclick = () => { go.disabled = true; $("harvestBtn").click(); };
     log.lastChild.append(go);
   }
-  if (busy) { const li = el("li", "them typing new"), p = el("p"); p.textContent = "Thinking about what you said"; li.append(el("span", "who", "The Interviewer"), p); log.append(li); }
+  if (busy) log.append(ghost());
+  ghostShown = busy;
   $("liveBox").hidden = !state.live || !window.RTCPeerConnection;
   if (!liveOn()) { orbState(busy ? "thinking" : "idle"); if (!$("liveBox").hidden && !$("liveState").textContent) setLive(""); }
   show("talk"); if (following) follow(log);
@@ -1033,7 +1072,7 @@ $("say").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftK
 
 // GPT-Live voice. The transcript is synced back so the harvest can read it.
 let pc = null, dc = null, mic = null, liveTurns = null, liveAbout = null, liveTimer = null, syncTimer = null;
-const LIVE_LOOK = {"Connecting…":"connecting", "Connected":"thinking", "Listening":"listening", "Thinking":"thinking", "Speaking":"speaking", "Your turn":"listening"};
+const LIVE_LOOK = {"Connecting…":"connecting", "Connected":"connecting", "Listening":"listening", "Thinking":"thinking", "Speaking":"speaking", "Your turn":"listening"};
 const LIVE_SAY = {"Connected":"Connected. It's about to ask.", "Your turn":"Your turn. Just talk."};
 function setLive(s){
   $("liveState").textContent = s ? (LIVE_SAY[s] || s) : "Talk it through out loud. You can type below too.";
@@ -1426,9 +1465,11 @@ $("saveSetup").onclick = async () => {
   try {
     const targets = [...document.querySelectorAll("#chans input:checked")].map(i => i.value);
     state = await api("/api/setup", {organizationId:$("org").value, work:$("work").value, targets: $("chanWrap").hidden ? undefined : targets, keepLog: $("keepLog").checked, keepMemory: $("keepMemory").checked, format: kindChosen()});
-    state = await api("/api/start", {}); shown = null; drawn = 0; renderTalk(); $("say").focus({preventScroll:true});
+    busyDone("setupBusy"); shown = null; drawn = 0; busy = true; $("sendBtn").disabled = true; $("liveBtn").disabled = true; renderTalk(); window.scrollTo({top:0});
+    try { state = await api("/api/start", {}); } finally { busy = false; $("sendBtn").disabled = false; $("liveBtn").disabled = false; }
+    renderTalk(); $("say").focus({preventScroll:true});
   }
-  catch(e){ err(e.message); }
+  catch(e){ if (!(state.turns||[]).length) renderSetup(); err(e.message); }
   finally { busyDone("setupBusy"); if ($("talk").hidden) orbState("idle"); $("saveSetup").disabled = false; }
 };
 $("again").onclick = async () => { try { state = await api("/api/reset", {}); shown = null; drawn = 0; sources.clear(); route(); } catch(e){ err(e.message); } };
