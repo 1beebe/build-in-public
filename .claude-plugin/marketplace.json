@@ -7,7 +7,7 @@
       "name": "interviewer",
       "source": "./plugin",
       "description": "A weekly interview about your work that builds a library of your own words on your own machine, then drafts posts from it.",
-      "version": "0.2.4"
+      "version": "0.2.5"
     }
   ]
 }
