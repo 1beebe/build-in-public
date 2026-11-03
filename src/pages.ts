@@ -618,6 +618,8 @@ button.chip.on{background:var(--ink);color:var(--ground);box-shadow:none}
 .pick input{width:22px;height:22px;margin:0;accent-color:var(--ink);cursor:pointer}
 .draft .same{font-size:.875rem;color:var(--muted);margin:0}
 .app-foot{display:flex;justify-content:center;margin-top:28px}
+/* Until the first screen renders, show nothing below the header (the footer link used to flash alone). */
+main.app:not(:has(.screen:not([hidden]))) .app-foot{display:none}
 .how{font-size:1rem;max-width:62ch;margin-top:8px}
 .take-done{border-top:1px solid var(--border);padding-top:18px;display:grid;gap:8px;width:100%}.take-done p{max-width:62ch;margin:0}
 .draft .alts{font-size:.875rem;color:var(--muted);margin:0}
