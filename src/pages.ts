@@ -9,7 +9,7 @@ const STYLE = `
   --field:#0d2a1c; --field-ink:#f6f6f3; --field-muted:#b9c6bd; --ink-bg:#0d2a1c;
   --live:#d7361f; --warn:#a33a12;
   --add:#e3f4e6; --add-fg:#1d6b2c; --del:#fbe7e6; --del-fg:#a1302b; --code:#f1f2ee;
-  --code-cool:96,112,101; --code-hot:168,140,0;
+  --code-cool:96,112,101; --code-hot:168,140,0; --code-iris:62,44;
   --font:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
   --r-card:20px; --r-ctl:999px; --r-in:12px;
@@ -24,7 +24,7 @@ const STYLE = `
   --field:#f6e016; --field-ink:#0d2a1c; --field-muted:#3e4a1a; --ink-bg:#14301f;
   --live:#ff6a4d; --warn:#f0a36b;
   --add:#16301d; --add-fg:#7fd492; --del:#3a1b1a; --del-fg:#f29b94; --code:#0a1b12;
-  --code-cool:110,140,120; --code-hot:246,224,22;
+  --code-cool:110,140,120; --code-hot:246,224,22; --code-iris:85,80;
   color-scheme:dark}}
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -1150,7 +1150,7 @@ const shimmer = (() => {
   const GLYPHS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", FONT = 12, LH = 16;
   const glyph = () => GLYPHS[(Math.random() * GLYPHS.length) | 0];
   const still = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let cw = 8, cols = 0, rows = 0, W = 0, H = 0, chars = [], rings = [], cool = [96,112,101], hot = [168,140,0];
+  let cw = 8, cols = 0, rows = 0, W = 0, H = 0, chars = [], rings = [], cool = [96,112,101], hot = [168,140,0], iris = [62,44];
   let t0 = 0, glowAt = 0, raf = 0, on = false, lineTimer = 0;
   const rgb = n => getComputedStyle(document.documentElement).getPropertyValue(n).split(",").map(Number);
   function size(){
@@ -1158,8 +1158,10 @@ const shimmer = (() => {
     canvas.width = W * dpr; canvas.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.font = FONT + "px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"; ctx.textBaseline = "top";
     cw = Math.ceil(ctx.measureText("M").width) + 1; cols = Math.ceil(W / cw) + 1; rows = Math.ceil(H / LH) + 1;
-    chars = Array.from({length: cols * rows}, glyph); cool = rgb("--code-cool"); hot = rgb("--code-hot");
+    chars = Array.from({length: cols * rows}, glyph); cool = rgb("--code-cool"); hot = rgb("--code-hot"); iris = rgb("--code-iris");
   }
+  // Hue in degrees to rgb at the theme's saturation and lightness, for the iridescent body of the thread.
+  function hsl(hh){ const S = iris[0] / 100, L = iris[1] / 100, a = S * Math.min(L, 1 - L), f = n => { const k = (n + hh / 30) % 12; return Math.round(255 * (L - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)))); }; return [f(0), f(8), f(4)]; }
   const curve = (x, t) => H * 0.5 + H * 0.22 * Math.sin(x / W * 5.2 + t * 0.55) + H * 0.09 * Math.sin(x / W * 11.3 - t * 0.9);
   const patch = (c, r, t) => 0.7 + 0.22 * Math.sin(c * 0.23 + t * 0.9) * Math.sin(r * 0.37 - t * 0.6) + 0.15 * Math.sin((c + r) * 0.11 - t * 0.4);
   function draw(now){
@@ -1177,7 +1179,10 @@ const shimmer = (() => {
       v *= patch(c, r, t); if (v < 0.05) continue;
       const i = r * cols + c; if (Math.random() < 0.2 * v) chars[i] = glyph();
       const near = behind >= 0 && behind < W * 0.12 ? 1 - behind / (W * 0.12) : 0;
-      const h = Math.min(1, Math.max(near * v * 1.4, glow * v, (v - 0.55) / 0.4, 0)), mix = k => (cool[k] + (hot[k] - cool[k]) * h) | 0;
+      const h = Math.min(1, Math.max(near * v * 1.4, glow * v, (v - 0.55) / 0.4, 0));
+      // Behind the yellow head the thread shifts slowly through mint, sky, lilac and rose, like light on a soap film.
+      const pearl = hsl(150 + 90 * (1 + Math.sin(x / W * 3.1 + y / H * 2.3 + t * 0.35))), pe = Math.min(1, 0.35 + v * 1.6) * (1 - h);
+      const mix = k => (cool[k] + (pearl[k] - cool[k]) * pe + (hot[k] - cool[k]) * h) | 0;
       ctx.fillStyle = "rgba(" + mix(0) + "," + mix(1) + "," + mix(2) + "," + Math.min(0.75, v * 0.85).toFixed(3) + ")";
       ctx.fillText(chars[i], x, y);
     }
