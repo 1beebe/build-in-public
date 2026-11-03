@@ -118,37 +118,25 @@ const PAGE_STYLE = `
 .reply{display:flex;align-items:center;gap:12px;background:var(--ground);border-radius:var(--r-ctl);padding:10px 16px;color:var(--muted);font-size:1rem}
 .demo .note{font-size:1rem;color:var(--muted);max-width:62ch}
 
-/* How it works: three steps inside the live fragment */
-.steps{list-style:none;margin:0;padding:0;display:grid;gap:10px}
-@media (min-width:560px){.steps{grid-template-columns:repeat(3,minmax(0,1fr))}}
-.step{display:grid;gap:10px;align-content:start;border-radius:16px;padding:14px;background:var(--ground);min-width:0}
-.step>.n{font:500 .75rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.step>b{font-size:1.05rem;line-height:1.2;letter-spacing:-.02em}
-.step .work{background:var(--surface);padding:12px;gap:6px;border:1px solid var(--border)}
-.step .work .ttl{font-size:.9375rem}
-.step .work .meta{font-size:.8125rem}
-.bub{margin:0;font-size:.9375rem;line-height:1.35;padding:10px 12px;border-radius:14px 14px 14px 4px;background:var(--surface);border:1px solid var(--border);overflow-wrap:anywhere}
-.say-how{display:flex;gap:6px;align-items:center;justify-self:end}
-.wave{display:flex;align-items:center;gap:3px;height:28px;padding:0 10px;border-radius:var(--r-ctl);background:var(--accent)}
-.wave i{width:3px;height:8px;border-radius:2px;background:var(--accent-ink)}
-.or{font-size:.8125rem;color:var(--muted);padding:4px 10px;border-radius:var(--r-ctl);border:1px solid var(--border);background:var(--surface)}
-.draft{background:#fffef5;color:#0d2a1c;border-radius:12px;padding:12px;display:grid;gap:6px;box-shadow:0 10px 24px -18px rgba(13,42,28,.5)}
-.draft .t{font-size:.9375rem;font-weight:600;line-height:1.2}
-.draft .l{font-size:.6875rem;text-transform:uppercase;letter-spacing:.07em;color:#3d5446}
-.draft p{margin:0;font-size:.875rem;line-height:1.4;color:#3d5446}
-.draft mark{background:#f6e016;color:#0d2a1c;border-radius:3px;padding:0 2px}
-.chip{font-size:.75rem;font-weight:600;justify-self:start;padding:3px 10px;border-radius:var(--r-ctl);background:var(--ink);color:var(--ground)}
+/* How it works: a three-step rail under the live fragment */
+.rail{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;border-top:1px solid var(--border);padding-top:16px}
+.rail li{display:flex;align-items:center;gap:10px;font-size:.9375rem;font-weight:500;line-height:1.2;color:var(--muted);min-width:0}
+.rail .n{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;font:600 .8125rem var(--font);box-shadow:inset 0 0 0 1.5px var(--control);color:var(--ink)}
+@media (max-width:520px){.rail{grid-template-columns:minmax(0,1fr);gap:10px}}
+.reply .wave{display:flex;align-items:center;gap:3px;height:26px;padding:0 9px;border-radius:var(--r-ctl);background:var(--accent)}
+.reply .wave i{width:3px;height:8px;border-radius:2px;background:var(--accent-ink)}
 .demo .note:empty{display:none}
 @media (prefers-reduced-motion:no-preference){
-  .step{animation:stepOn 9s infinite}
-  .step:nth-child(2){animation-delay:3s}.step:nth-child(3){animation-delay:6s}
-  .wave i{animation:waveBar .5s ease-in-out infinite alternate}
-  .wave i:nth-child(2){animation-delay:.1s}.wave i:nth-child(3){animation-delay:.2s}.wave i:nth-child(4){animation-delay:.3s}.wave i:nth-child(5){animation-delay:.15s}
-  .draft mark{animation:markOn 9s infinite both;animation-delay:6.3s}
+  .rail li{animation:railOn 9s infinite}
+  .rail li:nth-child(2){animation-delay:3s}.rail li:nth-child(3){animation-delay:6s}
+  .rail li .n{animation:railDot 9s infinite}
+  .rail li:nth-child(2) .n{animation-delay:3s}.rail li:nth-child(3) .n{animation-delay:6s}
+  .reply .wave i{animation:waveBar .5s ease-in-out infinite alternate}
+  .reply .wave i:nth-child(2){animation-delay:.1s}.reply .wave i:nth-child(3){animation-delay:.2s}.reply .wave i:nth-child(4){animation-delay:.3s}.reply .wave i:nth-child(5){animation-delay:.15s}
 }
-@keyframes stepOn{0%,33%{box-shadow:inset 0 0 0 2px var(--ink)}34%,100%{box-shadow:inset 0 0 0 0 transparent}}
-@keyframes waveBar{to{height:20px}}
-@keyframes markOn{0%{background:transparent}6%,100%{background:#f6e016}}
+@keyframes railOn{0%,33%{color:var(--ink)}34%,100%{color:var(--muted)}}
+@keyframes railDot{0%,33%{background:var(--accent);color:var(--accent-ink);box-shadow:inset 0 0 0 1.5px var(--accent)}34%,100%{background:transparent}}
+@keyframes waveBar{to{height:18px}}
 
 /* Trust and connect */
 .trust{display:grid;gap:clamp(32px,5vw,72px);align-items:center}
@@ -300,7 +288,7 @@ ${FONTS}
 
 const NAV = `<header class="wrap nav">
   <a class="wordmark" href="/">${MARK}The Interviewer</a>
-  <nav aria-label="Main"><ul><li><a href="/#sounds">How it sounds</a></li><li><a href="/#data">Your data</a></li><li><a href="/privacy">Privacy</a></li></ul></nav>
+  <nav aria-label="Main"><ul><li><a href="/#sounds">How it sounds</a></li><li><a href="/#keep">What you keep</a></li><li><a href="/#data">Your data</a></li><li><a href="/privacy">Privacy</a></li></ul></nav>
   <a class="btn small" href="/connect">Connect<span class="long">&nbsp;with Buffer</span></a>
 </header>`;
 
@@ -323,26 +311,23 @@ ${NAV}
       <input id="tryRepo" name="repo" placeholder="owner/repo" autocomplete="off" spellcheck="false" maxlength="200">
       <button class="btn small" type="submit">Ask me</button>
     </form>
-    <ol class="steps" aria-label="How it works">
-      <li class="step"><span class="n">1 · Reads</span><b>Your week</b>
-        <div class="work" id="tryWork">
-          <span class="kind">Merged pull request</span>
-          <span class="ttl">Let people try it before they sign up</span>
-          <span class="meta"><span>example</span><span>this week</span></span>
-        </div>
-      </li>
-      <li class="step"><span class="n">2 · Asks</span><b>You talk or type</b>
-        <p class="bub" id="tryQ" aria-live="polite">You merged “Let people try it before they sign up” this week. What made it worth doing now?</p>
-        <span class="say-how" aria-hidden="true"><span class="wave"><i></i><i></i><i></i><i></i><i></i></span><span class="or">or type</span></span>
-      </li>
-      <li class="step"><span class="n">3 · Saves</span><b>Drafts in Buffer</b>
-        <div class="draft">
-          <span class="t">Why I let people in before they sign up</span>
-          <span class="l">Your words, lightly edited</span>
-          <p><mark>Half the people</mark> would hit the sign-up screen <mark>and leave.</mark></p>
-        </div>
-        <span class="chip">LinkedIn · X</span>
-      </li>
+    <div class="stage">
+      <div class="work" id="tryWork">
+        <span class="kind">Merged pull request</span>
+        <span class="ttl">Let people try it before they sign up</span>
+        <span class="meta"><span>example</span><span>this week</span></span>
+        <pre aria-hidden="true"><span class="d">- requireAccount()</span><span class="a">+ letGuestsTryIt()</span><span>  askToSignUpAfter()</span></pre>
+      </div>
+      <div class="asks">
+        <span class="who">${MARK.replace('class="mark"', 'class="mark" style="width:20px;height:20px"')}The Interviewer</span>
+        <p class="q" id="tryQ" aria-live="polite">You merged \u201CLet people try it before they sign up\u201D this week. What made it worth doing now?</p>
+        <div class="reply"><span class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span>Answer out loud or type</span></div>
+      </div>
+    </div>
+    <ol class="rail" aria-label="How it works">
+      <li><span class="n">1</span>Reads your week</li>
+      <li><span class="n">2</span>You talk or type</li>
+      <li><span class="n">3</span>Drafts land in Buffer</li>
     </ol>
     <p class="note" id="tryNote"></p>
   </div>
@@ -358,6 +343,17 @@ ${NAV}
       <li class="you rise" style="--i:1"><span class="who">You</span><p>Like half the people who found it would hit the sign-up screen and just leave.</p></li>
       <li class="them rise" style="--i:2"><span class="who">The Interviewer</span><p>Half, right at the door. Walk me through the moment you decided to let them in first.</p></li>
     </ol>
+  </div>
+</section>
+
+<section class="sec field" id="keep" aria-labelledby="keepH">
+  <div class="wrap two flip">
+    <h2 id="keepH">Saved to Buffer, in your words.</h2>
+    <article class="idea" aria-label="A draft as it lands in Buffer">
+      <p class="t">Why I let people in before they sign up</p>
+      <div><p class="lbl">Draft, from your words, lightly edited</p><p>Half the people who found it would hit the sign-up screen and leave. Why would they give their email to something they hadn't seen work? I wouldn't. So now you try it first and sign up after.</p></div>
+      <p class="tag">Or take an outline, or the transcript.</p>
+    </article>
   </div>
 </section>
 
