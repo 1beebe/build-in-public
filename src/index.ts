@@ -325,11 +325,13 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         // The channels to shape stories for, from the ones they have connected.
         const connected = new Set((s.channels ?? []).map((c) => c.service));
         const targets = Array.isArray(body.targets) ? [...new Set(body.targets.map(String))].filter((t) => connected.has(t)).slice(0, 6) : undefined;
-        const longform = body.longform === true && longformOffered(env, s);
+        // "both" = one longer piece plus standalone short posts from the same talk.
+        const longform = (body.longform === true || body.format === "long" || body.format === "both") && longformOffered(env, s);
+        const alsoShort = longform && (body.format === "both" || body.alsoShort === true);
         const keepMemory = body.keepMemory === true;
         if (!s.accountId) s.accountId = (await getStart(client)).accountId;
         if (s.accountId) await setMemoryOn(env, s.accountId, keepMemory);
-        Object.assign(s, { repo, noRepo, weekNote: repo ? undefined : work, targets, keepLog: body.keepLog !== false, keepMemory, longform, questions: [], turns: [], drafts: [], saved: [], savedAsIdeas: [], harvestMode: undefined });
+        Object.assign(s, { repo, noRepo, weekNote: repo ? undefined : work, targets, keepLog: body.keepLog !== false, keepMemory, longform, alsoShort, questions: [], turns: [], drafts: [], saved: [], savedAsIdeas: [], harvestMode: undefined });
         result = await view(env, client, s, true);
         break;
       }
@@ -364,6 +366,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         ].join("\n");
         if (recalled.brief) s.brief += `\n${recalled.brief}`;
         if (s.longform) s.brief += "\nThey chose to work on one longer piece today, like a newsletter issue or an article. The piece is the topic; their repo, threads and posts are what you know about them, to draw on whenever it connects.";
+        if (s.alsoShort) s.brief += "\nThey also want a few standalone short posts from this conversation. Go deep on the piece, but when a side story comes up (a decision, a surprise, a moment with a user) that could stand on its own, take one easy follow-up on it before coming back to the piece.";
         // Long-form opens on something they've said lately, so it's clear the interviewer knows them.
         const lately = recent.posts[0] ? clip(recent.posts[0].replace(/\s+/g, " "), 70) : "";
         const first = s.longform
@@ -460,9 +463,18 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         await tickVoice(env, s.voice);
         s.voice = undefined; // the conversation's over; stop the meter
         const began = Date.now();
-        s.drafts = s.longform
-          ? await harvestArticle(env, s.turns, s.posts, s.targets ?? [], mode)
-          : await harvest(env, s.questions ?? [], s.turns, pillars, s.posts, s.targets ?? [], mode);
+        if (s.longform && s.alsoShort) {
+          // Both at once: the piece and its share posts, then standalone posts from the same talk.
+          const [piece, short] = await Promise.all([
+            harvestArticle(env, s.turns, s.posts, s.targets ?? [], mode),
+            harvest(env, s.questions ?? [], s.turns, pillars, s.posts, s.targets ?? [], mode),
+          ]);
+          s.drafts = [...piece, ...short];
+        } else {
+          s.drafts = s.longform
+            ? await harvestArticle(env, s.turns, s.posts, s.targets ?? [], mode)
+            : await harvest(env, s.questions ?? [], s.turns, pillars, s.posts, s.targets ?? [], mode);
+        }
         s.harvestMode = mode;
         s.harvestedTurns = s.turns.length;
         await remember(env, s, s.drafts ?? []);
@@ -662,6 +674,7 @@ async function view(env: Env, client: BufferClient, s: Session, refresh = false)
     targets: s.targets ?? mainServices(channels),
     harvestMode: s.harvestMode ?? "draft",
     longform: Boolean(s.longform),
+    alsoShort: Boolean(s.alsoShort),
     longformOffered: longformOffered(env, s),
     questions: s.questions ?? [],
     turns: s.turns ?? [],
