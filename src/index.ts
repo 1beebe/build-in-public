@@ -168,11 +168,11 @@ export default {
         return html(
           landingPage(
             error === "reconnect"
-              ? "Buffer needs you to connect again. Your interview is kept."
+              ? "Please connect again. Your interview is kept."
               : error === "denied"
                 ? "No problem. Nothing was connected."
                 : error
-                  ? "The Buffer sign-in didn't finish. Try again."
+                  ? "The sign-in didn't finish. Try again."
                   : undefined,
           ),
         );
@@ -299,7 +299,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
   if (!loaded) return json({ error: "Not connected" }, 401);
   // Saving drafts needs a permission older sign-ins didn't grant. Connecting
   // again keeps their setup and interview.
-  if (loaded.data.scopeVersion !== SCOPE_VERSION) return json({ error: "Connect Buffer again." }, 401);
+  if (loaded.data.scopeVersion !== SCOPE_VERSION) return json({ error: "Please connect again." }, 401);
   const { id, data: s } = loaded;
   const client = new BufferClient(env, s);
   let body: Record<string, unknown> = {};
@@ -329,7 +329,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         if (body.organizationId && String(body.organizationId) !== s.organizationId) {
           const requested = String(body.organizationId);
           const { orgs } = await getStart(client);
-          if (!orgs.some((org) => org.id === requested)) throw new UserError("Choose a Buffer organization from your account.");
+          if (!orgs.some((org) => org.id === requested)) throw new UserError("Choose an organization from your account.");
           s.organizationId = requested;
         }
         if (repo) await whatShipped(env, repo, 1); // fails fast with a clear message if the repo isn't public
@@ -621,10 +621,11 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
     return json(result);
   } catch (err) {
     if (client.sessionChanged) await saveSession(env, id, s); // never lose a rotated refresh token
-    if (err instanceof NeedsReconnect) return json({ error: "Connect Buffer again." }, 401);
+    if (err instanceof NeedsReconnect) return json({ error: "Please connect again." }, 401);
     if (err instanceof RateLimited) {
       const mins = Math.max(1, Math.ceil(err.retryAfterSeconds / 60));
-      return json({ error: `We hit Buffer's request limit. Wait about ${mins} minute${mins > 1 ? "s" : ""}, then try again. Nothing was lost.` }, 429);
+      const wait = mins === 1 ? "a minute" : `${mins} minutes`;
+      return json({ error: `Too many requests right now. Wait about ${wait}, then try again. Nothing was lost.` }, 429);
     }
     if (err instanceof UsageLimitError) return json({ error: err.message }, 429);
     if (err instanceof UserError || err instanceof RepoError) return json({ error: err.message }, 400);

@@ -31,7 +31,7 @@ Checked through: `99445e5`
    - **Both:** the article and its share posts first, then standalone short-post stories from the same talk.
 7. **Save.**
    - Posts go to Buffer Drafts, one per channel, and are never scheduled or published.
-   - If Buffer refuses a draft, that story is saved as an Idea instead.
+   - If a draft can't be saved, that story is saved as an Idea instead.
    - A long-form article is saved as an Idea titled "INTERVIEW | Article | …", and can also be copied or downloaded as Markdown.
 
 ## Privacy and memory
