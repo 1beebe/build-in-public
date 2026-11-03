@@ -643,6 +643,15 @@ button.chip.on{background:var(--ink);color:var(--ground);box-shadow:none}
 .app-foot{display:flex;justify-content:center;margin-top:28px}
 /* Until the first screen renders, show nothing below the header (the footer link used to flash alone). */
 main.app:not(:has(.screen:not([hidden]))) .app-foot{display:none}
+/* Sign-in failure: one card, centered in the space under the header, not a few lines stuck at the top. */
+main.app:has(#boot:not([hidden])){display:flex;flex-direction:column;padding-block:0;min-height:calc(100vh - 64px);min-height:calc(100dvh - 64px)}
+main.app:has(#boot:not([hidden])) .app-foot{display:none}
+#boot{flex:1;width:100%;max-width:440px;align-content:center;padding-block:28px}
+#boot .panel{gap:14px;padding:clamp(22px,4vw,28px)}
+#boot h1{font-size:clamp(1.65rem,1.35rem + .8vw,2rem)}
+#boot .lede{max-width:none}
+#boot .boot-actions{display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px;margin-top:6px}
+#boot .boot-actions .btn.text{min-height:48px}
 .steps{margin:12px 0 0;padding-left:1.2em;color:var(--muted);display:grid;gap:4px;max-width:56ch}
 .steps b{color:var(--ink);font-weight:600}
 .take-done{border-top:1px solid var(--border);padding-top:18px;display:grid;gap:8px;width:100%}.take-done p{max-width:62ch;margin:0}
@@ -686,6 +695,11 @@ body:has(main.app) .feedback-open{display:none}
   .top .mark{width:26px;height:26px}
   .top .btn.text{min-height:44px;padding-inline:8px;font-size:.875rem}
   main.app{padding-block:16px calc(72px + env(safe-area-inset-bottom))}
+  main.app:has(#boot:not([hidden])){min-height:calc(100vh - 56px);min-height:calc(100dvh - 56px - env(safe-area-inset-bottom))}
+  #boot{padding-block:20px}
+  #boot .boot-actions{display:grid;justify-items:stretch;gap:2px}
+  #boot .boot-actions .btn{width:100%}
+  #boot .boot-actions .btn.text{width:auto;justify-self:center}
   .screen{gap:16px}
   .panel{padding:16px;border-radius:16px;gap:16px}
   .convo .head{gap:12px}
@@ -728,11 +742,14 @@ export function appPage(): string {
 <main class="app wrap">
 <p id="msg" role="alert" hidden></p>
 <section id="boot" class="screen" hidden>
-  <header>
+  <div class="panel">
     <h1>The interview didn't open</h1>
-    <p class="lede" id="bootText" role="alert">Something went wrong, so there's nothing to show yet.</p>
-  </header>
-  <div class="row"><button id="retryBoot" class="btn" type="button">Try again</button></div>
+    <p class="lede" id="bootText" role="alert">Something went wrong on our side. Try again in a moment.</p>
+    <div class="boot-actions">
+      <button id="retryBoot" class="btn" type="button">Try again</button>
+      <button class="btn text" type="button" data-feedback-open>Feedback or bug</button>
+    </div>
+  </div>
 </section>
 <noscript>
 <section class="screen"><div class="panel"><header><h1>JavaScript is off</h1><p class="lede">The interview needs JavaScript to open. Turn it on and reload this page.</p></header></div></section>
@@ -830,7 +847,7 @@ export function appPage(): string {
     var msg = (e && e.message) || "";
     if (msg.indexOf("ResizeObserver") === 0) return;
     if (e && e.filename && e.filename.indexOf(location.origin) !== 0) return;
-    showBoot("The page couldn't open your interview. Reload to try again.");
+    showBoot("The page ran into a problem. Try again.");
   });
   var retry = document.getElementById("retryBoot");
   if (retry) retry.addEventListener("click", function () {
@@ -1524,7 +1541,7 @@ async function load(){
   if (opening) return;
   opening = true;
   try {
-    state = await withTimeout(api("/api/state"), 30000, "This is taking too long. Check your connection and try again.");
+    state = await withTimeout(api("/api/state"), 30000, "This is taking longer than it should. Check your connection, then try again.");
     route();
   } catch(e){
     if (e && e.message === "reconnect") return;

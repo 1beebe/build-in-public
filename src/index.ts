@@ -624,7 +624,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
     if (err instanceof NeedsReconnect) return json({ error: "Connect Buffer again." }, 401);
     if (err instanceof RateLimited) {
       const mins = Math.max(1, Math.ceil(err.retryAfterSeconds / 60));
-      return json({ error: `Buffer needs a short break. Try again in about ${mins} minute${mins > 1 ? "s" : ""}. Nothing was lost.` }, 429);
+      return json({ error: `We hit Buffer's request limit. Wait about ${mins} minute${mins > 1 ? "s" : ""}, then try again. Nothing was lost.` }, 429);
     }
     if (err instanceof UsageLimitError) return json({ error: err.message }, 429);
     if (err instanceof UserError || err instanceof RepoError) return json({ error: err.message }, 400);
@@ -643,7 +643,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
       return json({ error: "The Interviewer didn't answer. Try again, or type your answer." }, 502);
     }
     console.error(err);
-    return json({ error: "Something went wrong on our side. Try again." }, 502);
+    return json({ error: "Something went wrong on our side. Try again in a moment." }, 502);
   }
 }
 
