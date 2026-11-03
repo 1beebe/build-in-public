@@ -1522,7 +1522,7 @@ function route(){
   renderSetup();
 }
 let opening = false;
-const LOADING_AFTER = 500;
+const LOADING_AFTER = 2000;
 const LOADING_HOLD = 700;
 function withTimeout(promise, ms, message){
   return new Promise((resolve, reject) => {
