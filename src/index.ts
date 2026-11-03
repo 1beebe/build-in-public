@@ -700,7 +700,10 @@ async function modelOpener(env: Env, s: Session): Promise<Turn> {
   const note = s.repo
     ? "\n\nThis is the very start of the conversation. Say hi in a few words like a friend catching up, show you've looked at their work by naming one specific thing they shipped lately in plain words (what it does for people; never a PR title, number, commit hash or file name, and skip housekeeping like docs syncs or version bumps), and ask one easy, open question about it."
     : "\n\nThis is the very start of the conversation. Say hi in a few words like a friend catching up, show you've read what they wrote by naming one specific thing from their note in your own words (never quote it back), and ask one easy, open question about it.";
-  const { fallback, wrapUp: _w, ...first } = await reply(env, s.questions ?? [], [], (s.brief ?? "") + note, false);
+  // The opener only needs the overview, not the build notes: a shorter prompt answers faster,
+  // and if the model is slow the rule-based question (in plain words) starts things instead.
+  const overview = (s.brief ?? "").replace(/\nBuild notes \(background[\s\S]*?(?=\nTechnical depth is their choice)/, "");
+  const { fallback, wrapUp: _w, ...first } = await reply(env, s.questions ?? [], [], overview + note, false, 7_000);
   if (fallback && s.repo) return opening(s.questions ?? []);
   return { ...first, about: first.about ?? 0 };
 }
@@ -714,8 +717,8 @@ const TECH_DEPTH = `Technical depth is their choice. Within your first two or th
 // of the README and the repo's top level. Background for technical questions.
 function buildNotes(shipped: Shipped): string {
   const clean = (t: string) => t.replace(/```[\s\S]*?```/g, " ").replace(/<!--[\s\S]*?-->/g, " ").replace(/^.*(Co-Authored-By|Generated with|claude\.ai\/code).*$/gim, "").replace(/[#*`>|]/g, "").replace(/\s+/g, " ").trim();
-  const prs = shipped.pulls.filter((p) => clean(p.body).length > 40).slice(0, 6).map((p) => `- ${p.title}: ${clean(p.body).slice(0, 450)}`);
-  const more = (shipped.readme ?? "").slice(1500, 4500).trim();
+  const prs = shipped.pulls.filter((p) => clean(p.body).length > 40).slice(0, 5).map((p) => `- ${p.title}: ${clean(p.body).slice(0, 350)}`);
+  const more = (shipped.readme ?? "").slice(1500, 3500).trim();
   const parts = [
     prs.length ? `Why they made recent changes, from their pull request descriptions:\n${prs.join("\n")}` : "",
     more ? `How it works, from further down the README: ${more}` : "",

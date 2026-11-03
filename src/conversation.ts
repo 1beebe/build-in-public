@@ -57,7 +57,7 @@ export function opening(agenda: Question[]): Turn {
 }
 
 // The interviewer's next turn in typed mode.
-export async function reply(env: Env, agenda: Question[], turns: Turn[], context: string, longform = false): Promise<Turn & { wrapUp?: boolean; fallback?: boolean }> {
+export async function reply(env: Env, agenda: Question[], turns: Turn[], context: string, longform = false, timeoutMs = 25_000): Promise<Turn & { wrapUp?: boolean; fallback?: boolean }> {
   let fallback = false;
   if (hasModel(env)) {
     try {
@@ -69,7 +69,7 @@ export async function reply(env: Env, agenda: Question[], turns: Turn[], context
           threads: agenda.map((q, i) => ({ number: i + 1, source: q.source.slice(0, 300), startingQuestion: q.text.slice(0, 500) })),
           conversation: turns.map((t) => ({ speaker: t.who === "you" ? "THEM" : "YOU", text: t.text })),
         })}\n\nWrite your next interviewer turn. Unless you are wrapping up, it must end on exactly one question, even when you are answering something they asked you. Reply with JSON only: {"say": "...", "about": <thread number or 0>, "wrapUp": <boolean>}`,
-        25_000,
+        timeoutMs,
         1200,
       );
       const out = parseTurn(text);
