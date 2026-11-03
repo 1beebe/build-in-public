@@ -2,7 +2,7 @@
 
 The single source of truth for user-facing behavior. When a change alters what a person sees, what the interviewer does, what comes back, or where it's saved, update this file in the same commit. Every other surface (landing page, README, build-flow diagram, plugin references) is checked against it before each deploy.
 
-Checked through: `3d4a978`
+Checked through: `8752472`
 
 ## The flow
 
