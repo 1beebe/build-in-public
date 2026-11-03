@@ -23,6 +23,7 @@ Checked through: `c4b9a8c`
    - An own-words check requires 65% of the words to be yours for drafts and 80% for outlines. A post that fails is retried once, then falls back to your cleaned-up words.
    - Swear words are masked and flagged.
    - The top three stories show first, and the rest sit behind "Show more".
+   - While it works, a waiting screen shows a shimmering thread of code characters and one line at a time: what it's doing, and now and then a clean sentence you said (no fillers, fragments or swearing). Reduced motion shows a still thread.
 6. **What comes back, by mode.**
    - **Short:** stories with a tension and a turn, each shaped for one of your channels and formats.
    - **Long:** one article of up to about 1,200 words in sections, plus title options from your own lines and a short share post per channel.

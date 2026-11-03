@@ -1,5 +1,5 @@
 // Look: off-white ground, bottle-green ink, legal-pad yellow on the one action.
-// One typeface (Bricolage Grotesque). No gradients, glows or glass.
+// One typeface (Bricolage Grotesque). No gradients, glows or glass, except the one moment of shimmer while it finds your stories.
 const STYLE = `
 :root{
   --ground:#f6f6f3; --surface:#ffffff; --raised:#ebece7; --active:#e2e4dd;
@@ -9,6 +9,7 @@ const STYLE = `
   --field:#0d2a1c; --field-ink:#f6f6f3; --field-muted:#b9c6bd; --ink-bg:#0d2a1c;
   --live:#d7361f; --warn:#a33a12;
   --add:#e3f4e6; --add-fg:#1d6b2c; --del:#fbe7e6; --del-fg:#a1302b; --code:#f1f2ee;
+  --code-cool:96,112,101; --code-hot:168,140,0;
   --font:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
   --r-card:20px; --r-ctl:999px; --r-in:12px;
@@ -23,6 +24,7 @@ const STYLE = `
   --field:#f6e016; --field-ink:#0d2a1c; --field-muted:#3e4a1a; --ink-bg:#14301f;
   --live:#ff6a4d; --warn:#f0a36b;
   --add:#16301d; --add-fg:#7fd492; --del:#3a1b1a; --del-fg:#f29b94; --code:#0a1b12;
+  --code-cool:110,140,120; --code-hot:246,224,22;
   color-scheme:dark}}
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -542,6 +544,14 @@ textarea{resize:vertical;min-height:120px;line-height:1.5}
 @keyframes breathe{0%,100%{transform:scale(.74)}50%{transform:scale(.86)}}
 @keyframes think{0%,100%{transform:scale(.6)}50%{transform:scale(1)}}
 .busyline{min-height:1.5em;color:var(--muted)}
+/* The wait: a thread of code characters (the ripple from lbeebe.com) behind one quiet line. */
+.shimmer{position:relative;height:clamp(280px,46vh,420px);border-radius:var(--r-card);background:var(--surface);overflow:hidden;display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent;border:1px solid var(--border)}
+.shimmer canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.shimmer-line{position:relative;z-index:1;margin:0 22px;max-width:30ch;text-align:center;font-size:1.1rem;line-height:1.35;letter-spacing:-.01em;font-weight:500;
+  background:color-mix(in srgb,var(--surface) 72%,transparent);border-radius:14px;padding:10px 14px;transition:opacity .6s var(--ease),transform .6s var(--ease),filter .6s var(--ease)}
+.shimmer-line.out{opacity:0;transform:translateY(6px);filter:blur(3px)}
+.shimmer-line .q{display:block;font-size:.8rem;color:var(--muted);margin-bottom:2px}
+@media (prefers-reduced-motion:reduce){.shimmer-line{transition:none}}
 .busyline span,#voiceState span{display:inline-block;animation:fadein .5s var(--ease)}
 @keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
@@ -753,6 +763,10 @@ export function appPage(): string {
 </div>
 </section>
 
+<section id="waiting" class="screen" hidden aria-labelledby="waitH">
+  <header><h1 id="waitH">Finding your stories</h1></header>
+  <div class="shimmer" id="shimmer"><canvas aria-hidden="true"></canvas><p class="shimmer-line" id="shimmerLine" aria-live="polite"></p></div>
+</section>
 <section id="review" class="screen wide" hidden>
   <header><h1 id="reviewHead">Stories from your interview</h1><p class="lede" id="reviewLede"></p></header>
   <div class="panel few" id="fewNote" hidden><p id="fewText"></p><div class="row"><button id="moreBtn" class="btn quiet" type="button">Keep talking to find more</button></div></div>
@@ -791,7 +805,7 @@ export function appPage(): string {
 const APP_SCRIPT = `
 const $ = (id) => document.getElementById(id);
 let state = null, shown = null, busy = false;
-const SCREENS = ["setup","talk","review","transcript","done"];
+const SCREENS = ["setup","talk","waiting","review","transcript","done"];
 function show(id){ for (const s of SCREENS) $(s).hidden = s !== id; $("scope").textContent = state && state.repo ? state.repo : ""; }
 function err(m){ $("msg").textContent = m || ""; $("msg").hidden = !m; if (m) $("msg").scrollIntoView({block:"nearest", behavior:"smooth"}); }
 function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -1114,13 +1128,90 @@ $("harvestBtn").onclick = async () => {
     if (pending && !busy) { state = await api("/api/say", {text:pending, final:true}); $("say").value = ""; renderTalk(); }
     const mode = handBack();
     if (mode === "transcript") return renderTranscript();
-    orbState("thinking"); busyLines("harvestBusy", state.longform
-      ? ["Reading the conversation back. This takes about a minute", ...heardLines(), "Finding the shape of your piece", "Building it from your words", "Writing short posts to share it"]
-      : ["Reading the conversation back. This takes about half a minute", ...heardLines(), "Finding the stories with a turn in them", "Shaping each one for where you post", "Writing a few questions for each one"]);
-    state = await api("/api/harvest", {mode}); renderReview(); window.scrollTo({top:0});
+    orbState("thinking");
+    const heard = heardLines(), steps = state.longform
+      ? ["Reading the conversation back. This takes about a minute", "Finding the shape of your piece", "Building it from your words", "Writing short posts to share it"]
+      : ["Reading the conversation back. This takes about half a minute", "Finding the stories with a turn in them", "Shaping each one for where you post", "Writing a few questions for each one"];
+    const lines = [steps[0]]; for (let i = 1; i < steps.length; i++) { if (heard[i - 1]) lines.push(heard[i - 1]); lines.push(steps[i]); }
+    $("waitH").textContent = state.longform ? "Finding your piece" : "Finding your stories";
+    show("waiting"); window.scrollTo({top:0}); shimmer.start(lines);
+    try { state = await api("/api/harvest", {mode}); }
+    catch(e){ shimmer.stop(); renderTalk(); throw e; }
+    const n = (state.drafts || []).filter(d => !d.later && !d.extra && !d.article).length, art = (state.drafts || []).some(d => d.article);
+    if (art || n) await shimmer.finish(art ? "Your piece is ready" : n === 1 ? "One story, ready for you" : (n === 2 ? "Two" : n === 3 ? "Three" : n) + " stories, ready for you");
+    shimmer.stop(); renderReview(); window.scrollTo({top:0});
   }
   catch(e){ err(e.message); } finally { busyDone("harvestBusy"); orbState("idle"); $("harvestBtn").disabled = false; $("harvestBtn").textContent = HARVEST_LABEL; }
 };
+// The wait, made to look at: a thread of code characters weaves across the panel (the ripple from lbeebe.com),
+// bright where it's moving and cooling behind, behind one quiet line. A tap sends a ring out. Reduced motion: a still thread.
+const shimmer = (() => {
+  const box = $("shimmer"), canvas = box.querySelector("canvas"), ctx = canvas.getContext("2d"), line = $("shimmerLine");
+  const GLYPHS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", FONT = 12, LH = 16;
+  const glyph = () => GLYPHS[(Math.random() * GLYPHS.length) | 0];
+  const still = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let cw = 8, cols = 0, rows = 0, W = 0, H = 0, chars = [], rings = [], cool = [96,112,101], hot = [168,140,0];
+  let t0 = 0, glowAt = 0, raf = 0, on = false, lineTimer = 0;
+  const rgb = n => getComputedStyle(document.documentElement).getPropertyValue(n).split(",").map(Number);
+  function size(){
+    const dpr = Math.min(window.devicePixelRatio || 1, 2); W = box.clientWidth; H = box.clientHeight; if (!W || !H) return;
+    canvas.width = W * dpr; canvas.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.font = FONT + "px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"; ctx.textBaseline = "top";
+    cw = Math.ceil(ctx.measureText("M").width) + 1; cols = Math.ceil(W / cw) + 1; rows = Math.ceil(H / LH) + 1;
+    chars = Array.from({length: cols * rows}, glyph); cool = rgb("--code-cool"); hot = rgb("--code-hot");
+  }
+  const curve = (x, t) => H * 0.5 + H * 0.22 * Math.sin(x / W * 5.2 + t * 0.55) + H * 0.09 * Math.sin(x / W * 11.3 - t * 0.9);
+  const patch = (c, r, t) => 0.7 + 0.22 * Math.sin(c * 0.23 + t * 0.9) * Math.sin(r * 0.37 - t * 0.6) + 0.15 * Math.sin((c + r) * 0.11 - t * 0.4);
+  function draw(now){
+    const t = (now - t0) / 1000, head = ((t * 0.12) % 1.25) * W, glow = glowAt ? Math.max(0, 1 - (now - glowAt) / 1400) : 0;
+    rings = rings.filter(p => t - p.t < 2.2); ctx.clearRect(0, 0, W, H);
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const x = c * cw, y = r * LH, behind = head - x;
+      const tail = Math.max(behind < -cw * 2 ? 0 : behind < 0 ? 1 + behind / (cw * 2) : Math.exp(-behind / (W * 1.1)), glow * 0.9);
+      let v = 0;
+      if (tail > 0.02) { const off = (y - curve(x, t)) / 20; v = (Math.exp(-off * off * 1.4) + 0.22 * Math.exp(-off * off * 0.18)) * tail; }
+      for (const p of rings) {
+        const age = t - p.t, rad = age * 200, band = 22 + age * 24, fade = Math.pow(1 - age / 2.2, 1.6);
+        const off = (Math.hypot(x - p.x, y - p.y) - rad) / band; v += Math.exp(-off * off * 2.2) * fade * p.s;
+      }
+      v *= patch(c, r, t); if (v < 0.05) continue;
+      const i = r * cols + c; if (Math.random() < 0.2 * v) chars[i] = glyph();
+      const near = behind >= 0 && behind < W * 0.12 ? 1 - behind / (W * 0.12) : 0;
+      const h = Math.min(1, Math.max(near * v * 1.4, glow * v, (v - 0.55) / 0.4, 0)), mix = k => (cool[k] + (hot[k] - cool[k]) * h) | 0;
+      ctx.fillStyle = "rgba(" + mix(0) + "," + mix(1) + "," + mix(2) + "," + Math.min(0.75, v * 0.85).toFixed(3) + ")";
+      ctx.fillText(chars[i], x, y);
+    }
+    if (on && !still()) raf = requestAnimationFrame(draw);
+  }
+  function ring(x, y, s){ if (still()) return; rings.push({x, y, s: s || 0.8, t: (performance.now() - t0) / 1000}); if (rings.length > 6) rings.shift(); }
+  function put(text, first){
+    const m = /^You said “(.*)”$/.exec(text);
+    const set = () => {
+      line.replaceChildren(); if (m) line.append(el("span", "q", "You said"), document.createTextNode("“" + m[1] + "”")); else line.textContent = text;
+      line.classList.remove("out");
+      const b = line.getBoundingClientRect(), f = box.getBoundingClientRect(); ring(b.left - f.left + b.width / 2, b.top - f.top + b.height / 2, 0.4);
+    };
+    if (first || still()) return set();
+    line.classList.add("out"); setTimeout(set, 450);
+  }
+  box.addEventListener("pointerdown", (e) => { const f = box.getBoundingClientRect(); ring(e.clientX - f.left, e.clientY - f.top); });
+  if ("ResizeObserver" in window) new ResizeObserver(() => { if (on) { size(); if (still()) draw(performance.now()); } }).observe(box);
+  return {
+    start(lines){
+      on = true; glowAt = 0; rings = []; size(); t0 = performance.now() - (still() ? 4000 : 0);
+      let k = 0; put(lines[k++], true); clearInterval(lineTimer);
+      lineTimer = setInterval(() => { if (k < lines.length) put(lines[k++]); }, 3600);
+      cancelAnimationFrame(raf); raf = requestAnimationFrame(draw);
+    },
+    // One bright breath across the whole field, then the stories take over.
+    finish(text){
+      clearInterval(lineTimer); if (!on) return Promise.resolve();
+      put(text); if (still()) return new Promise(r => setTimeout(r, 700));
+      glowAt = performance.now() + 450; return new Promise(r => setTimeout(r, 1400));
+    },
+    stop(){ on = false; clearInterval(lineTimer); cancelAnimationFrame(raf); ctx.clearRect(0, 0, W, H); }
+  };
+})();
 // Delight, kept honest: while it reads back, show a few things they really said.
 // Only whole, clean sentences: leading fillers trimmed, anything with filler inside or a dangling end dropped.
 function heardLines(){
