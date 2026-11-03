@@ -727,13 +727,6 @@ export function appPage(): string {
 </div></header>
 <main class="app wrap">
 <p id="msg" role="alert" hidden></p>
-<section id="loading" class="screen" aria-busy="true" aria-live="polite" hidden>
-  <header>
-    <div class="orb" data-s="connecting" aria-hidden="true"><i></i><i></i><b></b></div>
-    <h1>Opening your interview</h1>
-    <p class="lede">Getting your Buffer account. This takes a moment.</p>
-  </header>
-</section>
 <section id="boot" class="screen" hidden>
   <header>
     <h1>The interview didn't open</h1>
@@ -741,7 +734,7 @@ export function appPage(): string {
   </header>
   <div class="row"><button id="retryBoot" class="btn" type="button">Try again</button></div>
 </section>
-<noscript><style>#loading{display:none!important}</style>
+<noscript>
 <section class="screen"><div class="panel"><header><h1>JavaScript is off</h1><p class="lede">The interview needs JavaScript to open. Turn it on and reload this page.</p></header></div></section>
 </noscript>
 
@@ -826,11 +819,10 @@ export function appPage(): string {
 </main>
 <script>
 (function () {
-  function shown() { return document.querySelector("main.app .screen:not(#loading):not(#boot):not([hidden])"); }
+  function shown() { return document.querySelector("main.app .screen:not(#boot):not([hidden])"); }
   function showBoot(message) {
     if (shown()) return;
-    var loading = document.getElementById("loading"), boot = document.getElementById("boot"), text = document.getElementById("bootText");
-    if (loading) loading.hidden = true;
+    var boot = document.getElementById("boot"), text = document.getElementById("bootText");
     if (boot) boot.hidden = false;
     if (text) text.textContent = message || "The page couldn't open your interview. Reload to try again.";
   }
@@ -856,14 +848,14 @@ const $ = (id) => document.getElementById(id);
 let state = null, shown = null, busy = false;
 const SCREENS = ["setup","talk","waiting","review","transcript","done"];
 function show(id){
-  $("loading").hidden = true; $("boot").hidden = true;
+  $("boot").hidden = true;
   for (const s of SCREENS) $(s).hidden = s !== id;
   $("scope").textContent = state && state.repo ? state.repo : "";
 }
 function err(m){ $("msg").textContent = m || ""; $("msg").hidden = !m; if (m) $("msg").scrollIntoView({block:"nearest", behavior:"smooth"}); }
 function showFault(m){
   for (const s of SCREENS) $(s).hidden = true;
-  $("loading").hidden = true; $("boot").hidden = false;
+  $("boot").hidden = false;
   $("bootText").textContent = m || "Something went wrong. Try again.";
   err(""); window.scrollTo({top:0});
 }
@@ -1522,38 +1514,20 @@ function route(){
   renderSetup();
 }
 let opening = false;
-const LOADING_AFTER = 2000;
-const LOADING_HOLD = 700;
 function withTimeout(promise, ms, message){
   return new Promise((resolve, reject) => {
     const t = setTimeout(() => reject(new Error(message)), ms);
     promise.then((v) => { clearTimeout(t); resolve(v); }, (e) => { clearTimeout(t); reject(e); });
   });
 }
-function holdLoading(shownAt){
-  if (!shownAt) return Promise.resolve();
-  const wait = LOADING_HOLD - (Date.now() - shownAt);
-  return wait > 0 ? new Promise((r) => setTimeout(r, wait)) : Promise.resolve();
-}
 async function load(){
   if (opening) return;
   opening = true;
-  let shownAt = 0;
-  const slowTimer = setTimeout(() => {
-    shownAt = Date.now();
-    $("boot").hidden = true;
-    for (const s of SCREENS) $(s).hidden = true;
-    $("loading").hidden = false;
-  }, LOADING_AFTER);
   try {
     state = await withTimeout(api("/api/state"), 30000, "This is taking too long. Check your connection and try again.");
-    clearTimeout(slowTimer);
-    await holdLoading(shownAt);
     route();
   } catch(e){
-    clearTimeout(slowTimer);
     if (e && e.message === "reconnect") return;
-    await holdLoading(shownAt);
     showFault(e && e.message);
   } finally { opening = false; }
 }
