@@ -36,8 +36,8 @@ if (!boot || !/\shidden\b/.test(boot[0])) {
   process.exit(1);
 }
 const app = scripts[scripts.length - 1];
-if (!app.includes("const LOADING_AFTER = 500") || !app.includes("const LOADING_HOLD = 700")) {
-  console.error("The page script must wait 500ms before showing the loading screen, and keep it up for 700ms once shown.");
+if (!app.includes("const LOADING_AFTER = 2000") || !app.includes("const LOADING_HOLD = 700")) {
+  console.error("The page script must wait 2s before showing the loading screen, and keep it up for 700ms once shown.");
   process.exit(1);
 }
 if (!app.includes('tap \\"I\'m done. Find my stories\\".')) {
