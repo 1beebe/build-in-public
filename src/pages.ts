@@ -102,123 +102,197 @@ a,button,label,summary,.chip{-webkit-tap-highlight-color:transparent}
 `;
 
 const PAGE_STYLE = `
-/* Landing */
-.hero{display:grid;gap:clamp(36px,5vw,72px);padding-block:clamp(28px,5vw,64px) clamp(80px,9vw,140px);align-items:center}
-@media (min-width:1000px){.hero{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}}
-.hero h1{font-size:clamp(2.6rem,1.4rem + 4.4vw,4.75rem)}
-.hero .lead{margin-top:32px;font-size:clamp(1.15rem,1.05rem + .45vw,1.4rem);line-height:1.45;max-width:34ch}
-.hero .act{margin-top:24px;display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px}
-.alert{margin-top:24px;padding:14px 18px;border-radius:14px;background:var(--raised);color:var(--warn);font-weight:500}
-
-/* The demo reel: a 12-second loop of the real app, start to drafts in Buffer */
-.reel{margin:0;justify-self:center;width:min(100%,460px);aspect-ratio:4/5;border-radius:var(--r-card);overflow:hidden;background:#07150e;box-shadow:0 30px 60px -30px rgba(13,42,28,.5)}
-.reel video{display:block;width:100%;height:100%;object-fit:cover}
-
-/* Trust and connect */
-.on-ink{color:#f6f6f3;text-underline-offset:4px}
-.on-ink:hover{color:var(--accent)}
-.trust{display:grid;gap:clamp(32px,5vw,72px);align-items:center}
-@media (min-width:900px){.trust{grid-template-columns:minmax(0,4fr) minmax(0,8fr)}}
-.trust .pic{aspect-ratio:1/1;max-width:420px}
-.conn{list-style:none;margin:32px 0 0;padding:0;display:grid;gap:16px 40px;font-size:1.1rem}
-@media (min-width:900px){.conn{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.conn li{position:relative;padding-left:26px;max-width:40ch}
-.conn li::before{content:"";position:absolute;left:0;top:.45em;width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:inset 0 0 0 2.5px var(--ink)}
-.conn b{font-weight:600}
-.conn-more{margin-top:24px}
-#data .keptwrap{margin-top:0;align-items:center}
-
-/* Sections */
-.sec{padding-block:clamp(72px,10vw,180px)}
-.sec h2{font-size:clamp(2.1rem,1.3rem + 3vw,3.75rem)}
-.sec .say{margin-top:28px;max-width:40ch;font-size:clamp(1.1rem,1rem + .35vw,1.3rem);line-height:1.5}
-.two{display:grid;gap:clamp(40px,6vw,96px);align-items:start}
-@media (min-width:1000px){.two{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}.two.flip{grid-template-columns:minmax(0,7fr) minmax(0,5fr)}.two.flip>:first-child{order:2}}
-
-/* Transcript */
-.talk{list-style:none;margin:0;padding:0;display:grid;gap:22px}
-.talk li{display:grid;gap:6px;max-width:44ch}
-.talk .rise{transition-duration:.5s;transition-delay:calc(var(--i,0) * 420ms)}
-.talk .them.rise{transform:translateY(16px)}
-.talk .you.rise{transform:translateY(16px) scale(.985)}
-.talk .rise.in{transform:none}
-.talk .who{font-size:.875rem;color:var(--muted)}
-.talk .them p{font-size:clamp(1.35rem,1.1rem + .9vw,1.9rem);line-height:1.22;letter-spacing:-.02em;font-weight:500}
-.talk .you{justify-self:end;background:var(--surface);border-radius:22px 22px 6px 22px;padding:16px 20px;border:1px solid var(--border)}
-.talk .flag{display:inline-flex;align-items:center;gap:8px;font-size:.875rem;color:var(--muted);background:var(--raised);border-radius:var(--r-ctl);padding:6px 14px;justify-self:start}
-@media (prefers-reduced-motion:reduce){.talk .rise{transition-delay:0ms}}
-
-/* The yellow field */
-.field{background:var(--accent);color:var(--accent-ink)}
-.ink{background:var(--ink-bg);color:#f6f6f3}
-.ink .say{color:#f6f6f3}
-.ink .say+.say{color:#b9c6bd}
-.field .say{color:var(--accent-ink)}
-.idea{background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:var(--r-card);padding:clamp(20px,2.4vw,32px);display:grid;gap:18px;font-size:1rem;line-height:1.5;box-shadow:0 18px 40px -24px rgba(13,42,28,.45);transform:rotate(-1deg)}
-.idea .t{font-size:1.4rem;font-weight:600;letter-spacing:-.025em;line-height:1.15}
-.idea .lbl{font-size:.875rem;font-weight:600;color:var(--muted)}
-.idea .tag{font-size:.875rem;color:var(--muted);margin:0}
-.idea ul{margin:0;padding-left:1.1em;display:grid;gap:4px}
-
-/* Steps */
-
-/* Under the hood */
-.hood{background:var(--ink-bg);color:#f6f6f3}
-.hood .say{color:#b9c6bd}
-.flow-mini{list-style:none;margin:48px 0 0;padding:0;display:grid;gap:12px}
-@media (min-width:900px){.flow-mini{grid-template-columns:repeat(5,minmax(0,1fr));align-items:stretch}.flow-mini li+li::before{content:"→";position:absolute;left:-18px;top:50%;transform:translateY(-50%);color:#789184}}
-.flow-mini li{position:relative;border:1px solid #31513d;border-radius:var(--r-card);padding:18px;display:grid;gap:9px;align-content:start;background:#10271a}
-.flow-mini .k{font:500 .75rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#91aa99}
-.flow-mini b{font-size:1.05rem;line-height:1.2}
-.flow-mini p{font-size:.875rem;color:#b9c6bd}
-.flow-mini .ai{border-color:#ec8a5f;box-shadow:inset 0 0 0 1px #ec8a5f}
-.flow-mini .ai .k{color:#ffad88}
-.hood-links{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-top:32px}
-.hood-links .btn.quiet{color:#f6f6f3;box-shadow:inset 0 0 0 1.5px #789184}
-.hood-links .btn.quiet:hover{background:#183522}
-
-/* Kept */
-.pic{margin:0;border-radius:var(--r-card);overflow:hidden;background:var(--raised)}
-.pic img{display:block;width:100%;height:100%;object-fit:cover}
-.band{margin:0;height:clamp(200px,28vw,420px);overflow:hidden;background:var(--raised)}
-.band img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 58%}
-#sounds .two{align-items:center}
-.keptwrap{display:grid;gap:clamp(36px,5vw,80px);margin-top:48px;align-items:start}
-@media (min-width:900px){.keptwrap{grid-template-columns:minmax(0,4fr) minmax(0,8fr)}}
-.keptwrap .pic{aspect-ratio:4/5}
-.keptwrap .kept{margin-top:0}
-.where{list-style:none;margin:48px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:2px solid var(--ink)}
-.where li{display:grid;align-content:start;gap:14px;padding:28px 28px 8px 0;font-size:1.05rem;line-height:1.5}
-.where li+li{padding-left:28px;border-left:1px solid var(--border)}
-.where .n{font-weight:600;font-size:clamp(5rem,4rem + 6vw,10rem);letter-spacing:-.06em;line-height:.8}
-.where .k{font-weight:600;font-size:clamp(1.4rem,1.1rem + .9vw,2rem);letter-spacing:-.03em;line-height:1.1}
-.where p{margin:0;color:var(--muted);max-width:30ch}
-.where p b{font-weight:600;color:var(--ink)}
-.where-go{margin-top:40px}
-.take .lede{max-width:60ch;margin-top:16px}
-.take-go{margin-top:28px;gap:12px;flex-wrap:wrap}
-@media (max-width:760px){.where{grid-template-columns:1fr}.where li,.where li+li{grid-template-columns:4.25rem 1fr;column-gap:18px;padding:22px 0;border-left:0;border-bottom:1px solid var(--border)}.where .n{grid-row:span 2;font-size:5rem}.where p{grid-column:2}}
-@media (min-width:900px){.keptwrap .kept{grid-template-columns:1fr}}
-.kept{display:grid;gap:28px;margin-top:48px}
-@media (min-width:900px){.kept{grid-template-columns:repeat(3,minmax(0,1fr))}}
-.kept div{display:grid;gap:10px;align-content:start}
-.kept p{max-width:62ch}
-.kept h3{font-size:1.3rem;letter-spacing:-.02em;line-height:1.15}
-
-/* Close */
-.foot{background:var(--field);color:var(--field-ink);padding-block:clamp(64px,8vw,120px) 32px}
-.foot .big{font-size:clamp(3rem,14.2vw,13.5rem);white-space:nowrap;font-weight:600;letter-spacing:-.045em;line-height:.88;margin:0}
-.foot .row{display:flex;flex-wrap:wrap;gap:16px 32px;justify-content:space-between;align-items:end;margin-top:48px;font-size:1rem;color:var(--field-muted)}
-.foot .row a:not(.btn){color:var(--field-ink)}
-.foot .foot-link{display:inline-flex;align-items:center;gap:10px;background:none;border:0;padding:0;font:inherit;color:var(--field-ink);text-decoration:underline;text-underline-offset:.15em;cursor:pointer;vertical-align:middle}
-.foot .btn{background:var(--accent);color:var(--accent-ink)}
-
-/* Privacy */
-.doc{max-width:720px;padding-block:clamp(40px,7vw,96px) 96px;display:grid;gap:22px}
-.doc h1{font-size:clamp(2.6rem,1.6rem + 4vw,4.5rem);margin-bottom:12px}
-.doc h2{font-size:1.6rem;letter-spacing:-.025em;margin-top:28px}
 .doc p,.doc li{max-width:62ch}
 .doc ul{margin:0;padding-left:1.2em;display:grid;gap:10px}
+`;
+
+// The landing page: one motif, the speech-bubble mark. Light only, it is built on yellow and bottle green.
+const LANDING_STYLE = `
+:root{
+  color-scheme:light;
+  --ground:#f6f6f3; --raised:#ebece7; --step:#dfe2da; --ink:#0d2a1c; --muted:#45544b; --accent:#f6e016; --accent-press:#e5cf06; --live:#d7361f;
+  --on-ink:#f2f5ef; --on-ink-muted:#c3cfc6; --ink-2:#163a28;
+  --font:"Bricolage Grotesque","Bricolage Fallback",ui-sans-serif,system-ui,sans-serif;
+  --m:clamp(16px,3vw,40px);
+  --ease:cubic-bezier(.2,.7,.2,1);
+  /* Five sizes: display, heading, lead, body, small */
+  --t-display:clamp(48px,7.2vw,118px); --t-head:clamp(32px,3.6vw,56px); --t-lead:clamp(19px,1.5vw,22px); --t-body:17px; --t-small:15px;
+  /* The motif: The Interviewer's own speech bubble, as a mask */
+  --bubble:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='3 3 26 26.2' preserveAspectRatio='none'%3E%3Cpath d='M16 3C8.8 3 3 8.4 3 15.1c0 3.6 1.7 6.8 4.4 9L6.2 29l5.6-2.8c1.3.4 2.7.6 4.2.6 7.2 0 13-5.4 13-12.1S23.2 3 16 3Z'/%3E%3C/svg%3E");
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ground);color:var(--ink);font:400 var(--t-body)/1.55 var(--font);-webkit-font-smoothing:antialiased;overflow-x:clip}
+img,video,svg{display:block;max-width:100%}
+a{color:inherit}
+h1,h2,h3{margin:0;font-weight:600;letter-spacing:-.035em;line-height:.98;text-wrap:balance}
+p{margin:0}
+:focus-visible{outline:3px solid var(--ink);outline-offset:3px;border-radius:6px}
+.ink :focus-visible,.foot :focus-visible{outline-color:var(--accent)}
+.wrap{padding-inline:var(--m);max-width:1520px;margin-inline:auto}
+
+/* Buttons: fully round, flat, one fill */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 26px;border-radius:999px;border:0;background:var(--accent);color:var(--ink);font:600 var(--t-small)/1 var(--font);letter-spacing:-.01em;text-decoration:none;cursor:pointer;transition:transform .18s var(--ease),background-color .18s}
+.btn:hover{background:var(--accent-press)}
+.btn:active{transform:scale(.97)}
+.btn .dot{width:10px;height:10px;border-radius:50%;background:var(--live)}
+
+/* Nav: wordmark, four links, one action */
+.nav{display:flex;align-items:center;justify-content:space-between;gap:24px;padding-block:24px}
+.wordmark{display:inline-flex;align-items:center;gap:10px;font-weight:600;font-size:19px;letter-spacing:-.02em;text-decoration:none}
+.wordmark svg{width:30px;height:30px}
+.nav ul{display:flex;gap:28px;list-style:none;margin:0;padding:0}
+.nav ul a{text-decoration:none;font-size:var(--t-small);color:var(--muted)}
+.nav ul a:hover{color:var(--ink)}
+.nav .btn{min-height:44px;padding:0 20px}
+.nav .btn{gap:0}
+@media (max-width:900px){.nav ul{display:none}}
+@media (max-width:520px){.nav .long{display:none}}
+
+/* Hero: the bubble, enormous, cropped by the viewport, as the stage for the demo */
+.hero{position:relative;min-height:calc(4vh + min(60vw,940px) * 1.008 + 8px);overflow:hidden;display:grid;grid-template-columns:minmax(0,6fr) minmax(0,6fr);align-items:start}
+.hero .copy{position:relative;z-index:1;padding:clamp(48px,9vh,120px) 0 64px var(--m);max-width:760px}
+.hero h1{font-size:var(--t-display)}
+.hero .lead{font-size:var(--t-lead);line-height:1.45;max-width:34ch;margin-top:36px}
+.hero .act{margin-top:40px;display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px}
+.hero .act .small{font-size:var(--t-small);color:var(--muted);max-width:30ch}
+.stage{position:absolute;right:-6vw;top:4vh;width:min(60vw,940px);aspect-ratio:26/26.2;background:var(--accent);-webkit-mask:var(--bubble) center/100% 100% no-repeat;mask:var(--bubble) center/100% 100% no-repeat}
+.stage .rec{position:absolute;left:47.5%;top:41%;width:6%;aspect-ratio:1;border-radius:50%;background:var(--live);opacity:.0}
+.reel{position:absolute;z-index:1;right:calc(min(60vw,940px) * .3 - 6vw);top:calc(4vh + min(60vw,940px) * .14);width:min(26vw,400px);margin:0;border-radius:28px;overflow:hidden;background:#07150e}
+.reel video{width:100%;height:auto;aspect-ratio:4/5;object-fit:cover}
+@media (max-width:860px){
+  .hero{display:block;min-height:0}
+  .hero .copy{padding:28px var(--m) 32px}
+  .hero h1{font-size:13vw}
+  .hero .lead{margin-top:24px}
+  .hero-phone{position:relative;overflow:hidden;padding-bottom:4vw}
+  .stage{position:relative;right:auto;top:auto;width:118vw;margin:0 0 0 -4vw}
+  .reel{right:auto;left:50%;transform:translateX(-50%);top:12vw;width:min(66vw,360px)}
+}
+
+/* The full-width band between the two halves of the page */
+.band{margin:0;height:clamp(240px,42vw,620px);overflow:hidden}
+.band img{width:100%;height:100%;object-fit:cover;object-position:50% 60%}
+
+/* How it works: four fields, the same card further along in each */
+.strip{display:grid;grid-template-columns:repeat(4,1fr)}
+.fld{position:relative;min-height:min(84svh,760px);padding:32px var(--m) 36px;display:flex;flex-direction:column}
+.fld:nth-child(1){background:var(--raised)}
+.fld:nth-child(2){background:var(--step)}
+.fld:nth-child(3){background:var(--accent)}
+.fld:nth-child(4){background:var(--ink);color:var(--on-ink)}
+.fld h2{font-size:var(--t-head);font-weight:700}
+.fld .card{margin:auto 0;width:100%;transition:transform .15s var(--ease)}
+.fld:hover .card{transform:translateY(-6px)}
+.fld .clause{font-size:var(--t-lead);line-height:1.12;letter-spacing:-.02em;font-weight:500;max-width:14ch}
+.card{background:#fff;color:var(--ink);border-radius:22px 22px 22px 6px;padding:16px 16px 14px;font-size:14px;line-height:1.4;display:grid;gap:10px}
+.card .who{font-size:13px;color:var(--muted)}
+.card .in{background:var(--raised);border-radius:12px;padding:10px 12px;font-size:14px}
+.card .q{font-size:16px;font-weight:600;letter-spacing:-.015em;line-height:1.25}
+.card .a{background:var(--ink);color:var(--on-ink);border-radius:16px 16px 4px 16px;padding:10px 12px;justify-self:end;max-width:90%}
+.card .draft{border-top:0;background:var(--accent);border-radius:12px;padding:10px 12px;display:grid;gap:4px}
+.card .draft b{font-size:15px;letter-spacing:-.01em}
+.card .sbtn{justify-self:start;background:var(--accent);border-radius:999px;padding:10px 16px;font-weight:600;font-size:14px}
+.card .ch{font-size:13px;color:var(--muted)}
+@media (max-width:1100px){
+  .strip{grid-template-columns:1fr 1fr}
+  .fld{min-height:520px}
+}
+@media (max-width:620px){
+  .strip{grid-template-columns:1fr}
+  .fld{min-height:0;padding:28px var(--m) 36px;gap:24px}
+  .fld .card{margin:0;max-width:none}
+  .fld .clause{order:-1;font-size:24px;max-width:18ch}
+  .fld h2{order:-2}
+}
+
+/* Trust: an inset ink panel, the cafe photo masked in the bubble */
+.panel-wrap{padding:clamp(80px,10vw,160px) 20px}
+.ink{position:relative;background:var(--ink);color:var(--on-ink);border-radius:28px;min-height:min(110svh,980px);overflow:hidden;padding:56px;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:40px}
+.ink h2{font-size:var(--t-display);max-width:9ch}
+.ink .pic{position:absolute;left:56px;bottom:-9%;width:min(40vw,620px);aspect-ratio:26/26.2;margin:0;-webkit-mask:var(--bubble) center/100% 100% no-repeat;mask:var(--bubble) center/100% 100% no-repeat}
+.ink .pic img{width:100%;height:100%;object-fit:cover}
+.ink .blocks{display:grid;gap:56px;align-content:start;padding-top:8px}
+.ink h3{font-size:var(--t-lead);letter-spacing:-.02em;line-height:1.15;margin-bottom:10px}
+.ink .blocks p{color:var(--on-ink-muted);font-size:var(--t-body)}
+.ink .btn{margin-top:20px}
+@media (max-width:960px){
+  .panel-wrap{padding:64px 10px}
+  .ink{display:block;padding:32px 22px 0;border-radius:22px}
+  .ink h2{font-size:13vw}
+  .ink .blocks{margin-top:40px;gap:36px}
+  .ink .pic{position:relative;left:auto;bottom:auto;width:86vw;margin:48px auto -22vw}
+}
+
+/* Connect: sticky heading with the couch photo, filled-tile accordion */
+.faq{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(32px,5vw,80px);padding-bottom:clamp(120px,12vw,200px)}
+.faq .side{position:sticky;top:96px;align-self:start}
+.faq h2{font-size:var(--t-head)}
+.faq .side p{margin-top:24px;font-size:var(--t-lead);max-width:26ch;line-height:1.4}
+.faq .side .pic{margin:40px 0 0;width:min(100%,420px);aspect-ratio:26/26.2;-webkit-mask:var(--bubble) center/100% 100% no-repeat;mask:var(--bubble) center/100% 100% no-repeat}
+.faq .side .pic img{width:100%;height:100%;object-fit:cover}
+.tiles{display:grid;gap:8px;align-content:start}
+.tiles details{background:var(--raised);border-radius:22px 22px 22px 6px;transition:background-color .2s}
+.tiles summary{list-style:none;cursor:pointer;min-height:76px;padding:22px 64px 22px 26px;position:relative;font-size:var(--t-lead);font-weight:500;letter-spacing:-.015em;line-height:1.3}
+.tiles summary::-webkit-details-marker{display:none}
+.tiles summary::before,.tiles summary::after{content:"";position:absolute;right:26px;top:50%;width:16px;height:3px;border-radius:2px;background:var(--ink);transition:transform .2s var(--ease)}
+.tiles summary::after{transform:rotate(90deg)}
+.tiles details[open]{background:var(--accent)}
+.tiles details[open] summary::after{transform:rotate(0)}
+.tiles .ans{padding:0 26px 24px;max-width:56ch;font-size:var(--t-body)}
+.tiles .ans a{font-weight:600}
+@media (max-width:960px){.faq{display:block}.faq .side{position:static}.faq .side .pic{width:70vw;margin:32px 0 40px}.tiles summary{font-size:18px;min-height:64px}}
+
+/* Close: a sentence with a blank */
+.close{background:var(--accent);padding-block:clamp(96px,11vw,180px)}
+.close form{font-size:clamp(40px,6.4vw,104px);font-weight:600;letter-spacing:-.035em;line-height:1.12}
+.close .l1{display:block}
+.close label{display:inline}
+.close input{font:inherit;letter-spacing:inherit;width:7.6em;max-width:100%;height:1.08em;vertical-align:-.14em;border:0;border-radius:.42em .42em .42em .12em;background:var(--ground);color:var(--ink);padding:0 .3em;margin:0 .08em}
+.close input::placeholder{color:#7b857f}
+.close button{font:inherit;letter-spacing:inherit;height:1.08em;vertical-align:-.14em;border:0;border-radius:999px;background:var(--ink);color:var(--accent);padding:0 .45em;cursor:pointer;transition:transform .18s var(--ease)}
+.close button:active{transform:scale(.97)}
+.close .after{margin-top:32px;font-size:var(--t-body);max-width:48ch}
+@media (max-width:700px){.close form{font-size:8.4vw}.close input{width:6em}}
+@media (max-width:620px){.fld .clause,.ink h2,.faq h2,.hero h1,.hero .lead,.hero .act .small,.faq .side p,.close .after,.ink .blocks p{max-width:none}}
+
+
+/* Footer: the mark, built large */
+.foot{background:var(--ink);color:var(--on-ink);padding:clamp(56px,6vw,96px) 0 32px}
+.mark-big{display:flex;align-items:flex-end;gap:clamp(16px,3vw,40px);height:34svh;min-height:200px}
+.mark-big svg{height:100%;width:auto;flex:none}
+.mark-big .nm{font-size:clamp(48px,10.6vw,176px);font-weight:600;letter-spacing:-.05em;line-height:.8}
+.foot .links{display:flex;flex-wrap:wrap;gap:14px 32px;margin-top:56px;font-size:var(--t-small)}
+.foot .links a,.foot .links button{color:var(--on-ink);text-decoration:none;font:inherit;background:none;border:0;padding:0;cursor:pointer}
+.foot .links a:hover,.foot .links button:hover{text-decoration:underline}
+.foot .last{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px;margin-top:40px;font-size:var(--t-small);color:var(--on-ink-muted)}
+.foot .last .btn{min-height:44px}
+@media (max-width:700px){.mark-big{height:22svh;min-height:120px}.mark-big .nm{font-size:14vw}}
+
+/* Motion: shutter on the demo, staggered entrances, nothing hidden without script */
+.js .rise{opacity:0;transform:translateY(24px);transition:opacity .7s var(--ease),transform .7s var(--ease);transition-delay:calc(var(--i,0) * 80ms)}
+.js .rise.in{opacity:1;transform:none}
+.js .reel{clip-path:inset(100% 0 0 0 round 28px);transition:clip-path 1.1s var(--ease)}
+.js .reel video{transform:scale(1.12);transition:transform 1.4s var(--ease)}
+.js .reel.in{clip-path:inset(0 0 0 0 round 28px)}
+.js .reel.in video{transform:none}
+.js .stage{transform:translateX(6vw) rotate(-4deg);opacity:0;transition:transform 1.2s var(--ease),opacity .8s}
+.js .stage.in{transform:none;opacity:1}
+@media (prefers-reduced-motion:reduce){
+  .js .rise,.js .stage{opacity:1;transform:none;transition:none}
+  .js .reel{clip-path:none;transition:none}.js .reel video{transform:none;transition:none}
+}
+@media (max-width:620px){
+  .close form{display:flex;flex-wrap:wrap;gap:.14em .12em;align-items:center}
+  .close .l1{flex:1 0 100%}
+  .close input{flex:1 1 0;width:auto;min-width:0;margin:0}
+  .close button{flex:none}
+  .foot .links{display:grid;grid-template-columns:1fr 1fr;gap:16px 24px}
+  .foot .links a,.foot .links button{text-align:left}
+  .foot .last .btn,.hero .act .btn,.ink .btn{width:100%;justify-content:center}
+  .mark-big{height:auto;min-height:0}.mark-big svg{height:28vw}.mark-big .nm{font-size:12vw;min-width:0}
+  .reel{width:min(76vw,360px)}
+}
 `;
 
 const MARK = `<svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3C8.8 3 3 8.4 3 15.1c0 3.6 1.7 6.8 4.4 9L6.2 29l5.6-2.8c1.3.4 2.7.6 4.2.6 7.2 0 13-5.4 13-12.1S23.2 3 16 3Z" fill="#f6e016"/><circle cx="16" cy="15" r="4.2" fill="#d7361f"/></svg>`;
@@ -290,7 +364,7 @@ ${FONTS}
 
 const NAV = `<header class="wrap nav">
   <a class="wordmark" href="/">${MARK}The Interviewer</a>
-  <nav aria-label="Main"><ul><li><a href="/#sounds">How it sounds</a></li><li><a href="/#keep">What you keep</a></li><li><a href="/#data">Your data</a></li><li><a href="/privacy">Privacy</a></li></ul></nav>
+  <nav aria-label="Main"><ul><li><a href="/#how">How it works</a></li><li><a href="/#trust">Your words</a></li><li><a href="/#connect">Your data</a></li><li><a href="/privacy">Privacy</a></li></ul></nav>
   <a class="btn small" href="/connect">Connect<span class="long">&nbsp;with Buffer</span></a>
 </header>`;
 
@@ -300,89 +374,86 @@ export function landingPage(error?: string): string {
     `
 ${NAV}
 <main>
-<section class="wrap hero">
-  <div>
-    <h1>Unblock your stories.</h1>
-    <p class="lead">The Interviewer asks you thoughtful questions about your actual work and helps you shape the answers into stories in your own words. Then you edit, draft, and schedule them in Buffer.</p>
+<section class="hero" aria-labelledby="heroH">
+  <div class="copy">
+    <h1 id="heroH" class="rise">Unblock your stories.</h1>
+    <p class="lead rise" style="--i:1">Thoughtful questions about your actual work. Stories in your own words, ready to edit and schedule in Buffer.</p>
     ${error ? `<p class="alert" role="alert">${escapeHtml(error)}</p>` : ""}
-    <div class="act"><a class="btn" href="/connect">Connect with Buffer</a><span class="small muted">Signs in with Buffer, the social media planner. New to it? <a href="https://buffer.com" target="_blank" rel="noopener">The free plan</a> works.</span></div>
+    <div class="act rise" style="--i:2"><a class="btn" href="/connect"><span class="dot" aria-hidden="true"></span>Connect with Buffer</a><span class="small">Signs in with Buffer, the social media planner. <a href="https://buffer.com" target="_blank" rel="noopener">The free plan</a> works.</span></div>
   </div>
-  <figure class="reel"><video src="/demo/interviewer-4x5.mp4" poster="/demo/interviewer-poster.webp" width="1080" height="1350" autoplay muted loop playsinline preload="auto" aria-label="A 12-second demo on a phone: paste a repo, answer one question out loud, and three drafts land in Buffer."></video></figure>
+  <div class="hero-phone">
+    <div class="stage" aria-hidden="true"></div>
+    <figure class="reel"><video src="/demo/interviewer-4x5.mp4" poster="/demo/interviewer-poster.webp" width="1080" height="1350" autoplay muted loop playsinline preload="auto" aria-label="A 12-second demo on a phone: paste a repo, answer one question out loud, and three drafts land in Buffer."></video></figure>
+  </div>
 </section>
 
-<figure class="band" aria-hidden="true"><img src="/img/desk.webp" alt="" width="1600" height="1067" loading="lazy" decoding="async"></figure>
+<figure class="band"><img src="/img/desk.webp" alt="A desk at night with a laptop, a microphone and a mug of coffee" width="1600" height="1067" loading="lazy" decoding="async"></figure>
 
-<section class="sec" id="sounds" style="background:var(--raised)" aria-labelledby="soundsH">
-  <div class="wrap two">
-    <div>
-      <h2 id="soundsH">Centered on your work and words.</h2>
-      <p class="say">It reads about your week first, then asks the kind of questions a curious friend would. Talk it through out loud or type, whichever comes easier.</p>
+<section id="how" class="strip" aria-labelledby="howH">
+  <div class="fld">
+    <h2 id="howH" class="rise">How it works</h2>
+    <div class="card rise" data-ui style="--i:1"><span class="who">The Interviewer</span><span class="sbtn">Connect with Buffer</span></div>
+    <p class="clause rise" style="--i:2">First, sign in with Buffer.</p>
+  </div>
+  <div class="fld">
+    <div class="card rise" data-ui><span class="who">This week</span><div class="in">Let people try it before they sign up</div><span class="who">or a public repo</span></div>
+    <p class="clause rise" style="--i:1">Tell it what you worked on.</p>
+  </div>
+  <div class="fld">
+    <div class="card rise" data-ui><span class="who">The Interviewer</span><p class="q">What were you seeing before that?</p><p class="a">Like half the people who found it would hit the sign-up screen and just leave.</p></div>
+    <p class="clause rise" style="--i:1">It asks what really happened. You answer out loud, or type.</p>
+  </div>
+  <div class="fld">
+    <div class="card rise" data-ui><span class="ch">LinkedIn · Draft in Buffer</span><div class="draft"><b>Why I let people in before they sign up</b><span>Half the people who found it would hit the sign-up screen and leave. So now you try it first.</span></div></div>
+    <p class="clause rise" style="--i:1">Drafts land in Buffer, in your words.</p>
+  </div>
+</section>
+
+<div class="panel-wrap" id="trust">
+  <section class="ink" aria-labelledby="whyH">
+    <h2 id="whyH" class="rise">It won't make things up.</h2>
+    <div class="blocks">
+      <div class="rise"><h3>A scaffold, not a ghostwriter.</h3><p>Writing is thinking, and your words are powerful. Drafts keep your sentences and add only what a good editor would, never a new claim.</p></div>
+      <div class="rise" style="--i:1"><h3>The last word stays with you.</h3><p>Take a lightly edited draft, an outline to write from yourself, or the whole transcript for your own tools.</p><a class="btn" href="/build-flow">See where AI is used</a></div>
     </div>
-    <ol class="talk" aria-label="An example conversation">
-      <li class="them rise"><span class="who">The Interviewer</span><p>You let people try it before signing up. What were you seeing before that?</p></li>
-      <li class="you rise" style="--i:1"><span class="who">You</span><p>Like half the people who found it would hit the sign-up screen and just leave.</p></li>
-      <li class="them rise" style="--i:2"><span class="who">The Interviewer</span><p>Half, right at the door. Walk me through the moment you decided to let them in first.</p></li>
-    </ol>
-  </div>
-</section>
-
-<section class="sec field" id="keep" aria-labelledby="keepH">
-  <div class="wrap two flip">
-    <div>
-      <h2 id="keepH">Your stories, saved in your own words.</h2>
-      <p class="say">It finds the stories in what you said and shapes each one for the channels you post on. Take a draft built from your words with a light editor\u2019s touch, an outline to write from yourself, or the transcript to use with your own tools.</p>
-    </div>
-    <article class="idea" aria-label="A draft as it lands in Buffer">
-      <p class="t">Why I let people in before they sign up</p>
-      <div><p class="lbl">Draft, from your words, lightly edited</p><p>Half the people who found it would hit the sign-up screen and leave. Why would they give their email to something they hadn't seen work? I wouldn't. So now you try it first and sign up after.</p></div>
-      <p class="tag">Tag: Building</p>
-    </article>
-  </div>
-</section>
-
-<section class="sec ink" aria-labelledby="whyH">
-  <div class="wrap trust">
     <figure class="pic"><img src="/img/cafe.webp" alt="Two people talking across a small cafe table, one laughing mid-story" width="960" height="1190" loading="lazy" decoding="async"></figure>
-    <div>
-      <h2 id="whyH">It won't make things up.</h2>
-      <p class="say">Writing is thinking, and your words are powerful. The Interviewer is a scaffold, not a ghostwriter. Drafts keep your sentences and add only what a good editor would, never a new claim. The final word, and your voice, stay with you.</p>
-      <p class="say"><a class="on-ink" href="/build-flow">See exactly where AI is used</a></p>
-    </div>
+  </section>
+</div>
+
+<section id="connect" class="wrap faq" aria-labelledby="keptH">
+  <div class="side">
+    <h2 id="keptH" class="rise">What happens when you connect.</h2>
+    <p class="rise" style="--i:1">It reads just enough to ask good questions, and saves only what you approve.</p>
+    <figure class="pic rise" style="--i:2"><img src="/img/couch.webp" alt="Someone on a couch at night with a laptop, talking and smiling" width="960" height="1190" loading="lazy" decoding="async"></figure>
+  </div>
+  <div class="tiles">
+    <details name="faq" open><summary>What does it read in Buffer?</summary><p class="ans">Your tags and recent posts, so its questions fit. It only saves the drafts you approve, and never publishes or schedules anything.</p></details>
+    <details name="faq"><summary>Do I need GitHub?</summary><p class="ans">No. A sentence about your week is enough. With a public repo, it reads the README and one week of public work. There's no GitHub sign-in.</p></details>
+    <details name="faq"><summary>What happens to my interview?</summary><p class="ans">It's encrypted and deleted when you disconnect. If you leave the box ticked at setup, Ligaya can read the transcript for 14 days to improve the interviewer.</p></details>
+    <details name="faq"><summary>Does it remember me?</summary><p class="ans">Only if you tick the box at setup. It remembers what you're still working through, never the transcript.</p></details>
+    <details name="faq"><summary>Does it cost anything?</summary><p class="ans">No. It signs in with Buffer, and Buffer's free plan works.</p></details>
+    <details name="faq"><summary>Can I run it in my own agent?</summary><p class="ans">Yes. It's a free plugin that keeps a library of your own words on your computer and picks up where you left off. <a href="https://github.com/1beebe/build-in-public/tree/main/plugin">Get the plugin</a>. If it helped you, a <a href="https://github.com/1beebe/build-in-public">star on GitHub</a> helps other builders find it.</p></details>
+    <details name="faq"><summary>Where is AI used?</summary><p class="ans">Every step is laid out, model by model, on <a href="/build-flow">one page</a>. The full detail is in <a href="/privacy">the privacy note</a>.</p></details>
   </div>
 </section>
 
-<section class="sec" id="data" aria-labelledby="keptH">
-  <div class="wrap keptwrap">
-    <figure class="pic"><img src="/img/couch.webp" alt="Someone on a couch at night with a laptop, talking and smiling" width="960" height="1190" loading="lazy" decoding="async"></figure>
-    <div>
-      <h2 id="keptH">What happens when you connect.</h2>
-      <ul class="conn">
-        <li><b>Buffer.</b> The Interviewer reads your tags and recent posts so its questions fit. It only saves the drafts you approve, and never publishes or schedules anything.</li>
-        <li><b>GitHub.</b> It reads your repo\u2019s README and one week of public work. There\u2019s no GitHub sign-in, and you don\u2019t need a repo at all.</li>
-        <li><b>Your interview.</b> It\u2019s encrypted and deleted when you disconnect. If you leave the box ticked at setup, Ligaya can read the transcript for 14 days to improve the interviewer.</li>
-        <li><b>Memory.</b> Off unless you tick it at setup. It remembers what you\u2019re still working through, never the transcript.</li>
-      </ul>
-      <p class="conn-more"><a href="/privacy">The full privacy note</a></p>
-    </div>
-  </div>
-</section>
-
-<section class="sec take" style="background:var(--raised)" aria-labelledby="takeH">
+<section class="close" aria-labelledby="closeH">
   <div class="wrap">
-    <h2 id="takeH">Take it with you.</h2>
-    <p class="lede">The same interview also runs in your own agent. It's a free plugin that keeps a library of your own words on your computer and picks up where you left off each time. If The Interviewer helped you, a star on GitHub helps other builders find it.</p>
-    <div class="row take-go"><a class="btn quiet" href="https://github.com/1beebe/build-in-public/tree/main/plugin" target="_blank" rel="noopener">${PLUGIN_ICON}Get the plugin</a><a class="btn text" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">${STAR_ICON}Star it on GitHub</a></div>
+    <h2 id="closeH" class="rise" style="font-size:0;position:absolute;width:1px;height:1px;overflow:hidden">Start an interview</h2>
+    <form class="rise" action="/connect" method="get"><span class="l1">This week I worked on</span><input name="work" aria-label="What you worked on: a repo link or a note" placeholder="a repo or a note" autocomplete="off"> <button type="submit">Start</button></form>
+    <p class="after rise" style="--i:1">You'll sign in with Buffer first, and land straight in the interview. Nothing is posted without you.</p>
   </div>
 </section>
 </main>
 
 <footer class="foot">
   <div class="wrap">
-    <p class="big" aria-hidden="true">The Interviewer</p>
-    <div class="row"><a class="btn" href="/connect">Connect with Buffer</a><p>Built in public for Buffer Commit by Ligaya Beebe. Not made by or affiliated with Buffer. <a href="/privacy">Privacy</a>. <button class="foot-link" type="button" data-feedback-open>${FEEDBACK_ICON}Feedback</button></p></div>
+    <div class="mark-big"><svg viewBox="3 3 26 26.2" aria-hidden="true"><path d="M16 3C8.8 3 3 8.4 3 15.1c0 3.6 1.7 6.8 4.4 9L6.2 29l5.6-2.8c1.3.4 2.7.6 4.2.6 7.2 0 13-5.4 13-12.1S23.2 3 16 3Z" fill="#f6e016"/><circle cx="16" cy="15" r="4.2" fill="#d7361f"/></svg><p class="nm" aria-hidden="true">The Interviewer</p></div>
+    <div class="links"><a href="/privacy">Privacy</a><a href="/build-flow">Where AI is used</a><a href="https://github.com/1beebe/build-in-public/tree/main/plugin">The plugin</a><a href="https://github.com/1beebe/build-in-public">Star it on GitHub</a><button type="button" data-feedback-open>Feedback</button></div>
+    <div class="last"><p>Built in public for Buffer Commit by Ligaya Beebe. Not made by or affiliated with Buffer.</p><a class="btn" href="/connect">Connect with Buffer</a></div>
   </div>
 </footer>`,
-    { style: PAGE_STYLE, script: LANDING_SCRIPT },
+    { style: LANDING_STYLE, script: LANDING_SCRIPT },
   );
 }
 
@@ -390,9 +461,12 @@ ${NAV}
 const LANDING_SCRIPT = `
 (() => {
   const io = "IntersectionObserver" in window ? new IntersectionObserver((es) => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), {rootMargin:"0px 0px -8% 0px"}) : null;
-  document.querySelectorAll(".rise").forEach(n => io ? io.observe(n) : n.classList.add("in"));
+  document.querySelectorAll(".rise,.reel,.stage").forEach(n => io ? io.observe(n) : n.classList.add("in"));
   const reel = document.querySelector(".reel video");
   if (reel && matchMedia("(prefers-reduced-motion: reduce)").matches) { reel.removeAttribute("autoplay"); reel.pause(); reel.controls = true; }
+  // The close sentence: what you type rides through Buffer sign-in and lands in setup.
+  const f = document.querySelector(".close form");
+  if (f) f.addEventListener("submit", (e) => { e.preventDefault(); const w = f.work.value.trim(); try { if (w) localStorage.setItem("iv.work", w.slice(0, 500)); } catch {} location.href = "/connect"; });
 })();
 `;
 
@@ -936,6 +1010,7 @@ function renderSetup(){
   $("orgWrap").hidden = orgs.length < 2;
   $("org").innerHTML = ""; for (const o of orgs){ const op = new Option(o.name, o.id); op.selected = o.id === state.organizationId; $("org").add(op); }
   $("work").value = state.repo || state.weekNote || "";
+  try { const w = localStorage.getItem("iv.work"); if (w) { if (!$("work").value) $("work").value = w; localStorage.removeItem("iv.work"); } } catch {}
   const chans = state.channels || [], picked = new Set(state.targets || []);
   const seen = new Set(); $("chans").innerHTML = "";
   for (const c of chans) {
