@@ -715,7 +715,11 @@ body:has(main.app) .feedback-open{display:none}
 #done .panel{justify-items:center;text-align:center;gap:22px;padding-block:36px}
 .deck{position:relative;width:100%;height:240px;margin-bottom:4px}
 .deck .card{position:absolute;left:50%;top:14px;width:min(290px,64%);height:196px;box-sizing:border-box;text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:16px 18px;display:grid;grid-template-rows:auto 1fr;gap:8px;overflow:hidden;
-  box-shadow:0 24px 40px -26px rgba(0,0,0,.45);transform:translate(calc(-50% + var(--x)),var(--y)) rotate(var(--r));animation:deal .7s var(--ease) both;animation-delay:calc(var(--d) * 130ms)}
+  box-shadow:0 24px 40px -26px rgba(0,0,0,.45);transform:translate(calc(-50% + var(--x) + var(--dx,0px)),var(--y)) rotate(var(--r));animation:deal .7s var(--ease) both;animation-delay:calc(var(--d) * 130ms)}
+.deck{touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none}
+.deck .card.dealt{animation:none;transition:transform .45s var(--ease),opacity .3s}
+.deck .card.dealt.drag{transition:none}
+.deck-count{margin:-14px 0 0;font-size:.8rem;color:var(--muted);min-height:1em;font-variant-numeric:tabular-nums}
 .deck .card .ch{display:flex;justify-content:space-between;font-size:.8rem;font-weight:600;letter-spacing:.01em}
 .deck .card .ch span:last-child{color:var(--muted);font-weight:400}
 .deck .card p{margin:0;font-size:.92rem;line-height:1.4;color:var(--ink);overflow:hidden;-webkit-mask-image:linear-gradient(#000 60%,transparent);mask-image:linear-gradient(#000 60%,transparent)}
@@ -873,7 +877,7 @@ export function appPage(): string {
 
 <section id="done" class="screen" hidden>
   <div class="panel">
-    <div class="deck" id="deck" aria-hidden="true"></div>
+    <div class="deck" id="deck" aria-hidden="true"></div><p class="deck-count" id="deckCount" aria-hidden="true"></p>
     <h1>Your drafts are in Buffer.</h1>
     <div class="tally" id="tally"></div>
     <div class="row open-drafts"><a class="btn" href="https://publish.buffer.com/schedule?tab=drafts" target="_blank" rel="noopener">Open my drafts in Buffer</a></div>
@@ -1566,16 +1570,15 @@ function articleForDone(){ if (lastArticle) return lastArticle; const d = (state
 function renderDone(){
   const n = (state.saved||[]).length, asIdeas = state.savedAsIdeas || [], w = wordsSaid();
   const saved = (state.drafts||[]).filter(d => (state.saved||[]).includes(d.id));
-  // The deck: their own drafts, up to three, fanned like a finished hand.
-  const deck = $("deck"), show3 = saved.slice(0, 3), k = show3.length, mid = (k - 1) / 2;
-  deck.replaceChildren(...show3.map((d, i) => {
+  // The deck: their own drafts fanned like a finished hand. Swipe or tap to bring the next one to the front.
+  const deck = $("deck"), cards = saved.map(d => {
     const c = el("div", "card"), head = el("div", "ch");
     head.append(el("span", "", d.article ? "Article" : channelName(d.channel)), el("span", "", asIdeas.includes(d.id) || d.article ? "Idea" : "Draft"));
-    c.append(head, el("p", "", (d.text || d.title || "").replace(/\[[^\]]*\]/g, "").slice(0, 260)));
-    // Back cards are dealt first, the front one last.
-    const o = i - mid; c.style.setProperty("--d", Math.round(mid - Math.abs(o)) * 2 + (o > 0 ? 1 : 0)); c.style.setProperty("--x", (o * 20) + "%"); c.style.setProperty("--y", (Math.abs(o) * 14) + "px"); c.style.setProperty("--r", (o * 5) + "deg"); c.style.zIndex = 10 - Math.abs(o) * 2;
+    c.append(head, el("p", "", (d.text || d.title || "").replace(/\\[[^\\]]*\\]/g, "").slice(0, 320)));
+    c.addEventListener("animationend", (e) => { if (e.animationName === "deal") c.classList.add("dealt"); });
     return c;
-  }));
+  });
+  deck.replaceChildren(...cards); deckFront = 0; layDeck(true);
   const tally = $("tally"); tally.replaceChildren();
   const stat = (num, label) => { const d = el("div"), b = el("b", "", "0"); d.append(b, el("span", "", label)); tally.append(d); countUp(b, num); };
   if (w >= 40) stat(w, "words you said");
@@ -1585,6 +1588,31 @@ function renderDone(){
   $("articleDone").hidden = !articleForDone();
   show("done"); window.scrollTo({top:0});
 }
+let deckFront = 0;
+// Front card in the middle, the next one to the right, the previous one to the left, the rest tucked behind.
+function layDeck(first){
+  const cards = [...$("deck").children], n = cards.length;
+  cards.forEach((c, i) => {
+    const p = (i - deckFront + n) % n, o = p === 0 ? 0 : p === 1 ? 1 : p === n - 1 ? -1 : null;
+    c.style.setProperty("--x", (o === null ? 0 : o * 20) + "%"); c.style.setProperty("--y", (o === null ? 24 : Math.abs(o) * 14) + "px");
+    c.style.setProperty("--r", (o === null ? 0 : o * 5) + "deg"); c.style.opacity = o === null ? "0" : "";
+    c.style.zIndex = o === null ? 1 : 10 - Math.abs(o) * 2;
+    if (first) c.style.setProperty("--d", o === null ? 0 : o === 0 ? 2 : o > 0 ? 1 : 0); // back cards dealt first, the front one last
+  });
+  $("deckCount").textContent = n > 1 ? (deckFront + 1) + " of " + n : "";
+}
+(() => {
+  const deck = $("deck"); let x0 = null, dx = 0;
+  const front = () => [...deck.children].find(c => c.style.zIndex === "10");
+  deck.addEventListener("pointerdown", (e) => { if (deck.children.length < 2) return; x0 = e.clientX; dx = 0; deck.setPointerCapture(e.pointerId); const f = front(); if (f) f.classList.add("drag"); });
+  deck.addEventListener("pointermove", (e) => { if (x0 === null) return; dx = e.clientX - x0; const f = front(); if (f) f.style.setProperty("--dx", dx + "px"); });
+  const end = () => {
+    if (x0 === null) return; x0 = null; const f = front(), n = deck.children.length;
+    if (f) { f.classList.remove("drag"); f.style.setProperty("--dx", "0px"); }
+    if (Math.abs(dx) > 40 || Math.abs(dx) < 6) { deckFront = (deckFront + (dx > 40 ? n - 1 : 1)) % n; layDeck(); }
+  };
+  deck.addEventListener("pointerup", end); deck.addEventListener("pointercancel", end);
+})();
 function countUp(b, to){
   if (still || to < 10) { b.textContent = to.toLocaleString(); return; }
   const t0 = performance.now() + 550, dur = 900;
