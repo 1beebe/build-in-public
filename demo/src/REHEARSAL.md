@@ -2,7 +2,7 @@
 
 Gold: `phone-touch` (one phone, a flow that returns to its opening, touch cursor, measured targets). The answer streams the way `ai-chat` does (`Stream`, words laid out before they appear). The tally uses `Count`, the way a figure resolves in `loading`.
 
-Beats: setup (paste a repo, select LinkedIn, tap Start) → talk (question, pulsing orb, answer streams) → shimmer with that sentence quoted → cards deal in and the tally rolls → payoff holds on "Your drafts are in Buffer." Loop about 14s, back to the empty setup while the done screen has faded. Poster is the settled done screen.
+Beats: setup (paste a repo, select LinkedIn, tap Start) → talk (question, pulsing orb, answer streams) → shimmer ("Finding your stories", three quotes from the answer over a code thread) → cards deal in and the tally rolls → payoff holds on "Your drafts are in Buffer." Loop about 14s, back to the empty setup while the done screen has faded. Poster is the settled done screen. The answer, the last shimmer line, and the front card are "I finally shipped the onboarding flow my users kept asking for." The card breaks after "onboarding", so the last line is "flow my users kept asking for."
 
 Captured:
 
@@ -27,7 +27,7 @@ Review: looked at the contact sheet and at 0, 1.5, 4, 6.5, 9, 11.5 and 13.2 of t
 Assumptions:
 
 - The pasted repo is this project's public URL
-- The sentence is one a person would say about the dark-mode chip work; the hero draft and the shimmer quote are that sentence, not a rewrite
+- The sentence is the one a stranger can follow: shipping the onboarding flow people kept asking for. It is 11 words, so the tally stays 128
 - 128 and 3 are the interview's tally, not a count of the one sentence on screen
 - Filler bars stand in for the setup steps, the other channels, and the other drafts
 

@@ -20,8 +20,11 @@ import './interviewer.css'
 
 const REPO = 'github.com/1beebe/build-in-public'
 const QUESTION = "What did you ship this week that you're proud of?"
-const ANSWER = 'I shipped the dark-mode chips, so a selected channel stays obvious.'
+const ANSWER = 'I finally shipped the onboarding flow my users kept asking for.'
 const WORDS = ANSWER.split(' ').length
+// Keep "asking for." on one line of the draft card.
+const DRAFT = ANSWER.replace(' asking for.', ' asking\u00A0for.')
+const HEARD = ['I finally shipped the onboarding flow', 'my users kept asking for', ANSWER]
 
 type Screen = 'setup' | 'talk' | 'wait' | 'done'
 type Voice = 'idle' | 'speaking' | 'listening'
@@ -33,7 +36,7 @@ type S = {
   ask: boolean
   words: number
   voice: Voice
-  quote: boolean
+  heard: number
   dealt: boolean
   wordsN: number
   draftsN: number
@@ -46,7 +49,7 @@ const START: S = {
   ask: false,
   words: 0,
   voice: 'idle',
-  quote: false,
+  heard: 0,
   dealt: false,
   wordsN: 0,
   draftsN: 0,
@@ -59,7 +62,7 @@ const POSTER: S = {
   ask: true,
   words: WORDS,
   voice: 'idle',
-  quote: true,
+  heard: HEARD.length,
   dealt: true,
   wordsN: 128,
   draftsN: 3,
@@ -88,8 +91,12 @@ const script = async (a: Act<S>) => {
   }
   await a.wait(900)
   a.mark('wait')
-  a.put({ screen: 'wait', quote: true })
-  await a.wait(2800)
+  a.put({ screen: 'wait', heard: 1 })
+  await a.wait(640)
+  a.put({ heard: 2 })
+  await a.wait(640)
+  a.put({ heard: 3 })
+  await a.wait(1300)
   a.mark('done')
   a.put({ screen: 'done', dealt: true })
   await a.wait(360)
@@ -98,7 +105,7 @@ const script = async (a: Act<S>) => {
   await a.wait(2800)
   a.mark('reset')
   await a.move('rest', { duration: 380 })
-  a.put({ screen: 'setup', repo: '', linkedin: false, ask: false, words: 0, quote: false })
+  a.put({ screen: 'setup', repo: '', linkedin: false, ask: false, words: 0, heard: 0 })
   await a.wait(460)
   await a.snap({ ...START })
   await a.wait(240)
@@ -164,25 +171,29 @@ function Shimmer({ active }: { active: boolean }) {
       const cw = 9
       const lh = 15
       const t = now / 1000
-      const head = ((t * 0.14) % 1.3) * w
-      const cols = Math.ceil(w / cw)
-      const rows = Math.ceil(h / lh)
+      const head = ((t * 0.16) % 1.2) * w
+      const cols = Math.ceil(w / cw) + 1
+      const rows = Math.ceil(h / lh) + 1
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const x = c * cw
           const y = r * lh
-          const curve = h * 0.52 + Math.sin(x / w * 5.1 + t * 0.6) * h * 0.2
+          // Two waves, so the thread covers the card instead of one hairline.
+          const y1 = h * 0.34 + Math.sin((x / w) * 5.4 + t * 0.65) * h * 0.12
+          const y2 = h * 0.66 + Math.sin((x / w) * 4.1 - t * 0.5) * h * 0.12
           const behind = head - x
-          const tail = behind < -cw * 2 ? 0 : behind < 0 ? 1 + behind / (cw * 2) : Math.exp(-behind / (w * 0.95))
-          const off = (y - curve) / 16
-          const v = Math.exp(-off * off * 1.5) * tail
-          if (v < 0.07) continue
-          const hot = behind >= 0 && behind < w * 0.12 ? (1 - behind / (w * 0.12)) * v : 0
-          const cr = Math.round(110 + (246 - 110) * Math.min(1, hot * 1.6))
-          const cg = Math.round(148 + (224 - 148) * Math.min(1, hot * 1.6))
-          const cb = Math.round(122 + (22 - 122) * Math.min(1, hot * 1.6))
-          ctx.fillStyle = `rgba(${cr},${cg},${cb},${Math.min(0.92, v * 0.95).toFixed(3)})`
-          ctx.fillText(glyphs[(c * 13 + r * 7 + ((t * 3) | 0)) % glyphs.length]!, x, y)
+          const tail = behind < -cw * 2 ? 0.35 : behind < 0 ? 1 : 0.45 + 0.55 * Math.exp(-behind / (w * 1.1))
+          const d1 = (y - y1) / 28
+          const d2 = (y - y2) / 28
+          const band = Math.exp(-d1 * d1) + 0.9 * Math.exp(-d2 * d2)
+          const v = Math.min(1, 0.16 + band * tail)
+          if (v < 0.2) continue
+          const hot = Math.min(1, band * (behind >= 0 && behind < w * 0.22 ? 0.85 : 0.2))
+          const cr = Math.round(126 + (246 - 126) * hot)
+          const cg = Math.round(168 + (224 - 168) * hot)
+          const cb = Math.round(132 + (22 - 132) * hot)
+          ctx.fillStyle = `rgba(${cr},${cg},${cb},${Math.min(0.92, 0.28 + v * 0.6).toFixed(3)})`
+          ctx.fillText(glyphs[(c * 13 + r * 7 + ((t * 1.2) | 0)) % glyphs.length]!, x, y)
         }
       }
       raf = requestAnimationFrame(paint)
@@ -194,8 +205,8 @@ function Shimmer({ active }: { active: boolean }) {
 }
 
 const CARDS = [
-  { id: 'l', x: '-48px', y: '8px', r: '-7deg', d: 0, z: 1, front: false },
-  { id: 'r', x: '48px', y: '8px', r: '7deg', d: 1, z: 2, front: false },
+  { id: 'l', x: '-42px', y: '8px', r: '-7deg', d: 0, z: 1, front: false },
+  { id: 'r', x: '42px', y: '8px', r: '7deg', d: 1, z: 2, front: false },
   { id: 'f', x: '0px', y: '20px', r: '0deg', d: 2, z: 3, front: true },
 ]
 
@@ -279,9 +290,14 @@ export default function Interviewer({ shape = 'portrait' }: { shape?: 'portrait'
               <section className="iv-screen" data-on={s.screen === 'wait' || undefined}>
                 <div className="iv-shimmer">
                   <Shimmer active={s.screen === 'wait'} />
-                  <p className="iv-quote" data-on={s.quote || undefined}>
-                    “{ANSWER}”
-                  </p>
+                  <p className="iv-finding">Finding your stories</p>
+                  {HEARD.map((line, i) => (
+                    <Collapse key={line} open={s.heard > i} reveal="drop">
+                      <p className="iv-line" data-last={i === HEARD.length - 1 || undefined}>
+                        “{line}”
+                      </p>
+                    </Collapse>
+                  ))}
                 </div>
                 <Filler />
               </section>
@@ -296,7 +312,7 @@ export default function Interviewer({ shape = 'portrait' }: { shape?: 'portrait'
                       data-front={card.front || undefined}
                       style={{ ['--x' as string]: card.x, ['--y' as string]: card.y, ['--r' as string]: card.r, ['--d' as string]: card.d, zIndex: card.z }}
                     >
-                      {card.front ? <p className="iv-draft">{ANSWER}</p> : null}
+                      {card.front ? <p className="iv-draft">{DRAFT}</p> : null}
                     </div>
                   ))}
                 </div>
