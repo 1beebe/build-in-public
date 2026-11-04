@@ -50,6 +50,14 @@ a:hover{text-decoration-thickness:2px}
   background:var(--accent);color:var(--accent-ink);transition:transform .18s var(--ease),background-color .18s}
 .btn:hover{background:var(--accent-press)}
 .btn:active{transform:scale(.97)}
+/* Tap: no browser highlight box; a quick pearl sheen crosses the control instead, a hint of the shimmer to come. */
+a,button,label,summary,.chip{-webkit-tap-highlight-color:transparent}
+.btn{position:relative}
+.btn,.chip{isolation:isolate}
+.btn::after,.chip::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;z-index:-1;
+  background:linear-gradient(105deg,transparent 22%,hsl(150 80% 78% / .6) 38%,hsl(205 85% 80% / .65) 50%,hsl(285 70% 84% / .6) 62%,transparent 78%) 120% 0 / 260% 100% no-repeat}
+.btn.sheen::after,.chip.sheen::after{animation:sheen .65s cubic-bezier(.2,.7,.2,1)}
+@keyframes sheen{0%{opacity:0;background-position:120% 0}25%{opacity:1}100%{opacity:0;background-position:-20% 0}}
 .btn:disabled{opacity:.55;cursor:default;transform:none}
 .btn.quiet{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--control)}
 .btn.quiet:hover{background:var(--raised)}
@@ -266,6 +274,13 @@ const FEEDBACK_WIDGET = `<dialog class="feedback-dialog" id="feedbackDialog">
 </dialog>`;
 
 const FEEDBACK_SCRIPT = `(() => {
+  // A tap sends a pearl sheen across the button (skipped with reduced motion).
+  document.addEventListener("pointerdown", (e) => {
+    const b = e.target instanceof Element && e.target.closest(".btn,.chip");
+    if (!b || b.disabled || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    b.classList.remove("sheen"); void b.offsetWidth; b.classList.add("sheen");
+    b.addEventListener("animationend", () => b.classList.remove("sheen"), {once: true});
+  }, {passive: true});
   const d=document.getElementById("feedbackDialog"), f=document.getElementById("feedbackForm"), status=document.getElementById("feedbackStatus");
   document.querySelectorAll("[data-feedback-open]").forEach(b=>b.addEventListener("click",()=>d.showModal()));
   document.querySelector("[data-feedback-close]")?.addEventListener("click",()=>d.close());
