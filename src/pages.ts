@@ -723,13 +723,15 @@ body:has(main.app) .feedback-open{display:none}
 .deck .card .ch{display:flex;justify-content:space-between;font-size:.8rem;font-weight:600;letter-spacing:.01em}
 .deck .card .ch span:last-child{color:var(--muted);font-weight:400}
 .deck .card p{margin:0;font-size:.92rem;line-height:1.4;color:var(--ink);overflow:hidden;-webkit-mask-image:linear-gradient(#000 60%,transparent);mask-image:linear-gradient(#000 60%,transparent)}
-.deck .card::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;background:linear-gradient(105deg,transparent 30%,hsl(150 70% 80% / .55) 42%,hsl(205 75% 82% / .6) 50%,hsl(285 60% 85% / .55) 58%,transparent 70%);background-size:250% 100%;}
-.deck .card.glint::after{animation:pearlpass 1.2s ease-out both;animation-delay:var(--gd,0s)}
+/* The shimmer, understated: a short arc of pearl light runs once around the edge of the card that comes to the front. */
+@property --arc{syntax:"<angle>";inherits:false;initial-value:0deg}
+.deck .card::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;border-radius:inherit;padding:2px;background:conic-gradient(from var(--arc),transparent 0deg,hsl(150 70% 62%) 40deg,hsl(205 80% 66%) 75deg,hsl(285 65% 72%) 105deg,transparent 140deg,transparent 360deg);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.deck .card.glint::after{animation:edgerun 1.8s cubic-bezier(.45,.05,.35,1) both;animation-delay:var(--gd,0s)}
 /* The front card keeps a faint pearl rim that drifts slowly through the shimmer's colors. */
 .deck .card.front.dealt{animation:rim 10s linear infinite}
 @keyframes rim{0%,100%{box-shadow:0 24px 40px -26px rgba(0,0,0,.45),0 0 0 1.5px hsl(150 60% 70% / .45)}33%{box-shadow:0 24px 40px -26px rgba(0,0,0,.45),0 0 0 1.5px hsl(205 65% 72% / .45)}66%{box-shadow:0 24px 40px -26px rgba(0,0,0,.45),0 0 0 1.5px hsl(285 50% 76% / .45)}}
 @keyframes deal{from{opacity:0;transform:translate(-50%,70px) rotate(0) scale(.92)}}
-@keyframes pearlpass{0%{opacity:0;background-position:110% 0}20%{opacity:1}100%{opacity:0;background-position:-10% 0}}
+@keyframes edgerun{0%{opacity:0;--arc:-40deg}12%{opacity:1}80%{opacity:1}100%{opacity:0;--arc:360deg}}
 .tally{display:flex;gap:clamp(28px,8vw,64px);justify-content:center;margin:0}
 .tally div{display:grid;gap:2px}
 .tally b{font-size:clamp(2.4rem,7vw,3.4rem);font-weight:600;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
@@ -740,6 +742,8 @@ body:has(main.app) .feedback-open{display:none}
 .next-week .btn{padding-inline:6px;min-height:40px}
 .done-foot{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 8px;font-size:.875rem;color:var(--muted);border-top:1px solid var(--border);padding-top:14px;width:100%}
 .done-foot .btn{min-height:40px;padding-inline:8px;font-size:.875rem}
+/* Icons from Iconoir, MIT License, copyright (c) 2021 Luca Burgio, inlined. */
+.done-foot .ico{flex:none;width:18px;height:18px;margin-right:-2px;opacity:.85}
 .done-foot details{width:100%;max-width:52ch;margin-inline:auto}
 .done-foot summary{cursor:pointer;min-height:32px;list-style:none}
 .done-foot summary::-webkit-details-marker{display:none}
@@ -888,8 +892,8 @@ export function appPage(): string {
     <p class="muted" id="ideaNote" style="max-width:52ch" hidden></p>
     <div id="articleDone" hidden><p class="muted" style="max-width:52ch">Your article is kept in Buffer under Create, then Ideas. Copy it into Substack or LinkedIn when you're ready.</p><div class="row" style="justify-content:center"><button class="btn quiet" type="button" id="copyArticle">Copy the article</button><button class="btn text" type="button" id="downloadArticle">Download it</button></div></div>
     <p class="next-week">See you next week. <button id="again" class="btn text" type="button">Or start another now</button></p>
-    <div class="done-foot"><a class="btn text" href="https://github.com/1beebe/build-in-public/tree/main/plugin" target="_blank" rel="noopener">Get the plugin for your own agent</a><a class="btn text" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Star it on GitHub</a>
-      <details><summary class="btn text">Finding them on your phone</summary><p>In Buffer's app, tap the menu at the top left, then <b>Channels</b>, <b>All Channels</b>, and <b>Drafts</b> at the bottom.</p></details></div>
+    <div class="done-foot"><a class="btn text" href="https://github.com/1beebe/build-in-public/tree/main/plugin" target="_blank" rel="noopener"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M4 14V18.4C4 18.7314 4.26863 19 4.6 19H10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 14V18.4C19 18.7314 18.7314 19 18.4 19H14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 5H18.4C18.7314 5 19 5.26863 19 5.6V10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 10V5.6C4 5.26863 4.26863 5 4.6 5H10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 19V20C14 21.1046 13.1046 22 12 22C10.8954 22 10 21.1046 10 20V19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 10H5C6.10457 10 7 10.8954 7 12C7 13.1046 6.10457 14 5 14H4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 10H20C21.1046 10 22 10.8954 22 12C22 13.1046 21.1046 14 20 14H19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 5V4C14 2.89543 13.1046 2 12 2C10.8954 2 10 2.89543 10 4V5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>Get the plugin for your own agent</a><a class="btn text" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M16 22.0268V19.1568C16.0375 18.68 15.9731 18.2006 15.811 17.7506C15.6489 17.3006 15.3929 16.8902 15.06 16.5468C18.2 16.1968 21.5 15.0068 21.5 9.54679C21.4997 8.15062 20.9627 6.80799 20 5.79679C20.4558 4.5753 20.4236 3.22514 19.91 2.02679C19.91 2.02679 18.73 1.67679 16 3.50679C13.708 2.88561 11.292 2.88561 8.99999 3.50679C6.26999 1.67679 5.08999 2.02679 5.08999 2.02679C4.57636 3.22514 4.54413 4.5753 4.99999 5.79679C4.03011 6.81549 3.49251 8.17026 3.49999 9.57679C3.49999 14.9968 6.79998 16.1868 9.93998 16.5768C9.61098 16.9168 9.35725 17.3222 9.19529 17.7667C9.03334 18.2112 8.96679 18.6849 8.99999 19.1568V22.0268" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 20.0267C6 20.9999 3.5 20.0267 2 17.0267" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>Star it on GitHub</a>
+      <details><summary class="btn text"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M12 16.01L12.01 15.9989" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 19.4V4.6C7 4.26863 7.26863 4 7.6 4H16.4C16.7314 4 17 4.26863 17 4.6V19.4C17 19.7314 16.7314 20 16.4 20H7.6C7.26863 20 7 19.7314 7 19.4Z" stroke="currentColor"/></svg>Finding them on your phone</summary><p>In Buffer's app, tap the menu at the top left, then <b>Channels</b>, <b>All Channels</b>, and <b>Drafts</b> at the bottom.</p></details></div>
   </div>
 </section>
 <div class="app-foot"><button class="btn text" type="button" data-feedback-open>Feedback or bug</button></div>
