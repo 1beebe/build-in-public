@@ -283,7 +283,7 @@ async function feedback(req: Request, env: Env): Promise<Response> {
   try {
     await storeFeedback(req, env, { createdAt: new Date().toISOString(), kind, message, contact: contact || undefined, path: path || undefined });
   } catch (err) {
-    if (err instanceof Error && err.message === "rate") return json({ error: "Thanks—that's enough feedback for today." }, 429);
+    if (err instanceof Error && err.message === "rate") return json({ error: "Thanks, that's enough feedback for today." }, 429);
     throw err;
   }
   await countFunnel(env, "feedback");
@@ -473,8 +473,8 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           break;
         }
         if (hasModel(env)) {
-          if (!(await modelAllowedToday(env, "harvest"))) throw new UsageLimitError("Idea harvesting is resting for today. Your interview is saved; try again tomorrow.");
-          s.harvestStarts = reserveWindow(s.harvestStarts, 86400_000, HARVESTS_PER_DAY * capFactor(env, s), "You've harvested several interviews today. Your conversation is saved; try again tomorrow.");
+          if (!(await modelAllowedToday(env, "harvest"))) throw new UsageLimitError("Finding stories is resting for today. Your interview is saved, so come back tomorrow.");
+          s.harvestStarts = reserveWindow(s.harvestStarts, 86400_000, HARVESTS_PER_DAY * capFactor(env, s), "You've found stories in several interviews today. This one is saved, so come back tomorrow.");
           await saveSession(env, id, s); // reserve before the paid call
         }
         const pillars = s.tags ?? [];

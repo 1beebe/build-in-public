@@ -76,6 +76,7 @@ a,button,label,summary,.chip{-webkit-tap-highlight-color:transparent}
 .nav ul a{text-decoration:none;color:var(--muted)}
 .nav ul a:hover{color:var(--ink)}
 @media (max-width:820px){.nav ul{display:none}}
+.nav .btn{gap:0}
 @media (max-width:480px){.nav .btn .long{display:none}}
 
 /* Motion: entrances only when scripts run, travel only when allowed */
@@ -564,6 +565,7 @@ main.app{padding-block:clamp(24px,4vw,48px) 96px}
 .screen h1{font-size:clamp(1.75rem,1.4rem + 1.2vw,2.25rem);letter-spacing:-.03em;line-height:1.05}
 .lede{color:var(--muted);max-width:56ch}
 #msg{background:var(--raised);color:var(--warn);border-radius:14px;padding:12px 16px;font-weight:500;max-width:760px;margin:0 auto 20px}
+.screen #msg{margin:0;max-width:none;animation:fadein .3s var(--ease)}
 .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);padding:clamp(18px,2.4vw,28px);display:grid;gap:20px;min-width:0;align-content:start}
 
 /* Fields */
@@ -961,7 +963,16 @@ function show(id){
   for (const s of SCREENS) $(s).hidden = s !== id;
   $("scope").textContent = state && state.repo ? state.repo : "";
 }
-function err(m){ $("msg").textContent = m || ""; $("msg").hidden = !m; if (m) $("msg").scrollIntoView({block:"nearest", behavior:"smooth"}); }
+// Errors show next to the control that was just used, so on a phone they land where the person is looking.
+let lastAction = null;
+document.addEventListener("click", (e) => { const b = e.target instanceof Element && e.target.closest("button"); if (b) lastAction = b; }, true);
+document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target instanceof Element && e.target.matches("textarea,input")) lastAction = e.target; }, true);
+function err(m){
+  const box = $("msg"); box.textContent = m || ""; box.hidden = !m; if (!m) return;
+  const spot = lastAction && lastAction.isConnected && lastAction.closest(".screen:not([hidden])") && lastAction.closest(".savebar,.live,.composer .row,.done-row,.row,.panel");
+  if (spot) spot.before(box); else document.querySelector("main.app").prepend(box);
+  box.scrollIntoView({block:"nearest", behavior:"smooth"});
+}
 function showFault(m){
   for (const s of SCREENS) $(s).hidden = true;
   $("boot").hidden = false;
@@ -1324,7 +1335,13 @@ async function startGptLive(){
     await pc.setRemoteDescription({type:"answer", sdp});
     liveLabel(true);
     liveTimer = setTimeout(() => { stopLive(); err("Paused after 20 minutes. Start talking again to keep going, or find your stories."); }, 20 * 60 * 1000);
-  } catch (e) { stopLive(); err(e.message === "Permission denied" ? "The browser didn't allow the microphone. You can type instead." : e.message); }
+  } catch (e) {
+    stopLive();
+    const name = e && e.name, noMic = !navigator.mediaDevices || name === "NotFoundError" || name === "OverconstrainedError";
+    err(name === "NotAllowedError" || name === "SecurityError" || e.message === "Permission denied"
+      ? "The browser didn't allow the microphone. Allow it in your browser settings, or type your answers below."
+      : noMic ? "I couldn't find a microphone on this device. You can type your answers below." : e.message);
+  }
   finally { $("liveBtn").disabled = false; }
 }
 
@@ -1478,6 +1495,7 @@ function countPicked(){
   cards.forEach(c => c.classList.toggle("off", !c.querySelector(".pick input").checked));
   const n = cards.filter(c => c.querySelector(".pick input").checked).length;
   $("saveCount").textContent = n ? n + (n === 1 ? " story" : " stories") + " ticked" : "Nothing ticked yet. Tick a story to save it.";
+  $("saveAll").disabled = !n;
   $("saveAll").textContent = n ? "Save " + n + (n === 1 ? " draft" : " drafts") + " to Buffer" : "Save drafts to Buffer";
 }
 function renderReview(){
