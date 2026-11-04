@@ -24,7 +24,7 @@
   },
   {
     "id": "rambler",
-    "about": "Pastes one very long answer. Tests that the reply survives long input and isn't cut off (Justine's failure).",
+    "about": "Pastes one very long answer. Tests that the reply survives long input and isn't cut off (an early tester hit this).",
     "setup": { "work": "I'm building a course with Codex to prepare for an AI strategy exam aimed at managers.", "targets": ["linkedin"], "longform": false },
     "answers": [
       "So the whole thing started because I wanted a certification that wasn't about proving I can write Python. Most of the exams out there are technical, and they're gated, you have to be a partner. This one is open entry and it's aimed at managers and execs. I gave Codex a long brief: practice questions, quizzes, readings, and I told it I get bored easily so it should vary things. It asked me how much time I had each week and whether I wanted a fixed schedule, and we landed on self paced. The exam covers four areas: AI fundamentals and matching capabilities to business problems, strategy and business value including ROI and deciding when AI isn't the answer, governance and responsible AI with human oversight, and readiness and transformation, which is people, process, technology and data, leading change and scaling pilots. What I like is that it rewards judgment, not tool knowledge. And honestly the part I'm most curious about is whether a course Codex builds for me will actually keep me engaged, because every course I've bought before, I stopped at module two.",
