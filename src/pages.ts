@@ -711,21 +711,35 @@ body:has(main.app) .feedback-open{display:none}
 .savebar .count{font-size:1rem}
 
 /* Done */
-.done-list{list-style:none;margin:0;padding:0;display:grid;gap:10px;width:100%}
-.done-list li{display:flex;gap:12px;align-items:baseline;overflow-wrap:anywhere;min-width:0;background:var(--ground);border-radius:16px;padding:14px 18px;animation:fadein .5s var(--ease) both;animation-delay:calc(.9s + var(--i,0) * 110ms)}
-/* The shimmer's last beat: one line of its glyphs, a bright front crosses once and leaves them still. */
-.done-thread{width:100%;margin:0;font:400 .875rem/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.08em;white-space:nowrap;overflow:hidden;user-select:none;-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
-#done h1{animation:rise .6s var(--ease) .5s both}
-#done .lede,#done .open-drafts{animation:fadein .5s var(--ease) .75s both}
-#done .done-more,#done .next-week,#done .take-done,#done #ideaNote,#done #articleDone{animation:fadein .6s var(--ease) 1.3s both}
-.open-drafts .btn{min-height:56px;padding-inline:30px;font-size:1.05rem}
-.done-more{font-size:.875rem;color:var(--muted);max-width:62ch}
-.done-more summary{cursor:pointer;min-height:32px}
-.done-more p{margin:8px 0 0}
-.next-week{border-top:1px solid var(--border);padding-top:18px;display:grid;gap:4px;width:100%}
-.next-week p{margin:0;font-size:1.1rem;letter-spacing:-.01em}
-.next-week .btn{justify-self:start;padding-inline:0}
-@media (prefers-reduced-motion:reduce){#done h1,#done .lede,#done .open-drafts,.done-list li,#done .done-more,#done .next-week,#done .take-done,#done #ideaNote,#done #articleDone{animation:none}}
+/* Done: the drafts themselves, dealt into view like finished cards, with one pass of the shimmer's pearl light across them. */
+#done .panel{justify-items:center;text-align:center;gap:22px;padding-block:36px}
+.deck{position:relative;width:100%;height:240px;margin-bottom:4px}
+.deck .card{position:absolute;left:50%;top:14px;width:min(290px,64%);height:196px;box-sizing:border-box;text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:16px 18px;display:grid;grid-template-rows:auto 1fr;gap:8px;overflow:hidden;
+  box-shadow:0 24px 40px -26px rgba(0,0,0,.45);transform:translate(calc(-50% + var(--x)),var(--y)) rotate(var(--r));animation:deal .7s var(--ease) both;animation-delay:calc(var(--d) * 130ms)}
+.deck .card .ch{display:flex;justify-content:space-between;font-size:.8rem;font-weight:600;letter-spacing:.01em}
+.deck .card .ch span:last-child{color:var(--muted);font-weight:400}
+.deck .card p{margin:0;font-size:.92rem;line-height:1.4;color:var(--ink);overflow:hidden;-webkit-mask-image:linear-gradient(#000 60%,transparent);mask-image:linear-gradient(#000 60%,transparent)}
+.deck .card::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;background:linear-gradient(105deg,transparent 30%,hsl(150 70% 80% / .55) 42%,hsl(205 75% 82% / .6) 50%,hsl(285 60% 85% / .55) 58%,transparent 70%);background-size:250% 100%;animation:pearlpass 1.1s ease-out both;animation-delay:calc(.8s + var(--d) * 130ms)}
+@keyframes deal{from{opacity:0;transform:translate(-50%,70px) rotate(0) scale(.92)}}
+@keyframes pearlpass{0%{opacity:0;background-position:110% 0}20%{opacity:1}100%{opacity:0;background-position:-10% 0}}
+.tally{display:flex;gap:clamp(28px,8vw,64px);justify-content:center;margin:0}
+.tally div{display:grid;gap:2px}
+.tally b{font-size:clamp(2.4rem,7vw,3.4rem);font-weight:600;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+.tally span{font-size:.875rem;color:var(--muted)}
+#done h1{font-size:clamp(1.9rem,5vw,2.6rem)}
+.open-drafts .btn{min-height:56px;padding-inline:32px;font-size:1.05rem}
+.next-week{margin:0;color:var(--muted)}
+.next-week .btn{padding-inline:6px;min-height:40px}
+.done-foot{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 8px;font-size:.875rem;color:var(--muted);border-top:1px solid var(--border);padding-top:14px;width:100%}
+.done-foot .btn{min-height:40px;padding-inline:8px;font-size:.875rem}
+.done-foot details{width:100%;max-width:52ch;margin-inline:auto}
+.done-foot summary{cursor:pointer;min-height:32px;list-style:none}
+.done-foot summary::-webkit-details-marker{display:none}
+.done-foot details p{margin:4px 0 8px;text-align:center}
+#done h1,#done .tally{animation:rise .6s var(--ease) .55s both}
+#done .open-drafts{animation:fadein .5s var(--ease) .8s both}
+#done .next-week,#done .done-foot,#done #ideaNote,#done #articleDone{animation:fadein .6s var(--ease) 1.2s both}
+@media (prefers-reduced-motion:reduce){#done *,.deck .card,.deck .card::after{animation:none!important}}
 @media (max-width:640px){
   .top .wrap{min-height:56px;gap:8px}
   .top .scope{display:none}
@@ -858,16 +872,16 @@ export function appPage(): string {
 </section>
 
 <section id="done" class="screen" hidden>
-  <div class="panel studio">
-    <p class="done-thread" id="doneThread" aria-hidden="true"></p>
-    <header style="display:grid;gap:10px"><h1>Your drafts are in Buffer.</h1><p class="lede" id="doneLine"></p></header>
+  <div class="panel">
+    <div class="deck" id="deck" aria-hidden="true"></div>
+    <h1>Your drafts are in Buffer.</h1>
+    <div class="tally" id="tally"></div>
     <div class="row open-drafts"><a class="btn" href="https://publish.buffer.com/schedule?tab=drafts" target="_blank" rel="noopener">Open my drafts in Buffer</a></div>
-    <ul class="done-list" id="doneList"></ul>
-    <p class="muted" id="ideaNote" style="max-width:62ch" hidden></p>
-    <div id="articleDone" hidden><p class="muted" style="max-width:62ch">Your article is kept in Buffer under Create, then Ideas. Long pieces aren't published from here, so copy it into Substack or LinkedIn when you're ready.</p><div class="row"><button class="btn quiet" type="button" id="copyArticle">Copy the article</button><button class="btn text" type="button" id="downloadArticle">Download it</button></div></div>
-    <details class="done-more"><summary>Finding them later</summary><p>There's one draft for each channel. Choose <b>Edit</b> on one when you're ready to finish it. In Buffer's mobile app, tap the menu at the top left, then <b>Channels</b>, <b>All Channels</b>, and the <b>Drafts</b> tab at the bottom.</p></details>
-    <div class="next-week"><p>That's this week told. Come back next week with whatever you build next.</p><button id="again" class="btn text" type="button">Start a new interview now</button></div>
-    <div class="take-done"><p class="muted">Got something out of this? The same interview runs in your own agent as a free plugin that remembers your words between interviews. A star on GitHub helps other builders find it.</p><div class="row"><a class="btn text" href="https://github.com/1beebe/build-in-public/tree/main/plugin" target="_blank" rel="noopener">Get the plugin</a><a class="btn text" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Star it on GitHub</a></div></div>
+    <p class="muted" id="ideaNote" style="max-width:52ch" hidden></p>
+    <div id="articleDone" hidden><p class="muted" style="max-width:52ch">Your article is kept in Buffer under Create, then Ideas. Copy it into Substack or LinkedIn when you're ready.</p><div class="row" style="justify-content:center"><button class="btn quiet" type="button" id="copyArticle">Copy the article</button><button class="btn text" type="button" id="downloadArticle">Download it</button></div></div>
+    <p class="next-week">See you next week. <button id="again" class="btn text" type="button">Or start another now</button></p>
+    <div class="done-foot"><a class="btn text" href="https://github.com/1beebe/build-in-public/tree/main/plugin" target="_blank" rel="noopener">Get the plugin for your own agent</a><a class="btn text" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Star it on GitHub</a>
+      <details><summary class="btn text">Finding them on your phone</summary><p>In Buffer's app, tap the menu at the top left, then <b>Channels</b>, <b>All Channels</b>, and <b>Drafts</b> at the bottom.</p></details></div>
   </div>
 </section>
 <div class="app-foot"><button class="btn text" type="button" data-feedback-open>Feedback or bug</button></div>
@@ -1550,37 +1564,31 @@ $("copyArticle").onclick = () => { const a = articleForDone(); if (a) copyText(a
 $("downloadArticle").onclick = () => { const a = articleForDone(); if (a) downloadMd(a.title, a.text); };
 function articleForDone(){ if (lastArticle) return lastArticle; const d = (state.drafts||[]).find(d => d.article && (state.saved||[]).includes(d.id)); return d ? {title: d.title, text: d.text} : null; }
 function renderDone(){
-  const n = (state.saved||[]).length, asIdeas = state.savedAsIdeas || [];
-  const w = wordsSaid(), about = w >= 100 ? Math.round(w / 10) * 10 : w;
-  const heard = w >= 40 ? "You said " + (w >= 100 ? "about " : "") + about.toLocaleString() + " words. That became " + n + (n === 1 ? " draft" : " drafts") + ", all built from them." : "You saved " + n + (n === 1 ? " story" : " stories") + ", built from your own words.";
-  $("doneLine").textContent = heard + " " + (n === 1 ? "It's" : "They're") + " waiting in Buffer for you to finish and schedule.";
-  const list = $("doneList"); list.innerHTML = "";
-  (state.drafts||[]).filter(d => (state.saved||[]).includes(d.id)).forEach((d, k) => { const li = el("li", "", d.title + (d.channel ? " · " + channelName(d.channel) : "") + (d.article ? " · article, kept as an Idea" : asIdeas.includes(d.id) ? " (saved as an Idea)" : "")); li.style.setProperty("--i", k); list.append(li); });
+  const n = (state.saved||[]).length, asIdeas = state.savedAsIdeas || [], w = wordsSaid();
+  const saved = (state.drafts||[]).filter(d => (state.saved||[]).includes(d.id));
+  // The deck: their own drafts, up to three, fanned like a finished hand.
+  const deck = $("deck"), show3 = saved.slice(0, 3), k = show3.length, mid = (k - 1) / 2;
+  deck.replaceChildren(...show3.map((d, i) => {
+    const c = el("div", "card"), head = el("div", "ch");
+    head.append(el("span", "", d.article ? "Article" : channelName(d.channel)), el("span", "", asIdeas.includes(d.id) || d.article ? "Idea" : "Draft"));
+    c.append(head, el("p", "", (d.text || d.title || "").replace(/\[[^\]]*\]/g, "").slice(0, 260)));
+    // Back cards are dealt first, the front one last.
+    const o = i - mid; c.style.setProperty("--d", Math.round(mid - Math.abs(o)) * 2 + (o > 0 ? 1 : 0)); c.style.setProperty("--x", (o * 20) + "%"); c.style.setProperty("--y", (Math.abs(o) * 14) + "px"); c.style.setProperty("--r", (o * 5) + "deg"); c.style.zIndex = 10 - Math.abs(o) * 2;
+    return c;
+  }));
+  const tally = $("tally"); tally.replaceChildren();
+  const stat = (num, label) => { const d = el("div"), b = el("b", "", "0"); d.append(b, el("span", "", label)); tally.append(d); countUp(b, num); };
+  if (w >= 40) stat(w, "words you said");
+  stat(n, n === 1 ? "draft in Buffer" : "drafts in Buffer");
   const m = asIdeas.length; $("ideaNote").hidden = !m;
-  if (m) $("ideaNote").textContent = (m === 1 ? "One of these couldn't be saved as a draft." : m + " of these couldn't be saved as drafts.") + " Some channels need an image or video, and plans have a draft limit. " + (m === 1 ? "It's" : "They're") + " in Create, under Ideas, instead.";
+  if (m) $("ideaNote").textContent = (m === 1 ? "One went to Ideas instead of Drafts" : m + " went to Ideas instead of Drafts") + ", because that channel needs an image or your plan hit its draft limit.";
   $("articleDone").hidden = !articleForDone();
-  show("done"); window.scrollTo({top:0}); settleThread();
+  show("done"); window.scrollTo({top:0});
 }
-// One pass of the shimmer's hot front along a line of glyphs; behind it they turn pearl and stop changing.
-function settleThread(){
-  const p = $("doneThread"), n = Math.max(24, Math.min(96, Math.round(p.clientWidth / 9.5)));
-  const iris = getComputedStyle(document.documentElement).getPropertyValue("--code-iris").split(",").map(Number);
-  const hot = getComputedStyle(document.documentElement).getPropertyValue("--code-hot").trim();
-  const spans = Array.from({length: n}, () => el("span", "", glyph())); p.replaceChildren(...spans);
-  const rest = (i) => "hsl(" + (150 + 90 * (1 + Math.sin(i * 0.11))).toFixed(0) + " " + (iris[0] || 62) + "% " + (iris[1] || 44) + "% / " + (0.4 + 0.25 * (0.5 + 0.5 * Math.sin(i * 0.37))).toFixed(2) + ")";
-  if (still) { spans.forEach((sp, i) => { sp.style.color = rest(i); }); return; }
-  const t0 = performance.now(), DUR = 1300;
-  const step = (now) => {
-    if (!p.isConnected || $("done").hidden) return;
-    const front = (now - t0) / DUR * (n + 8) - 4;
-    spans.forEach((sp, i) => {
-      const d = i - front;
-      if (d > 0) { if (Math.random() < 0.35) sp.textContent = glyph(); sp.style.color = "hsl(150 10% 50% / " + (0.12 + 0.1 * Math.exp(-d / 6)).toFixed(2) + ")"; }
-      else if (d > -2.5) sp.style.color = "rgb(" + hot + ")";
-      else sp.style.color = rest(i);
-    });
-    if (front < n + 3) requestAnimationFrame(step);
-  };
+function countUp(b, to){
+  if (still || to < 10) { b.textContent = to.toLocaleString(); return; }
+  const t0 = performance.now() + 550, dur = 900;
+  const step = (now) => { const t = Math.max(0, Math.min(1, (now - t0) / dur)), e = 1 - Math.pow(1 - t, 3); b.textContent = Math.round(to * e).toLocaleString(); if (t < 1 && b.isConnected) requestAnimationFrame(step); };
   requestAnimationFrame(step);
 }
 
