@@ -110,46 +110,9 @@ const PAGE_STYLE = `
 .hero .act{margin-top:24px;display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px}
 .alert{margin-top:24px;padding:14px 18px;border-radius:14px;background:var(--raised);color:var(--warn);font-weight:500}
 
-/* The live fragment: a working piece of the interview */
-.demo{background:var(--surface);border-radius:var(--r-card);padding:clamp(18px,2.4vw,32px);display:grid;gap:22px;border:1px solid var(--border)}
-.demo form{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.demo label{font-size:.875rem;color:var(--muted);flex-basis:100%}
-.demo input{flex:1 1 220px;min-width:0;height:44px;border-radius:var(--r-ctl);border:1px solid var(--control);background:var(--ground);color:var(--ink);font:400 1rem var(--font);padding:0 18px}
-.demo .stage{display:grid;gap:18px}
-@media (min-width:640px){.demo .stage{grid-template-columns:minmax(0,1fr) minmax(0,1.35fr)}}
-.work{background:var(--ground);border-radius:var(--r-card);padding:16px;display:grid;gap:10px;align-content:start;font-size:.875rem;min-width:0}
-.work .kind{color:var(--muted)}
-.work .ttl{font-weight:500;font-size:1rem;line-height:1.3;overflow-wrap:anywhere}
-.work .meta{display:flex;flex-wrap:wrap;gap:4px 12px;color:var(--muted)}
-.work pre{margin:0;background:var(--code);border-radius:10px;font:.8125rem/1.55 var(--mono);padding:8px 0;overflow:hidden}
-.work pre span{display:block;padding:0 10px;white-space:pre;overflow:hidden;text-overflow:ellipsis}
-.work pre .a{background:var(--add);color:var(--add-fg)} .work pre .d{background:var(--del);color:var(--del-fg)}
-.asks{display:grid;gap:16px;align-content:start}
-.asks .who{font-size:.875rem;color:var(--muted);display:flex;align-items:center;gap:8px}
-.asks .q{font-size:clamp(1.35rem,1.1rem + .8vw,1.75rem);line-height:1.28;letter-spacing:-.02em;font-weight:500;min-height:3.84em}
-.caret{display:inline-block;width:.08em;height:1em;background:var(--ink);vertical-align:-.12em;margin-left:2px}
-.reply{display:flex;align-items:center;gap:12px;background:var(--ground);border-radius:var(--r-ctl);padding:10px 16px;color:var(--muted);font-size:1rem}
-.demo .note{font-size:1rem;color:var(--muted);max-width:62ch}
-
-/* How it works: a three-step rail under the live fragment */
-.rail{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;border-top:1px solid var(--border);padding-top:16px}
-.rail li{display:flex;align-items:center;gap:10px;font-size:.9375rem;font-weight:500;line-height:1.2;color:var(--muted);min-width:0}
-.rail .n{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;font:600 .8125rem var(--font);box-shadow:inset 0 0 0 1.5px var(--control);color:var(--ink)}
-@media (max-width:520px){.rail{grid-template-columns:minmax(0,1fr);gap:10px}}
-.reply .wave{display:flex;align-items:center;gap:3px;height:26px;padding:0 9px;border-radius:var(--r-ctl);background:var(--accent)}
-.reply .wave i{width:3px;height:8px;border-radius:2px;background:var(--accent-ink)}
-.demo .note:empty{display:none}
-@media (prefers-reduced-motion:no-preference){
-  .rail li{animation:railOn 9s infinite}
-  .rail li:nth-child(2){animation-delay:3s}.rail li:nth-child(3){animation-delay:6s}
-  .rail li .n{animation:railDot 9s infinite}
-  .rail li:nth-child(2) .n{animation-delay:3s}.rail li:nth-child(3) .n{animation-delay:6s}
-  .reply .wave i{animation:waveBar .5s ease-in-out infinite alternate}
-  .reply .wave i:nth-child(2){animation-delay:.1s}.reply .wave i:nth-child(3){animation-delay:.2s}.reply .wave i:nth-child(4){animation-delay:.3s}.reply .wave i:nth-child(5){animation-delay:.15s}
-}
-@keyframes railOn{0%,33%{color:var(--ink)}34%,100%{color:var(--muted)}}
-@keyframes railDot{0%,33%{background:var(--accent);color:var(--accent-ink);box-shadow:inset 0 0 0 1.5px var(--accent)}34%,100%{background:transparent}}
-@keyframes waveBar{to{height:18px}}
+/* The demo reel: a 12-second loop of the real app, start to drafts in Buffer */
+.reel{margin:0;justify-self:center;width:min(100%,460px);aspect-ratio:4/5;border-radius:var(--r-card);overflow:hidden;background:#07150e;box-shadow:0 30px 60px -30px rgba(13,42,28,.5)}
+.reel video{display:block;width:100%;height:100%;object-fit:cover}
 
 /* Trust and connect */
 .on-ink{color:#f6f6f3;text-underline-offset:4px}
@@ -344,32 +307,7 @@ ${NAV}
     ${error ? `<p class="alert" role="alert">${escapeHtml(error)}</p>` : ""}
     <div class="act"><a class="btn" href="/connect">Connect with Buffer</a><span class="small muted">Signs in with Buffer, the social media planner. New to it? <a href="https://buffer.com" target="_blank" rel="noopener">The free plan</a> works.</span></div>
   </div>
-  <div class="demo" data-ui>
-    <form id="try">
-      <label for="tryRepo">Try it on any public GitHub repo</label>
-      <input id="tryRepo" name="repo" placeholder="owner/repo" autocomplete="off" spellcheck="false" maxlength="200">
-      <button class="btn small" type="submit">Ask me</button>
-    </form>
-    <div class="stage">
-      <div class="work" id="tryWork">
-        <span class="kind">Merged pull request</span>
-        <span class="ttl">Let people try it before they sign up</span>
-        <span class="meta"><span>example</span><span>this week</span></span>
-        <pre aria-hidden="true"><span class="d">- requireAccount()</span><span class="a">+ letGuestsTryIt()</span><span>  askToSignUpAfter()</span></pre>
-      </div>
-      <div class="asks">
-        <span class="who">${MARK.replace('class="mark"', 'class="mark" style="width:20px;height:20px"')}The Interviewer</span>
-        <p class="q" id="tryQ" aria-live="polite">You merged \u201CLet people try it before they sign up\u201D this week. What made it worth doing now?</p>
-        <div class="reply"><span class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span>Answer out loud or type</span></div>
-      </div>
-    </div>
-    <ol class="rail" aria-label="How it works">
-      <li><span class="n">1</span>Reads your week</li>
-      <li><span class="n">2</span>You talk or type</li>
-      <li><span class="n">3</span>Drafts land in Buffer</li>
-    </ol>
-    <p class="note" id="tryNote"></p>
-  </div>
+  <figure class="reel"><video src="/demo/interviewer-4x5.mp4" poster="/demo/interviewer-poster.webp" width="1080" height="1350" autoplay muted loop playsinline preload="auto" aria-label="A 12-second demo on a phone: paste a repo, answer one question out loud, and three drafts land in Buffer."></video></figure>
 </section>
 
 <figure class="band" aria-hidden="true"><img src="/img/desk.webp" alt="" width="1600" height="1067" loading="lazy" decoding="async"></figure>
@@ -448,63 +386,13 @@ ${NAV}
   );
 }
 
-// Entrances, and the live fragment: fetch the repo's latest public work from
-// GitHub (unauthenticated, from the visitor's browser) and ask about it.
+// Entrances, and the demo reel holds still for people who prefer reduced motion.
 const LANDING_SCRIPT = `
 (() => {
   const io = "IntersectionObserver" in window ? new IntersectionObserver((es) => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), {rootMargin:"0px 0px -8% 0px"}) : null;
   document.querySelectorAll(".rise").forEach(n => io ? io.observe(n) : n.classList.add("in"));
-  const form = document.getElementById("try"); if (!form) return;
-  const $ = (id) => document.getElementById(id);
-  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let typing = 0;
-  function type(text){
-    const q = $("tryQ"), run = ++typing;
-    if (still) { q.textContent = text; return; }
-    q.textContent = ""; const c = document.createElement("span"); c.className = "caret"; q.append(c);
-    let i = 0; const step = () => { if (run !== typing) return; if (i >= text.length) { setTimeout(() => c.remove(), 1600); return; } c.before(text[i++]); setTimeout(step, 18 + Math.random() * 30); };
-    step();
-  }
-  const day = (d) => { const t = new Date(d), n = (Date.now() - t) / 864e5; return n < 1 ? "today" : n < 2 ? "yesterday" : n < 7 ? "on " + t.toLocaleDateString(undefined, {weekday:"long"}) : "on " + t.toLocaleDateString(undefined, {month:"short", day:"numeric"}); };
-  const clean = (s) => s.split("\\n")[0].replace(/^(feat|fix|chore|docs|refactor|style|test)(\\(.+?\\))?:\\s*/i, "").replace(/\\.$/, "").trim();
-  const ASK = {
-    pull: ["You merged {t} {d}. What made it worth doing now?", "{t} went in {d}. Who was it for?", "You merged {t} {d}. What almost stopped you?"],
-    commit: ["{d} you committed {t}. What were you trying to fix?", "{d} you pushed {t}. What did you learn doing it?", "You pushed {t} {d}. What would you do differently?"],
-  };
-  function ask(kind, title, when, seed){
-    const set = ASK[kind]; const tpl = set[[...seed].reduce((a, ch) => a + ch.charCodeAt(0), 0) % set.length];
-    const s = tpl.replace("{t}", "\\u201C" + title + "\\u201D").replace("{d}", when);
-    return s[0].toUpperCase() + s.slice(1);
-  }
-  function work(kind, title, meta){
-    const w = $("tryWork"); w.innerHTML = "";
-    const add = (cls, text) => { const s = document.createElement("span"); s.className = cls; s.textContent = text; w.append(s); return s; };
-    add("kind", kind === "pull" ? "Merged pull request" : "Commit"); add("ttl", title);
-    const m = add("meta", ""); meta.forEach(x => { const s = document.createElement("span"); s.textContent = x; m.append(s); });
-  }
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const raw = $("tryRepo").value.trim().replace(/^https?:\\/\\//, "").replace(/^(www\\.)?github\\.com\\//, "").replace(/\\.git$/, "").replace(/\\/$/, "");
-    const m = raw.match(/^([\\w.-]+)\\/([\\w.-]+)/);
-    if (!m) { $("tryNote").textContent = "Paste a public repo like owner/name."; return; }
-    const repo = m[1] + "/" + m[2]; const btn = form.querySelector("button"); btn.disabled = true; $("tryNote").textContent = "Reading " + repo + "…";
-    try {
-      const gh = (p) => fetch("https://api.github.com/repos/" + repo + p, {headers:{Accept:"application/vnd.github+json"}}).then(r => { if (r.status === 404) throw new Error("That repo isn't public, or doesn't exist."); if (!r.ok) throw new Error("Couldn't load that just now. Try again in a minute."); return r.json(); });
-      const pulls = await gh("/pulls?state=closed&sort=updated&direction=desc&per_page=15");
-      const pr = pulls.filter(p => p.merged_at).sort((a, b) => b.merged_at.localeCompare(a.merged_at))[0];
-      let kind, title, when, seed, meta;
-      if (pr) { kind = "pull"; title = clean(pr.title); when = day(pr.merged_at); seed = String(pr.number); meta = ["#" + pr.number, pr.user ? pr.user.login : "", "merged " + when]; }
-      else {
-        const commits = await gh("/commits?per_page=10");
-        const c = commits.find(c => c.parents && c.parents.length < 2) || commits[0];
-        if (!c) throw new Error("No public commits there yet.");
-        kind = "commit"; title = clean(c.commit.message); when = day(c.commit.author.date); seed = c.sha; meta = [c.sha.slice(0, 7), c.author ? c.author.login : c.commit.author.name, when];
-      }
-      work(kind, title, meta.filter(Boolean)); type(ask(kind, title, when, seed));
-      $("tryNote").textContent = "An opening question from " + repo + "'s latest public work. The real interview reads your whole week and your recent posts first.";
-    } catch (x) { $("tryNote").textContent = x.message; }
-    finally { btn.disabled = false; }
-  });
+  const reel = document.querySelector(".reel video");
+  if (reel && matchMedia("(prefers-reduced-motion: reduce)").matches) { reel.removeAttribute("autoplay"); reel.pause(); reel.controls = true; }
 })();
 `;
 
