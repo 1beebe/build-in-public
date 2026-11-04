@@ -35,6 +35,7 @@ header{display:flex;flex-direction:column;gap:6px;max-width:78ch}h1{font-size:1.
 .steps li{position:relative;display:flex;gap:12px;padding:0 0 14px}
 .steps li:not(:last-child):before{content:"";position:absolute;left:13px;top:30px;bottom:0;width:2px;background:var(--line)}
 .steps .n{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font:600 12px var(--mono);color:#fff;background:var(--c)}
+@media(prefers-color-scheme:dark){.steps .n{color:var(--bg)}}
 .steps .card{flex:1;min-width:0;background:var(--node);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
 .steps .card.ai-call{border:2px solid var(--ai)}.steps .card.later{border-style:dashed}
 .steps .k{font:10.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--c)}

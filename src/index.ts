@@ -25,7 +25,7 @@ import { MindStudioError } from "./mindstudio";
 import { storeFeedback } from "./feedback";
 import { beginRun, logRun, runsPage } from "./runs";
 import { forget, loadMemory, memoryView, recall, remember, setMemoryOn } from "./memory";
-import { appPage, landingPage, privacyPage } from "./pages";
+import { appPage, landingPage, notFoundPage, privacyPage } from "./pages";
 import { SpendCapError, countFunnel, countInterview, modelAllowedToday, statsPage, tickVoice, voiceAllowedToday } from "./spend";
 import { cookie, createSession, destroySession, loadSession, readCookie, saveSession, type Channel, type HarvestMode, type Session, type Turn } from "./session";
 
@@ -179,7 +179,7 @@ export default {
       }
       if (req.method === "GET" && url.pathname === "/privacy") return html(privacyPage());
       if (req.method === "GET" && (url.pathname === "/stats" || url.pathname === "/runs")) {
-        if (!(await isOwner(req, env))) return textResponse("Not found", 404);
+        if (!(await isOwner(req, env))) return html(notFoundPage(), { status: 404 });
         const page = url.pathname === "/stats" ? await statsPage(env) : await runsPage(env);
         return html(page, { headers: { "Cache-Control": "no-store" } });
       }
@@ -193,6 +193,7 @@ export default {
         return (await loadSession(req, env)) ? html(appPage()) : redirect("/");
       }
       if (url.pathname.startsWith("/api/")) return api(req, env, url.pathname);
+      if (req.method === "GET") return html(notFoundPage(), { status: 404 });
       return textResponse("Not found", 404);
     } catch (err) {
       console.error(err);
