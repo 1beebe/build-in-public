@@ -7,6 +7,8 @@ const STYLE = `
   --border:#e1e3dd; --control:#c3c9c2;
   --accent:#f6e016; --accent-ink:#0d2a1c; --accent-press:#e5cf06;
   --field:#0d2a1c; --field-ink:#f6f6f3; --field-muted:#b9c6bd; --ink-bg:#0d2a1c;
+  --solid:#0d2a1c; --solid-ink:#f6f6f3;
+  --text:clamp(1.0625rem,1rem + .2vw,1.1875rem);
   --live:#d7361f; --warn:#a33a12;
   --add:#e3f4e6; --add-fg:#1d6b2c; --del:#fbe7e6; --del-fg:#a1302b; --code:#f1f2ee;
   --code-cool:96,112,101; --code-hot:168,140,0; --code-iris:62,44;
@@ -21,14 +23,14 @@ const STYLE = `
   --ground:#07150e; --surface:#0d2117; --raised:#14301f; --active:#1b3a27;
   --ink:#edf2eb; --muted:#adbcb1; --faint:#98a89c;
   --border:#1d3a28; --control:#557a62;
-  --field:#f6e016; --field-ink:#0d2a1c; --field-muted:#3e4a1a; --ink-bg:#14301f;
+  --ink-bg:#14301f;
   --live:#ff6a4d; --warn:#f0a36b;
   --add:#16301d; --add-fg:#7fd492; --del:#3a1b1a; --del-fg:#f29b94; --code:#0a1b12;
   --code-cool:110,140,120; --code-hot:246,224,22; --code-iris:85,80;
   color-scheme:dark}}
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--font);font-size:clamp(1.0625rem,1rem + .2vw,1.1875rem);line-height:1.5;
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--font);font-size:var(--text);line-height:1.5;
   font-optical-sizing:auto;-webkit-font-smoothing:antialiased}
 h1,h2,h3{font-weight:600;letter-spacing:-.035em;line-height:.98;margin:0;text-wrap:balance}
 p{margin:0;text-wrap:pretty}
@@ -109,13 +111,13 @@ const PAGE_STYLE = `
 .alert{margin-top:24px;padding:14px 18px;border-radius:14px;background:var(--raised);color:var(--warn);font-weight:500}
 
 /* The live fragment: a working piece of the interview */
-.demo{background:var(--surface);border-radius:28px;padding:clamp(18px,2.4vw,32px);display:grid;gap:22px;border:1px solid var(--border)}
+.demo{background:var(--surface);border-radius:var(--r-card);padding:clamp(18px,2.4vw,32px);display:grid;gap:22px;border:1px solid var(--border)}
 .demo form{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .demo label{font-size:.875rem;color:var(--muted);flex-basis:100%}
 .demo input{flex:1 1 220px;min-width:0;height:44px;border-radius:var(--r-ctl);border:1px solid var(--control);background:var(--ground);color:var(--ink);font:400 1rem var(--font);padding:0 18px}
 .demo .stage{display:grid;gap:18px}
 @media (min-width:640px){.demo .stage{grid-template-columns:minmax(0,1fr) minmax(0,1.35fr)}}
-.work{background:var(--ground);border-radius:16px;padding:16px;display:grid;gap:10px;align-content:start;font-size:.875rem;min-width:0}
+.work{background:var(--ground);border-radius:var(--r-card);padding:16px;display:grid;gap:10px;align-content:start;font-size:.875rem;min-width:0}
 .work .kind{color:var(--muted)}
 .work .ttl{font-weight:500;font-size:1rem;line-height:1.3;overflow-wrap:anywhere}
 .work .meta{display:flex;flex-wrap:wrap;gap:4px 12px;color:var(--muted)}
@@ -189,10 +191,10 @@ const PAGE_STYLE = `
 .ink .say{color:#f6f6f3}
 .ink .say+.say{color:#b9c6bd}
 .field .say{color:var(--accent-ink)}
-.idea{background:#fffef5;color:#0d2a1c;border-radius:18px;padding:clamp(20px,2.4vw,32px);display:grid;gap:18px;font-size:1rem;line-height:1.5;box-shadow:0 18px 40px -24px rgba(13,42,28,.45);transform:rotate(-1deg)}
+.idea{background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:var(--r-card);padding:clamp(20px,2.4vw,32px);display:grid;gap:18px;font-size:1rem;line-height:1.5;box-shadow:0 18px 40px -24px rgba(13,42,28,.45);transform:rotate(-1deg)}
 .idea .t{font-size:1.4rem;font-weight:600;letter-spacing:-.025em;line-height:1.15}
-.idea .lbl{font-size:.875rem;font-weight:600;color:#3d5446}
-.idea .tag{font-size:.875rem;color:#3d5446;margin:0}
+.idea .lbl{font-size:.875rem;font-weight:600;color:var(--muted)}
+.idea .tag{font-size:.875rem;color:var(--muted);margin:0}
 .idea ul{margin:0;padding-left:1.1em;display:grid;gap:4px}
 
 /* Steps */
@@ -202,7 +204,7 @@ const PAGE_STYLE = `
 .hood .say{color:#b9c6bd}
 .flow-mini{list-style:none;margin:48px 0 0;padding:0;display:grid;gap:12px}
 @media (min-width:900px){.flow-mini{grid-template-columns:repeat(5,minmax(0,1fr));align-items:stretch}.flow-mini li+li::before{content:"→";position:absolute;left:-18px;top:50%;transform:translateY(-50%);color:#789184}}
-.flow-mini li{position:relative;border:1px solid #31513d;border-radius:16px;padding:18px;display:grid;gap:9px;align-content:start;background:#10271a}
+.flow-mini li{position:relative;border:1px solid #31513d;border-radius:var(--r-card);padding:18px;display:grid;gap:9px;align-content:start;background:#10271a}
 .flow-mini .k{font:500 .75rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#91aa99}
 .flow-mini b{font-size:1.05rem;line-height:1.2}
 .flow-mini p{font-size:.875rem;color:#b9c6bd}
@@ -247,7 +249,6 @@ const PAGE_STYLE = `
 .foot .row a:not(.btn){color:var(--field-ink)}
 .foot .foot-link{display:inline-flex;align-items:center;gap:10px;background:none;border:0;padding:0;font:inherit;color:var(--field-ink);text-decoration:underline;text-underline-offset:.15em;cursor:pointer;vertical-align:middle}
 .foot .btn{background:var(--accent);color:var(--accent-ink)}
-@media (prefers-color-scheme:dark){.foot .btn{background:var(--field-ink);color:var(--field)}}
 
 /* Privacy */
 .doc{max-width:720px;padding-block:clamp(40px,7vw,96px) 96px;display:grid;gap:22px}
@@ -276,7 +277,11 @@ const FONT_FACES = `
 // Iconoir chat-bubble-empty, MIT License, copyright (c) 2021 Luca Burgio. Stroke-only, same as the done-screen icons.
 const FEEDBACK_ICON = `<svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 13.8214 2.48697 15.5291 3.33782 17L2.5 21.5L7 20.6622C8.47087 21.513 10.1786 22 12 22Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
-const FEEDBACK_PILL = `<button class="feedback-open" type="button" data-feedback-open>${FEEDBACK_ICON}Feedback or bug</button>`;
+
+const PLUGIN_ICON = `<svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M4 14V18.4C4 18.7314 4.26863 19 4.6 19H10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 14V18.4C19 18.7314 18.7314 19 18.4 19H14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 5H18.4C18.7314 5 19 5.26863 19 5.6V10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 10V5.6C4 5.26863 4.26863 5 4.6 5H10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 19V20C14 21.1046 13.1046 22 12 22C10.8954 22 10 21.1046 10 20V19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 10H5C6.10457 10 7 10.8954 7 12C7 13.1046 6.10457 14 5 14H4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 10H20C21.1046 10 22 10.8954 22 12C22 13.1046 21.1046 14 20 14H19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 5V4C14 2.89543 13.1046 2 12 2C10.8954 2 10 2.89543 10 4V5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const STAR_ICON = `<svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M16 22.0268V19.1568C16.0375 18.68 15.9731 18.2006 15.811 17.7506C15.6489 17.3006 15.3929 16.8902 15.06 16.5468C18.2 16.1968 21.5 15.0068 21.5 9.54679C21.4997 8.15062 20.9627 6.80799 20 5.79679C20.4558 4.5753 20.4236 3.22514 19.91 2.02679C19.91 2.02679 18.73 1.67679 16 3.50679C13.708 2.88561 11.292 2.88561 8.99999 3.50679C6.26999 1.67679 5.08999 2.02679 5.08999 2.02679C4.57636 3.22514 4.54413 4.5753 4.99999 5.79679C4.03011 6.81549 3.49251 8.17026 3.49999 9.57679C3.49999 14.9968 6.79998 16.1868 9.93998 16.5768C9.61098 16.9168 9.35725 17.3222 9.19529 17.7667C9.03334 18.2112 8.96679 18.6849 8.99999 19.1568V22.0268" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 20.0267C6 20.9999 3.5 20.0267 2 17.0267" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+const FEEDBACK_LINK = `<button class="btn text" type="button" data-feedback-open>${FEEDBACK_ICON}Feedback or bug</button>`;
 
 const FEEDBACK_WIDGET = `<dialog class="feedback-dialog" id="feedbackDialog">
   <form class="feedback-form" id="feedbackForm">
@@ -305,7 +310,7 @@ const FEEDBACK_SCRIPT = `(() => {
   f?.addEventListener("submit",async e=>{e.preventDefault();const send=f.querySelector('[type="submit"]');send.disabled=true;status.textContent="Sending…";const data=Object.fromEntries(new FormData(f));data.path=location.pathname;try{const r=await fetch("/feedback",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||"Could not send that.");f.reset();status.textContent="Thanks, it\u2019s sent.";setTimeout(()=>d.close(),900)}catch(x){status.textContent=x.message}finally{send.disabled=false}});
 })();`;
 
-function shell(title: string, body: string, opts: { style?: string; script?: string; pill?: boolean } = {}): string {
+function shell(title: string, body: string, opts: { style?: string; script?: string } = {}): string {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <title>${title}</title>
 <meta name="description" content="Talk through what you built, find the stories worth telling, and save them to Buffer in your own words. A thinking scaffold for building in public, not an AI ghostwriter.">
@@ -317,7 +322,7 @@ function shell(title: string, body: string, opts: { style?: string; script?: str
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://interviewer.lbeebe.com/og.png">
 ${FONTS}
 <script>document.documentElement.classList.add("js")</script>
-<style>${FONT_FACES}${STYLE}${opts.style ?? ""}</style></head><body>${body}${opts.pill === false ? "" : FEEDBACK_PILL}${FEEDBACK_WIDGET}<script>${FEEDBACK_SCRIPT}</script>${opts.script ? `<script>${opts.script}</script>` : ""}</body></html>`;
+<style>${FONT_FACES}${STYLE}${opts.style ?? ""}</style></head><body>${body}${FEEDBACK_WIDGET}<script>${FEEDBACK_SCRIPT}</script>${opts.script ? `<script>${opts.script}</script>` : ""}</body></html>`;
 }
 
 const NAV = `<header class="wrap nav">
@@ -428,7 +433,7 @@ ${NAV}
   <div class="wrap">
     <h2 id="takeH">Take it with you.</h2>
     <p class="lede">The same interview also runs in your own agent. It's a free plugin that keeps a library of your own words on your computer and picks up where you left off each time. If The Interviewer helped you, a star on GitHub helps other builders find it.</p>
-    <div class="row take-go"><a class="btn quiet" href="https://github.com/1beebe/build-in-public/tree/main/plugin" target="_blank" rel="noopener">Get the plugin</a><a class="btn text" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Star it on GitHub</a></div>
+    <div class="row take-go"><a class="btn quiet" href="https://github.com/1beebe/build-in-public/tree/main/plugin" target="_blank" rel="noopener">${PLUGIN_ICON}Get the plugin</a><a class="btn text" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">${STAR_ICON}Star it on GitHub</a></div>
   </div>
 </section>
 </main>
@@ -439,7 +444,7 @@ ${NAV}
     <div class="row"><a class="btn" href="/connect">Connect with Buffer</a><p>Built in public for Buffer Commit by Ligaya Beebe. Not made by or affiliated with Buffer. <a href="/privacy">Privacy</a>. <button class="foot-link" type="button" data-feedback-open>${FEEDBACK_ICON}Feedback</button></p></div>
   </div>
 </footer>`,
-    { style: PAGE_STYLE, script: LANDING_SCRIPT, pill: false },
+    { style: PAGE_STYLE, script: LANDING_SCRIPT },
   );
 }
 
@@ -537,6 +542,7 @@ ${NAV}
 <h2>Contact</h2>
 <p>Ligaya Beebe, L. Beebe, LLC. Not made by or affiliated with Buffer.</p>
 <p><a href="/">Back to the start</a></p>
+<p>${FEEDBACK_LINK}</p>
 </article></main>`,
     { style: PAGE_STYLE },
   );
@@ -552,13 +558,13 @@ ${NAV}
 <h1>Nothing to talk about here.</h1>
 <p>This page doesn't exist, or it moved. Your interview, if you have one going, is still where you left it.</p>
 <div class="lost-act"><a class="btn" href="/">Go to the start</a><a class="btn quiet" href="/app">Back to my interview</a></div>
+<p>${FEEDBACK_LINK}</p>
 </article></main>`,
     { style: PAGE_STYLE + `.lost{min-height:60vh;align-content:center}.lost-act{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}` },
   );
 }
 
 const APP_STYLE = `
-body{font-size:1rem}
 .top{position:sticky;top:0;z-index:5;background:var(--ground);border-bottom:1px solid var(--border)}
 .top .wrap{display:flex;align-items:center;gap:16px;min-height:64px}
 .top .scope{color:var(--muted);font-size:.875rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
@@ -585,7 +591,7 @@ textarea{resize:vertical;min-height:120px;line-height:1.5}
 .chip:hover{background:var(--raised)}
 .chip:active{transform:scale(.97)}
 .chip input{position:absolute;opacity:0;pointer-events:none}
-.chip:has(input:checked){background:var(--ink);color:var(--ground);box-shadow:none}
+.chip:has(input:checked){background:var(--solid);color:var(--solid-ink);box-shadow:none}
 .chip:has(input:focus-visible){outline:3px solid var(--ink);outline-offset:2px}
 .chip:has(input:disabled){cursor:default;opacity:.7}
 #repo:disabled{opacity:.45}
@@ -657,7 +663,7 @@ textarea{resize:vertical;min-height:120px;line-height:1.5}
 .topics{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:thin}
 .topics:empty{display:none}
 button.chip{font:inherit;font-size:.875rem;border:0;color:var(--ink);white-space:nowrap;max-width:22em;overflow:hidden;text-overflow:ellipsis;flex:none}
-button.chip.on{background:var(--ink);color:var(--ground);box-shadow:none}
+button.chip.on{background:var(--solid);color:var(--solid-ink);box-shadow:none}
 
 /* The work panel */
 .src{gap:14px}
@@ -726,7 +732,7 @@ body:has(main.app) .feedback-open{display:none}
 .draft .fmt{font-weight:600;font-size:1rem}
 .draft .why{color:var(--muted);font-size:.875rem;margin:0;max-width:62ch}
 .draft .flag{font-size:.875rem;color:var(--muted);margin:0;padding-left:10px;box-shadow:inset 2px 0 0 var(--control)}
-.more-row{display:flex;justify-content:center}
+.savebar #showMore{flex:1 0 100%;order:-1}
 .handback{display:grid;gap:8px}
 .handback .lbl{font-size:.875rem;font-weight:600;color:var(--muted)}
 .note-more summary{cursor:pointer;margin-top:6px}
@@ -738,16 +744,16 @@ body:has(main.app) .feedback-open{display:none}
 .memory li{display:flex;gap:8px;align-items:baseline;justify-content:space-between}
 .memory li span{color:var(--ink)}
 .transcript{min-height:320px;font-size:1rem}
-.savebar{position:sticky;bottom:16px;z-index:4;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;background:var(--ink);color:var(--ground);border-radius:var(--r-ctl);padding:8px 8px 8px 22px;box-shadow:0 18px 36px -18px rgba(0,0,0,.5)}
-.savebar .btn.quiet{color:var(--ground);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--ground) 40%,transparent)}
-.savebar .btn.quiet:hover{background:color-mix(in srgb,var(--ground) 12%,transparent)}
+.savebar{position:sticky;bottom:16px;z-index:4;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;background:var(--solid);color:var(--solid-ink);border-radius:var(--r-ctl);padding:8px 8px 8px 22px;box-shadow:0 18px 36px -18px rgba(0,0,0,.5)}
+.savebar .btn.quiet{color:var(--solid-ink);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--solid-ink) 40%,transparent)}
+.savebar .btn.quiet:hover{background:color-mix(in srgb,var(--solid-ink) 12%,transparent)}
 .savebar .count{font-size:1rem}
 
 /* Done */
 /* Done: the drafts themselves, dealt into view like finished cards, with one pass of the shimmer's pearl light across them. */
 #done .panel{justify-items:center;text-align:center;gap:22px;padding-block:36px}
 .deck{position:relative;width:100%;height:240px;margin-bottom:4px}
-.deck .card{position:absolute;left:50%;top:14px;width:min(290px,64%);height:196px;box-sizing:border-box;text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:16px 18px;display:grid;grid-template-rows:auto 1fr;gap:8px;overflow:hidden;
+.deck .card{position:absolute;left:50%;top:14px;width:min(290px,64%);height:196px;box-sizing:border-box;text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);padding:16px 18px;display:grid;grid-template-rows:auto 1fr;gap:8px;overflow:hidden;
   box-shadow:0 24px 40px -26px rgba(0,0,0,.45);transform:translate(calc(-50% + var(--x) + var(--dx,0px)),var(--y)) rotate(var(--r));animation:deal .7s var(--ease) both;animation-delay:calc(var(--d) * 130ms)}
 .deck{touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none}
 .deck .card.dealt{animation:none;transition:transform .45s var(--ease),opacity .3s}
@@ -796,7 +802,7 @@ body:has(main.app) .feedback-open{display:none}
   #boot .boot-actions .btn{width:100%}
   #boot .boot-actions .btn.text{width:auto;justify-self:center}
   .screen{gap:16px}
-  .panel{padding:16px;border-radius:16px;gap:16px}
+  .panel{padding:16px;border-radius:var(--r-card);gap:16px}
   .convo .head{gap:12px}
   .convo .head .orb{width:52px;height:52px}
   .log{max-height:none;overflow:visible;gap:16px}
@@ -813,7 +819,7 @@ body:has(main.app) .feedback-open{display:none}
   .done-row .btn{width:100%}
   .draft .title{font-size:1.15rem}
   .draft .text{min-height:132px}
-  .savebar{bottom:calc(8px + env(safe-area-inset-bottom));border-radius:18px;padding:12px 14px}
+  .savebar{bottom:calc(8px + env(safe-area-inset-bottom));border-radius:var(--r-card);padding:12px 14px}
   .savebar{padding:10px;gap:8px}
   .savebar .count{width:100%;font-size:.875rem;padding-left:6px}
   .savebar .row{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:6px}
@@ -851,7 +857,7 @@ export function appPage(): string {
 </noscript>
 
 <section id="setup" class="screen" hidden>
-  <header><h1>What did you work on this week?</h1><p class="lede" id="welcomeBack" hidden></p><ul class="steps"><li><b>No GitHub needed.</b> A sentence about your work is enough.</li><li>Have a public repo? Paste it and I'll read this week's work.</li><li id="howLine">Talk for about 5-10 minutes, then pick the stories to save to Buffer.</li></ul></header>
+  <header><h1>What did you work on this week?</h1><p class="lede" id="welcomeBack" hidden></p><ul class="steps"><li><b>No GitHub needed.</b> A sentence about your work is enough.</li><li>Have a public repo? Paste it and I'll read this week's work.</li><li id="howLine">Talk for 5-10 minutes, then pick the stories to save to Buffer.</li></ul></header>
   <div class="panel">
     <label class="fieldset" id="orgWrap" hidden><span class="lbl">Buffer organization</span><select id="org"></select></label>
     <label class="fieldset"><span class="lbl">A quick note or a repo link</span><span class="hint">Up to 500 characters.</span><textarea id="work" maxlength="500" placeholder="I rebuilt the onboarding for… or github.com/you/project"></textarea></label>
@@ -902,8 +908,7 @@ export function appPage(): string {
   <header><h1 id="reviewHead">Stories from your interview</h1><p class="lede" id="reviewLede"></p></header>
   <div class="panel few" id="fewNote" hidden><p id="fewText"></p><div class="row"><button id="moreBtn" class="btn quiet" type="button">Keep talking to find more</button></div></div>
   <div id="drafts" class="drafts"></div>
-  <div class="more-row"><button id="showMore" class="btn quiet small" type="button" hidden></button></div>
-  <div class="savebar"><span class="count" id="saveCount"></span><div class="row"><button id="backTalk" class="btn quiet small" type="button">Keep talking</button><button id="getTranscript" class="btn quiet small" type="button">Transcript</button><button id="saveAll" class="btn" type="button">Save to Buffer</button></div></div>
+  <div class="savebar"><button id="showMore" class="btn quiet small" type="button" hidden></button><span class="count" id="saveCount"></span><div class="row"><button id="backTalk" class="btn quiet small" type="button">Keep talking</button><button id="getTranscript" class="btn quiet small" type="button">Transcript</button><button id="saveAll" class="btn" type="button">Save to Buffer</button></div></div>
 </section>
 
 <section id="transcript" class="screen" hidden>
@@ -923,7 +928,7 @@ export function appPage(): string {
     <p class="muted" id="ideaNote" style="max-width:52ch" hidden></p>
     <div id="articleDone" hidden><p class="muted" style="max-width:52ch">Your article is kept in Buffer under Create, then Ideas. Copy it into Substack or LinkedIn when you're ready.</p><div class="row" style="justify-content:center"><button class="btn quiet" type="button" id="copyArticle">Copy the article</button><button class="btn text" type="button" id="downloadArticle">Download it</button></div></div>
     <p class="next-week">See you next week. <button id="again" class="btn text" type="button">Or start another now</button></p>
-    <div class="done-foot"><a class="btn text" href="https://github.com/1beebe/build-in-public/tree/main/plugin" target="_blank" rel="noopener"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M4 14V18.4C4 18.7314 4.26863 19 4.6 19H10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 14V18.4C19 18.7314 18.7314 19 18.4 19H14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 5H18.4C18.7314 5 19 5.26863 19 5.6V10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 10V5.6C4 5.26863 4.26863 5 4.6 5H10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 19V20C14 21.1046 13.1046 22 12 22C10.8954 22 10 21.1046 10 20V19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 10H5C6.10457 10 7 10.8954 7 12C7 13.1046 6.10457 14 5 14H4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 10H20C21.1046 10 22 10.8954 22 12C22 13.1046 21.1046 14 20 14H19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 5V4C14 2.89543 13.1046 2 12 2C10.8954 2 10 2.89543 10 4V5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>Get the plugin for your own agent</a><a class="btn text" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M16 22.0268V19.1568C16.0375 18.68 15.9731 18.2006 15.811 17.7506C15.6489 17.3006 15.3929 16.8902 15.06 16.5468C18.2 16.1968 21.5 15.0068 21.5 9.54679C21.4997 8.15062 20.9627 6.80799 20 5.79679C20.4558 4.5753 20.4236 3.22514 19.91 2.02679C19.91 2.02679 18.73 1.67679 16 3.50679C13.708 2.88561 11.292 2.88561 8.99999 3.50679C6.26999 1.67679 5.08999 2.02679 5.08999 2.02679C4.57636 3.22514 4.54413 4.5753 4.99999 5.79679C4.03011 6.81549 3.49251 8.17026 3.49999 9.57679C3.49999 14.9968 6.79998 16.1868 9.93998 16.5768C9.61098 16.9168 9.35725 17.3222 9.19529 17.7667C9.03334 18.2112 8.96679 18.6849 8.99999 19.1568V22.0268" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 20.0267C6 20.9999 3.5 20.0267 2 17.0267" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>Star it on GitHub</a>
+    <div class="done-foot"><a class="btn text" href="https://github.com/1beebe/build-in-public/tree/main/plugin" target="_blank" rel="noopener">${PLUGIN_ICON}Get the plugin for your own agent</a><a class="btn text" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">${STAR_ICON}Star it on GitHub</a>
       <details><summary class="btn text"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M12 16.01L12.01 15.9989" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 19.4V4.6C7 4.26863 7.26863 4 7.6 4H16.4C16.7314 4 17 4.26863 17 4.6V19.4C17 19.7314 16.7314 20 16.4 20H7.6C7.26863 20 7 19.7314 7 19.4Z" stroke="currentColor"/></svg>Finding them on your phone</summary><p>In Buffer's app, tap the menu at the top left, then <b>Channels</b>, <b>All Channels</b>, and <b>Drafts</b> at the bottom.</p></details></div>
   </div>
 </section>
@@ -1070,7 +1075,7 @@ function kindChanged(){
     ? "Talk for 5-10 minutes. You get the piece to copy out, plus short posts saved to Buffer."
     : k === "both"
       ? "Talk for 5-10 minutes. You get the piece, plus short posts for the side stories, saved to Buffer."
-      : "Talk for about 5-10 minutes, then pick the stories to save to Buffer.";
+      : "Talk for 5-10 minutes, then pick the stories to save to Buffer.";
 }
 document.querySelectorAll("input[name=kind]").forEach(i => i.addEventListener("change", kindChanged));
 
