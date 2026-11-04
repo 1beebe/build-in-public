@@ -723,7 +723,11 @@ body:has(main.app) .feedback-open{display:none}
 .deck .card .ch{display:flex;justify-content:space-between;font-size:.8rem;font-weight:600;letter-spacing:.01em}
 .deck .card .ch span:last-child{color:var(--muted);font-weight:400}
 .deck .card p{margin:0;font-size:.92rem;line-height:1.4;color:var(--ink);overflow:hidden;-webkit-mask-image:linear-gradient(#000 60%,transparent);mask-image:linear-gradient(#000 60%,transparent)}
-.deck .card::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;background:linear-gradient(105deg,transparent 30%,hsl(150 70% 80% / .55) 42%,hsl(205 75% 82% / .6) 50%,hsl(285 60% 85% / .55) 58%,transparent 70%);background-size:250% 100%;animation:pearlpass 1.1s ease-out both;animation-delay:calc(.8s + var(--d) * 130ms)}
+.deck .card::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;background:linear-gradient(105deg,transparent 30%,hsl(150 70% 80% / .55) 42%,hsl(205 75% 82% / .6) 50%,hsl(285 60% 85% / .55) 58%,transparent 70%);background-size:250% 100%;}
+.deck .card.glint::after{animation:pearlpass 1.2s ease-out both;animation-delay:var(--gd,0s)}
+/* The front card keeps a faint pearl rim that drifts slowly through the shimmer's colors. */
+.deck .card.front.dealt{animation:rim 10s linear infinite}
+@keyframes rim{0%,100%{box-shadow:0 24px 40px -26px rgba(0,0,0,.45),0 0 0 1.5px hsl(150 60% 70% / .45)}33%{box-shadow:0 24px 40px -26px rgba(0,0,0,.45),0 0 0 1.5px hsl(205 65% 72% / .45)}66%{box-shadow:0 24px 40px -26px rgba(0,0,0,.45),0 0 0 1.5px hsl(285 50% 76% / .45)}}
 @keyframes deal{from{opacity:0;transform:translate(-50%,70px) rotate(0) scale(.92)}}
 @keyframes pearlpass{0%{opacity:0;background-position:110% 0}20%{opacity:1}100%{opacity:0;background-position:-10% 0}}
 .tally{display:flex;gap:clamp(28px,8vw,64px);justify-content:center;margin:0}
@@ -1597,6 +1601,8 @@ function layDeck(first){
     c.style.setProperty("--x", (o === null ? 0 : o * 20) + "%"); c.style.setProperty("--y", (o === null ? 24 : Math.abs(o) * 14) + "px");
     c.style.setProperty("--r", (o === null ? 0 : o * 5) + "deg"); c.style.opacity = o === null ? "0" : "";
     c.style.zIndex = o === null ? 1 : 10 - Math.abs(o) * 2;
+    c.classList.toggle("front", o === 0);
+    if (o === 0) { c.classList.remove("glint"); void c.offsetWidth; c.style.setProperty("--gd", first ? "1.1s" : ".2s"); c.classList.add("glint"); }
     if (first) c.style.setProperty("--d", o === null ? 0 : o === 0 ? 2 : o > 0 ? 1 : 0); // back cards dealt first, the front one last
   });
   $("deckCount").textContent = n > 1 ? (deckFront + 1) + " of " + n : "";
