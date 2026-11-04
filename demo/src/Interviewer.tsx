@@ -430,13 +430,13 @@ export default function Interviewer({ shape = 'portrait', freeze = null }: { sha
                       <b className="num words">
                         <Count value={s.wordsN} />
                       </b>
-                      <span>words you said</span>
+                      <span className="stat">words you said</span>
                     </div>
                     <div>
                       <b className="num drafts">
                         <Count value={s.draftsN} />
                       </b>
-                      <span>drafts in Buffer</span>
+                      <span className="stat">drafts in Buffer</span>
                     </div>
                   </div>
                   <div className="row open">
