@@ -64,7 +64,9 @@ a,button,label,summary,.chip{-webkit-tap-highlight-color:transparent}
 .btn.text{background:transparent;padding:0 6px;min-height:40px;color:var(--muted)}
 .btn.text:hover{color:var(--ink)}
 .btn.small{min-height:38px;padding:0 16px;font-size:.875rem}
-@media (pointer:coarse){.btn.small,.btn.text,.chip,button.chip,.file summary,input[type=text],input.title{min-height:44px}.wordmark{min-height:44px}}
+/* Iconoir glyphs, shared with the done-screen links: 18px, 1.5 stroke, currentColor. */
+.ico{flex:none;width:18px;height:18px;margin-right:-2px;opacity:.85}
+@media (pointer:coarse){.btn.small,.btn.text,.chip,button.chip,.file summary,input[type=text],input.title,.feedback-open,.foot-link{min-height:44px}.wordmark{min-height:44px}}
 .btn .rec{width:10px;height:10px;border-radius:50%;background:var(--live);flex:none}
 .wordmark{white-space:nowrap;display:inline-flex;align-items:center;gap:10px;font-weight:600;letter-spacing:-.03em;font-size:1.15rem;text-decoration:none;color:var(--ink)}
 .mark{width:30px;height:30px;flex:none}
@@ -86,7 +88,7 @@ a,button,label,summary,.chip{-webkit-tap-highlight-color:transparent}
   .js .rise{transform:none;transition:opacity .4s}
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important}
 }
-.feedback-open{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));z-index:20;min-height:42px;padding:0 16px;border:1px solid var(--control);border-radius:var(--r-ctl);background:var(--surface);color:var(--ink);font:500 .875rem/1 var(--font);box-shadow:0 8px 24px rgba(13,42,28,.12);cursor:pointer}
+.feedback-open{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));z-index:20;display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:0 16px;border:1px solid var(--control);border-radius:var(--r-ctl);background:var(--surface);color:var(--ink);font:500 .875rem/1 var(--font);box-shadow:0 8px 24px rgba(13,42,28,.12);cursor:pointer}
 .feedback-open:hover{background:var(--raised)}
 .feedback-dialog{width:min(92vw,520px);border:0;border-radius:20px;padding:0;background:var(--surface);color:var(--ink);box-shadow:0 24px 80px rgba(0,0,0,.28)}
 .feedback-dialog::backdrop{background:rgba(7,21,14,.56)}
@@ -243,7 +245,7 @@ const PAGE_STYLE = `
 .foot .big{font-size:clamp(3rem,14.2vw,13.5rem);white-space:nowrap;font-weight:600;letter-spacing:-.045em;line-height:.88;margin:0}
 .foot .row{display:flex;flex-wrap:wrap;gap:16px 32px;justify-content:space-between;align-items:end;margin-top:48px;font-size:1rem;color:var(--field-muted)}
 .foot .row a:not(.btn){color:var(--field-ink)}
-.foot .foot-link{background:none;border:0;padding:0;font:inherit;color:var(--field-ink);text-decoration:underline;text-underline-offset:.15em;cursor:pointer}
+.foot .foot-link{display:inline-flex;align-items:center;gap:10px;background:none;border:0;padding:0;font:inherit;color:var(--field-ink);text-decoration:underline;text-underline-offset:.15em;cursor:pointer;vertical-align:middle}
 .foot .btn{background:var(--accent);color:var(--accent-ink)}
 @media (prefers-color-scheme:dark){.foot .btn{background:var(--field-ink);color:var(--field)}}
 
@@ -271,7 +273,10 @@ const FONT_FACES = `
   size-adjust:106.5%;ascent-override:87.3%;descent-override:25.4%;line-gap-override:0%}
 `;
 
-const FEEDBACK_PILL = `<button class="feedback-open" type="button" data-feedback-open>Feedback or bug</button>`;
+// Iconoir chat-bubble-empty, MIT License, copyright (c) 2021 Luca Burgio. Stroke-only, same as the done-screen icons.
+const FEEDBACK_ICON = `<svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 13.8214 2.48697 15.5291 3.33782 17L2.5 21.5L7 20.6622C8.47087 21.513 10.1786 22 12 22Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+const FEEDBACK_PILL = `<button class="feedback-open" type="button" data-feedback-open>${FEEDBACK_ICON}Feedback or bug</button>`;
 
 const FEEDBACK_WIDGET = `<dialog class="feedback-dialog" id="feedbackDialog">
   <form class="feedback-form" id="feedbackForm">
@@ -431,7 +436,7 @@ ${NAV}
 <footer class="foot">
   <div class="wrap">
     <p class="big" aria-hidden="true">The Interviewer</p>
-    <div class="row"><a class="btn" href="/connect">Connect with Buffer</a><p>Built in public for Buffer Commit by Ligaya Beebe. Not made by or affiliated with Buffer. <a href="/privacy">Privacy</a>. <button class="foot-link" type="button" data-feedback-open>Feedback</button></p></div>
+    <div class="row"><a class="btn" href="/connect">Connect with Buffer</a><p>Built in public for Buffer Commit by Ligaya Beebe. Not made by or affiliated with Buffer. <a href="/privacy">Privacy</a>. <button class="foot-link" type="button" data-feedback-open>${FEEDBACK_ICON}Feedback</button></p></div>
   </div>
 </footer>`,
     { style: PAGE_STYLE, script: LANDING_SCRIPT, pill: false },
@@ -770,8 +775,6 @@ body:has(main.app) .feedback-open{display:none}
 .next-week .btn{padding-inline:6px;min-height:40px}
 .done-foot{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 8px;font-size:.875rem;color:var(--muted);border-top:1px solid var(--border);padding-top:14px;width:100%}
 .done-foot .btn{min-height:40px;padding-inline:8px;font-size:.875rem}
-/* Icons from Iconoir, MIT License, copyright (c) 2021 Luca Burgio, inlined. */
-.done-foot .ico{flex:none;width:18px;height:18px;margin-right:-2px;opacity:.85}
 .done-foot details{width:100%;max-width:52ch;margin-inline:auto}
 .done-foot summary{cursor:pointer;min-height:32px;list-style:none}
 .done-foot summary::-webkit-details-marker{display:none}
@@ -839,7 +842,7 @@ export function appPage(): string {
     <p class="lede" id="bootText" role="alert">Something went wrong on our side. Try again in a moment.</p>
     <div class="boot-actions">
       <button id="retryBoot" class="btn" type="button">Try again</button>
-      <button class="btn text" type="button" data-feedback-open>Feedback or bug</button>
+      <button class="btn text" type="button" data-feedback-open>${FEEDBACK_ICON}Feedback or bug</button>
     </div>
   </div>
 </section>
@@ -924,7 +927,7 @@ export function appPage(): string {
       <details><summary class="btn text"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M12 16.01L12.01 15.9989" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 19.4V4.6C7 4.26863 7.26863 4 7.6 4H16.4C16.7314 4 17 4.26863 17 4.6V19.4C17 19.7314 16.7314 20 16.4 20H7.6C7.26863 20 7 19.7314 7 19.4Z" stroke="currentColor"/></svg>Finding them on your phone</summary><p>In Buffer's app, tap the menu at the top left, then <b>Channels</b>, <b>All Channels</b>, and <b>Drafts</b> at the bottom.</p></details></div>
   </div>
 </section>
-<div class="app-foot"><button class="btn text" type="button" data-feedback-open>Feedback or bug</button></div>
+<div class="app-foot"><button class="btn text" type="button" data-feedback-open>${FEEDBACK_ICON}Feedback or bug</button></div>
 </main>
 <script>
 (function () {
