@@ -711,8 +711,47 @@ body:has(main.app) .feedback-open{display:none}
 .savebar .count{font-size:1rem}
 
 /* Done */
-.done-list{list-style:none;margin:0;padding:0;display:grid;gap:10px;width:100%}
-.done-list li{display:flex;gap:12px;align-items:baseline;overflow-wrap:anywhere;min-width:0;background:var(--ground);border-radius:16px;padding:14px 18px;animation:fadein .5s var(--ease) both;animation-delay:calc(var(--i,0) * 110ms)}
+/* Done: the drafts themselves, dealt into view like finished cards, with one pass of the shimmer's pearl light across them. */
+#done .panel{justify-items:center;text-align:center;gap:22px;padding-block:36px}
+.deck{position:relative;width:100%;height:240px;margin-bottom:4px}
+.deck .card{position:absolute;left:50%;top:14px;width:min(290px,64%);height:196px;box-sizing:border-box;text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:16px 18px;display:grid;grid-template-rows:auto 1fr;gap:8px;overflow:hidden;
+  box-shadow:0 24px 40px -26px rgba(0,0,0,.45);transform:translate(calc(-50% + var(--x) + var(--dx,0px)),var(--y)) rotate(var(--r));animation:deal .7s var(--ease) both;animation-delay:calc(var(--d) * 130ms)}
+.deck{touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none}
+.deck .card.dealt{animation:none;transition:transform .45s var(--ease),opacity .3s}
+.deck .card.dealt.drag{transition:none}
+.deck-count{margin:-14px 0 0;font-size:.8rem;color:var(--muted);min-height:1em;font-variant-numeric:tabular-nums}
+.deck .card .ch{display:flex;justify-content:space-between;font-size:.8rem;font-weight:600;letter-spacing:.01em}
+.deck .card .ch span:last-child{color:var(--muted);font-weight:400}
+.deck .card p{margin:0;font-size:.92rem;line-height:1.4;color:var(--ink);overflow:hidden;-webkit-mask-image:linear-gradient(#000 60%,transparent);mask-image:linear-gradient(#000 60%,transparent)}
+/* The shimmer, understated: a short arc of pearl light runs once around the edge of the card that comes to the front. */
+@property --arc{syntax:"<angle>";inherits:false;initial-value:0deg}
+.deck .card::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;border-radius:inherit;padding:2px;background:conic-gradient(from var(--arc),transparent 0deg,hsl(150 70% 62%) 40deg,hsl(205 80% 66%) 75deg,hsl(285 65% 72%) 105deg,transparent 140deg,transparent 360deg);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.deck .card.glint::after{animation:edgerun 1.8s cubic-bezier(.45,.05,.35,1) both;animation-delay:var(--gd,0s)}
+/* The front card keeps a faint pearl rim that drifts slowly through the shimmer's colors. */
+.deck .card.front.dealt{animation:rim 10s linear infinite}
+@keyframes rim{0%,100%{box-shadow:0 24px 40px -26px rgba(0,0,0,.45),0 0 0 1.5px hsl(150 60% 70% / .45)}33%{box-shadow:0 24px 40px -26px rgba(0,0,0,.45),0 0 0 1.5px hsl(205 65% 72% / .45)}66%{box-shadow:0 24px 40px -26px rgba(0,0,0,.45),0 0 0 1.5px hsl(285 50% 76% / .45)}}
+@keyframes deal{from{opacity:0;transform:translate(-50%,70px) rotate(0) scale(.92)}}
+@keyframes edgerun{0%{opacity:0;--arc:-40deg}12%{opacity:1}80%{opacity:1}100%{opacity:0;--arc:360deg}}
+.tally{display:flex;gap:clamp(28px,8vw,64px);justify-content:center;margin:0}
+.tally div{display:grid;gap:2px}
+.tally b{font-size:clamp(2.4rem,7vw,3.4rem);font-weight:600;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+.tally span{font-size:.875rem;color:var(--muted)}
+#done h1{font-size:clamp(1.9rem,5vw,2.6rem)}
+.open-drafts .btn{min-height:56px;padding-inline:32px;font-size:1.05rem}
+.next-week{margin:0;color:var(--muted)}
+.next-week .btn{padding-inline:6px;min-height:40px}
+.done-foot{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 8px;font-size:.875rem;color:var(--muted);border-top:1px solid var(--border);padding-top:14px;width:100%}
+.done-foot .btn{min-height:40px;padding-inline:8px;font-size:.875rem}
+/* Icons from Iconoir, MIT License, copyright (c) 2021 Luca Burgio, inlined. */
+.done-foot .ico{flex:none;width:18px;height:18px;margin-right:-2px;opacity:.85}
+.done-foot details{width:100%;max-width:52ch;margin-inline:auto}
+.done-foot summary{cursor:pointer;min-height:32px;list-style:none}
+.done-foot summary::-webkit-details-marker{display:none}
+.done-foot details p{margin:4px 0 8px;text-align:center}
+#done h1,#done .tally{animation:rise .6s var(--ease) .55s both}
+#done .open-drafts{animation:fadein .5s var(--ease) .8s both}
+#done .next-week,#done .done-foot,#done #ideaNote,#done #articleDone{animation:fadein .6s var(--ease) 1.2s both}
+@media (prefers-reduced-motion:reduce){#done *,.deck .card,.deck .card::after{animation:none!important}}
 @media (max-width:640px){
   .top .wrap{min-height:56px;gap:8px}
   .top .scope{display:none}
@@ -845,16 +884,16 @@ export function appPage(): string {
 </section>
 
 <section id="done" class="screen" hidden>
-  <div class="panel studio">
-    <div class="orb" data-s="idle" aria-hidden="true"><i></i><i></i><b></b></div>
-    <header style="display:grid;gap:10px"><h1>Your drafts are in Buffer.</h1><p class="lede" id="doneLine"></p></header>
-    <div class="row"><a class="btn" href="https://publish.buffer.com/schedule?tab=drafts" target="_blank" rel="noopener">Open my drafts in Buffer</a></div>
-    <ul class="done-list" id="doneList"></ul>
-    <p class="muted" id="ideaNote" style="max-width:62ch" hidden></p>
-    <div id="articleDone" hidden><p class="muted" style="max-width:62ch">Your article is kept in Buffer under Create, then Ideas. Long pieces aren't published from here, so copy it into Substack or LinkedIn when you're ready.</p><div class="row"><button class="btn quiet" type="button" id="copyArticle">Copy the article</button><button class="btn text" type="button" id="downloadArticle">Download it</button></div></div>
-    <p class="muted" style="max-width:62ch">There's one draft for each channel. Choose <b>Edit</b> on one when you're ready to finish it. To find them again later in Buffer's mobile app, tap the menu at the top left, then <b>Channels</b>, <b>All Channels</b>, and the <b>Drafts</b> tab at the bottom.</p>
-    <div class="row"><button id="again" class="btn quiet" type="button">Start a new interview</button></div>
-    <div class="take-done"><p class="muted">Got something out of this? The same interview runs in your own agent as a free plugin that remembers your words between interviews. A star on GitHub helps other builders find it.</p><div class="row"><a class="btn text" href="https://github.com/1beebe/build-in-public/tree/main/plugin" target="_blank" rel="noopener">Get the plugin</a><a class="btn text" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Star it on GitHub</a></div></div>
+  <div class="panel">
+    <div class="deck" id="deck" aria-hidden="true"></div><p class="deck-count" id="deckCount" aria-hidden="true"></p>
+    <h1>Your drafts are in Buffer.</h1>
+    <div class="tally" id="tally"></div>
+    <div class="row open-drafts"><a class="btn" href="https://publish.buffer.com/schedule?tab=drafts" target="_blank" rel="noopener">Open my drafts in Buffer</a></div>
+    <p class="muted" id="ideaNote" style="max-width:52ch" hidden></p>
+    <div id="articleDone" hidden><p class="muted" style="max-width:52ch">Your article is kept in Buffer under Create, then Ideas. Copy it into Substack or LinkedIn when you're ready.</p><div class="row" style="justify-content:center"><button class="btn quiet" type="button" id="copyArticle">Copy the article</button><button class="btn text" type="button" id="downloadArticle">Download it</button></div></div>
+    <p class="next-week">See you next week. <button id="again" class="btn text" type="button">Or start another now</button></p>
+    <div class="done-foot"><a class="btn text" href="https://github.com/1beebe/build-in-public/tree/main/plugin" target="_blank" rel="noopener"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M4 14V18.4C4 18.7314 4.26863 19 4.6 19H10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 14V18.4C19 18.7314 18.7314 19 18.4 19H14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 5H18.4C18.7314 5 19 5.26863 19 5.6V10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 10V5.6C4 5.26863 4.26863 5 4.6 5H10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 19V20C14 21.1046 13.1046 22 12 22C10.8954 22 10 21.1046 10 20V19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 10H5C6.10457 10 7 10.8954 7 12C7 13.1046 6.10457 14 5 14H4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 10H20C21.1046 10 22 10.8954 22 12C22 13.1046 21.1046 14 20 14H19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 5V4C14 2.89543 13.1046 2 12 2C10.8954 2 10 2.89543 10 4V5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>Get the plugin for your own agent</a><a class="btn text" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M16 22.0268V19.1568C16.0375 18.68 15.9731 18.2006 15.811 17.7506C15.6489 17.3006 15.3929 16.8902 15.06 16.5468C18.2 16.1968 21.5 15.0068 21.5 9.54679C21.4997 8.15062 20.9627 6.80799 20 5.79679C20.4558 4.5753 20.4236 3.22514 19.91 2.02679C19.91 2.02679 18.73 1.67679 16 3.50679C13.708 2.88561 11.292 2.88561 8.99999 3.50679C6.26999 1.67679 5.08999 2.02679 5.08999 2.02679C4.57636 3.22514 4.54413 4.5753 4.99999 5.79679C4.03011 6.81549 3.49251 8.17026 3.49999 9.57679C3.49999 14.9968 6.79998 16.1868 9.93998 16.5768C9.61098 16.9168 9.35725 17.3222 9.19529 17.7667C9.03334 18.2112 8.96679 18.6849 8.99999 19.1568V22.0268" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 20.0267C6 20.9999 3.5 20.0267 2 17.0267" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>Star it on GitHub</a>
+      <details><summary class="btn text"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M12 16.01L12.01 15.9989" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 19.4V4.6C7 4.26863 7.26863 4 7.6 4H16.4C16.7314 4 17 4.26863 17 4.6V19.4C17 19.7314 16.7314 20 16.4 20H7.6C7.26863 20 7 19.7314 7 19.4Z" stroke="currentColor"/></svg>Finding them on your phone</summary><p>In Buffer's app, tap the menu at the top left, then <b>Channels</b>, <b>All Channels</b>, and <b>Drafts</b> at the bottom.</p></details></div>
   </div>
 </section>
 <div class="app-foot"><button class="btn text" type="button" data-feedback-open>Feedback or bug</button></div>
@@ -1537,16 +1576,58 @@ $("copyArticle").onclick = () => { const a = articleForDone(); if (a) copyText(a
 $("downloadArticle").onclick = () => { const a = articleForDone(); if (a) downloadMd(a.title, a.text); };
 function articleForDone(){ if (lastArticle) return lastArticle; const d = (state.drafts||[]).find(d => d.article && (state.saved||[]).includes(d.id)); return d ? {title: d.title, text: d.text} : null; }
 function renderDone(){
-  const n = (state.saved||[]).length, asIdeas = state.savedAsIdeas || [];
-  const w = wordsSaid(), about = w >= 100 ? Math.round(w / 10) * 10 : w;
-  const heard = w >= 40 ? "You said " + (w >= 100 ? "about " : "") + about.toLocaleString() + " words. That became " + n + (n === 1 ? " draft" : " drafts") + ", all built from them." : "You saved " + n + (n === 1 ? " story" : " stories") + ", built from your own words.";
-  $("doneLine").textContent = heard + " " + (n === 1 ? "It's" : "They're") + " waiting in Buffer for you to finish and schedule.";
-  const list = $("doneList"); list.innerHTML = "";
-  (state.drafts||[]).filter(d => (state.saved||[]).includes(d.id)).forEach((d, k) => { const li = el("li", "", d.title + (d.channel ? " · " + channelName(d.channel) : "") + (d.article ? " · article, kept as an Idea" : asIdeas.includes(d.id) ? " (saved as an Idea)" : "")); li.style.setProperty("--i", k); list.append(li); });
+  const n = (state.saved||[]).length, asIdeas = state.savedAsIdeas || [], w = wordsSaid();
+  const saved = (state.drafts||[]).filter(d => (state.saved||[]).includes(d.id));
+  // The deck: their own drafts fanned like a finished hand. Swipe or tap to bring the next one to the front.
+  const deck = $("deck"), cards = saved.map(d => {
+    const c = el("div", "card"), head = el("div", "ch");
+    head.append(el("span", "", d.article ? "Article" : channelName(d.channel)), el("span", "", asIdeas.includes(d.id) || d.article ? "Idea" : "Draft"));
+    c.append(head, el("p", "", (d.text || d.title || "").replace(/\\[[^\\]]*\\]/g, "").slice(0, 320)));
+    c.addEventListener("animationend", (e) => { if (e.animationName === "deal") c.classList.add("dealt"); });
+    return c;
+  });
+  deck.replaceChildren(...cards); deckFront = 0; layDeck(true);
+  const tally = $("tally"); tally.replaceChildren();
+  const stat = (num, label) => { const d = el("div"), b = el("b", "", "0"); d.append(b, el("span", "", label)); tally.append(d); countUp(b, num); };
+  if (w >= 40) stat(w, "words you said");
+  stat(n, n === 1 ? "draft in Buffer" : "drafts in Buffer");
   const m = asIdeas.length; $("ideaNote").hidden = !m;
-  if (m) $("ideaNote").textContent = (m === 1 ? "One of these couldn't be saved as a draft." : m + " of these couldn't be saved as drafts.") + " Some channels need an image or video, and plans have a draft limit. " + (m === 1 ? "It's" : "They're") + " in Create, under Ideas, instead.";
+  if (m) $("ideaNote").textContent = (m === 1 ? "One went to Ideas instead of Drafts" : m + " went to Ideas instead of Drafts") + ", because that channel needs an image or your plan hit its draft limit.";
   $("articleDone").hidden = !articleForDone();
   show("done"); window.scrollTo({top:0});
+}
+let deckFront = 0;
+// Front card in the middle, the next one to the right, the previous one to the left, the rest tucked behind.
+function layDeck(first){
+  const cards = [...$("deck").children], n = cards.length;
+  cards.forEach((c, i) => {
+    const p = (i - deckFront + n) % n, o = p === 0 ? 0 : p === 1 ? 1 : p === n - 1 ? -1 : null;
+    c.style.setProperty("--x", (o === null ? 0 : o * 20) + "%"); c.style.setProperty("--y", (o === null ? 24 : Math.abs(o) * 14) + "px");
+    c.style.setProperty("--r", (o === null ? 0 : o * 5) + "deg"); c.style.opacity = o === null ? "0" : "";
+    c.style.zIndex = o === null ? 1 : 10 - Math.abs(o) * 2;
+    c.classList.toggle("front", o === 0);
+    if (o === 0) { c.classList.remove("glint"); void c.offsetWidth; c.style.setProperty("--gd", first ? "1.1s" : ".2s"); c.classList.add("glint"); }
+    if (first) c.style.setProperty("--d", o === null ? 0 : o === 0 ? 2 : o > 0 ? 1 : 0); // back cards dealt first, the front one last
+  });
+  $("deckCount").textContent = n > 1 ? (deckFront + 1) + " of " + n : "";
+}
+(() => {
+  const deck = $("deck"); let x0 = null, dx = 0;
+  const front = () => [...deck.children].find(c => c.style.zIndex === "10");
+  deck.addEventListener("pointerdown", (e) => { if (deck.children.length < 2) return; x0 = e.clientX; dx = 0; deck.setPointerCapture(e.pointerId); const f = front(); if (f) f.classList.add("drag"); });
+  deck.addEventListener("pointermove", (e) => { if (x0 === null) return; dx = e.clientX - x0; const f = front(); if (f) f.style.setProperty("--dx", dx + "px"); });
+  const end = () => {
+    if (x0 === null) return; x0 = null; const f = front(), n = deck.children.length;
+    if (f) { f.classList.remove("drag"); f.style.setProperty("--dx", "0px"); }
+    if (Math.abs(dx) > 40 || Math.abs(dx) < 6) { deckFront = (deckFront + (dx > 40 ? n - 1 : 1)) % n; layDeck(); }
+  };
+  deck.addEventListener("pointerup", end); deck.addEventListener("pointercancel", end);
+})();
+function countUp(b, to){
+  if (still || to < 10) { b.textContent = to.toLocaleString(); return; }
+  const t0 = performance.now() + 550, dur = 900;
+  const step = (now) => { const t = Math.max(0, Math.min(1, (now - t0) / dur)), e = 1 - Math.pow(1 - t, 3); b.textContent = Math.round(to * e).toLocaleString(); if (t < 1 && b.isConnected) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
 }
 
 function route(){
