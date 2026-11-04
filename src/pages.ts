@@ -76,6 +76,7 @@ a,button,label,summary,.chip{-webkit-tap-highlight-color:transparent}
 .nav ul a{text-decoration:none;color:var(--muted)}
 .nav ul a:hover{color:var(--ink)}
 @media (max-width:820px){.nav ul{display:none}}
+.nav .btn{gap:0}
 @media (max-width:480px){.nav .btn .long{display:none}}
 
 /* Motion: entrances only when scripts run, travel only when allowed */
