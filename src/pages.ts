@@ -712,7 +712,20 @@ body:has(main.app) .feedback-open{display:none}
 
 /* Done */
 .done-list{list-style:none;margin:0;padding:0;display:grid;gap:10px;width:100%}
-.done-list li{display:flex;gap:12px;align-items:baseline;overflow-wrap:anywhere;min-width:0;background:var(--ground);border-radius:16px;padding:14px 18px;animation:fadein .5s var(--ease) both;animation-delay:calc(var(--i,0) * 110ms)}
+.done-list li{display:flex;gap:12px;align-items:baseline;overflow-wrap:anywhere;min-width:0;background:var(--ground);border-radius:16px;padding:14px 18px;animation:fadein .5s var(--ease) both;animation-delay:calc(.9s + var(--i,0) * 110ms)}
+/* The shimmer's last beat: one line of its glyphs, a bright front crosses once and leaves them still. */
+.done-thread{width:100%;margin:0;font:400 .875rem/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.08em;white-space:nowrap;overflow:hidden;user-select:none;-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+#done h1{animation:rise .6s var(--ease) .5s both}
+#done .lede,#done .open-drafts{animation:fadein .5s var(--ease) .75s both}
+#done .done-more,#done .next-week,#done .take-done,#done #ideaNote,#done #articleDone{animation:fadein .6s var(--ease) 1.3s both}
+.open-drafts .btn{min-height:56px;padding-inline:30px;font-size:1.05rem}
+.done-more{font-size:.875rem;color:var(--muted);max-width:62ch}
+.done-more summary{cursor:pointer;min-height:32px}
+.done-more p{margin:8px 0 0}
+.next-week{border-top:1px solid var(--border);padding-top:18px;display:grid;gap:4px;width:100%}
+.next-week p{margin:0;font-size:1.1rem;letter-spacing:-.01em}
+.next-week .btn{justify-self:start;padding-inline:0}
+@media (prefers-reduced-motion:reduce){#done h1,#done .lede,#done .open-drafts,.done-list li,#done .done-more,#done .next-week,#done .take-done,#done #ideaNote,#done #articleDone{animation:none}}
 @media (max-width:640px){
   .top .wrap{min-height:56px;gap:8px}
   .top .scope{display:none}
@@ -846,14 +859,14 @@ export function appPage(): string {
 
 <section id="done" class="screen" hidden>
   <div class="panel studio">
-    <div class="orb" data-s="idle" aria-hidden="true"><i></i><i></i><b></b></div>
+    <p class="done-thread" id="doneThread" aria-hidden="true"></p>
     <header style="display:grid;gap:10px"><h1>Your drafts are in Buffer.</h1><p class="lede" id="doneLine"></p></header>
-    <div class="row"><a class="btn" href="https://publish.buffer.com/schedule?tab=drafts" target="_blank" rel="noopener">Open my drafts in Buffer</a></div>
+    <div class="row open-drafts"><a class="btn" href="https://publish.buffer.com/schedule?tab=drafts" target="_blank" rel="noopener">Open my drafts in Buffer</a></div>
     <ul class="done-list" id="doneList"></ul>
     <p class="muted" id="ideaNote" style="max-width:62ch" hidden></p>
     <div id="articleDone" hidden><p class="muted" style="max-width:62ch">Your article is kept in Buffer under Create, then Ideas. Long pieces aren't published from here, so copy it into Substack or LinkedIn when you're ready.</p><div class="row"><button class="btn quiet" type="button" id="copyArticle">Copy the article</button><button class="btn text" type="button" id="downloadArticle">Download it</button></div></div>
-    <p class="muted" style="max-width:62ch">There's one draft for each channel. Choose <b>Edit</b> on one when you're ready to finish it. To find them again later in Buffer's mobile app, tap the menu at the top left, then <b>Channels</b>, <b>All Channels</b>, and the <b>Drafts</b> tab at the bottom.</p>
-    <div class="row"><button id="again" class="btn quiet" type="button">Start a new interview</button></div>
+    <details class="done-more"><summary>Finding them later</summary><p>There's one draft for each channel. Choose <b>Edit</b> on one when you're ready to finish it. In Buffer's mobile app, tap the menu at the top left, then <b>Channels</b>, <b>All Channels</b>, and the <b>Drafts</b> tab at the bottom.</p></details>
+    <div class="next-week"><p>That's this week told. Come back next week with whatever you build next.</p><button id="again" class="btn text" type="button">Start a new interview now</button></div>
     <div class="take-done"><p class="muted">Got something out of this? The same interview runs in your own agent as a free plugin that remembers your words between interviews. A star on GitHub helps other builders find it.</p><div class="row"><a class="btn text" href="https://github.com/1beebe/build-in-public/tree/main/plugin" target="_blank" rel="noopener">Get the plugin</a><a class="btn text" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">Star it on GitHub</a></div></div>
   </div>
 </section>
@@ -1546,7 +1559,29 @@ function renderDone(){
   const m = asIdeas.length; $("ideaNote").hidden = !m;
   if (m) $("ideaNote").textContent = (m === 1 ? "One of these couldn't be saved as a draft." : m + " of these couldn't be saved as drafts.") + " Some channels need an image or video, and plans have a draft limit. " + (m === 1 ? "It's" : "They're") + " in Create, under Ideas, instead.";
   $("articleDone").hidden = !articleForDone();
-  show("done"); window.scrollTo({top:0});
+  show("done"); window.scrollTo({top:0}); settleThread();
+}
+// One pass of the shimmer's hot front along a line of glyphs; behind it they turn pearl and stop changing.
+function settleThread(){
+  const p = $("doneThread"), n = Math.max(24, Math.min(96, Math.round(p.clientWidth / 9.5)));
+  const iris = getComputedStyle(document.documentElement).getPropertyValue("--code-iris").split(",").map(Number);
+  const hot = getComputedStyle(document.documentElement).getPropertyValue("--code-hot").trim();
+  const spans = Array.from({length: n}, () => el("span", "", glyph())); p.replaceChildren(...spans);
+  const rest = (i) => "hsl(" + (150 + 90 * (1 + Math.sin(i * 0.11))).toFixed(0) + " " + (iris[0] || 62) + "% " + (iris[1] || 44) + "% / " + (0.4 + 0.25 * (0.5 + 0.5 * Math.sin(i * 0.37))).toFixed(2) + ")";
+  if (still) { spans.forEach((sp, i) => { sp.style.color = rest(i); }); return; }
+  const t0 = performance.now(), DUR = 1300;
+  const step = (now) => {
+    if (!p.isConnected || $("done").hidden) return;
+    const front = (now - t0) / DUR * (n + 8) - 4;
+    spans.forEach((sp, i) => {
+      const d = i - front;
+      if (d > 0) { if (Math.random() < 0.35) sp.textContent = glyph(); sp.style.color = "hsl(150 10% 50% / " + (0.12 + 0.1 * Math.exp(-d / 6)).toFixed(2) + ")"; }
+      else if (d > -2.5) sp.style.color = "rgb(" + hot + ")";
+      else sp.style.color = rest(i);
+    });
+    if (front < n + 3) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
 }
 
 function route(){
