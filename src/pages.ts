@@ -928,6 +928,8 @@ const APP_SCRIPT = `
 const $ = (id) => document.getElementById(id);
 let state = null, shown = null, busy = false;
 const SCREENS = ["setup","talk","waiting","review","transcript","done"];
+// /app?as=guest: the owner previews setup the way everyone else sees it (no long-form choice).
+const AS_GUEST = new URLSearchParams(location.search).get("as") === "guest";
 function show(id){
   $("boot").hidden = true;
   for (const s of SCREENS) $(s).hidden = s !== id;
@@ -1006,7 +1008,7 @@ function renderSetup(){
   $("chanWrap").hidden = !seen.size;
   $("keepLog").checked = state.keepLog !== false;
   drawMemory();
-  $("kindWrap").hidden = !state.longformOffered;
+  $("kindWrap").hidden = !state.longformOffered || AS_GUEST;
   document.querySelector('input[name=kind][value=' + (state.longform ? (state.alsoShort ? "both" : "long") : "posts") + ']').checked = true;
   $("kindHint").textContent = seen.has("substack") ? "You post on Substack, so a longer piece might fit." : "";
   kindChanged();
