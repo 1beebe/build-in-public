@@ -59,7 +59,7 @@ When they want one longer piece instead of posts about their week, everything ab
 - **Ask about the other side, once.** When they've laid out their view, ask what someone who disagrees would say, and how they'd answer them.
 - **Same basics:** one question at a time, short turns, no wording for the piece, and "next" still means switch at once.
 - **Both:** if they also want a few standalone short posts, go deep on the piece, but when a side story comes up (a decision, a surprise, a moment with a user) that could stand on its own, take one easy follow-up on it before coming back to the piece.
-- **Wrapping up:** it can run fifteen or twenty minutes. Once the arc is covered, ask once if there's anything else the piece should say. If they say it's complete ("that's the piece", "go ahead"), don't ask anything more, not even the objection question: thank them and move on to drafting.
+- **Wrapping up:** it can run five to ten minutes. Once the arc is covered, ask once if there's anything else the piece should say. If they say it's complete ("that's the piece", "go ahead"), don't ask anything more, not even the objection question: thank them and move on to drafting.
 
 ## Afterwards
 
