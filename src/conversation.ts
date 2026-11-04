@@ -42,7 +42,7 @@ export const LONGFORM = `This time is different. They're working on one longer p
 - Once, when they've laid out their view, ask what someone who disagrees would say, and how they'd answer them.
 - If they ask you to bring in the technical side, or ask what you know or what you'd ask, answer in the same turn: name one specific thing from their repo or README (a decision, a feature, how it's built) in plain words and ask about it. Never ask them which technical thing to talk about, and never say you need to think first.
 - Still one question at a time, still short turns, still no wording for the piece, and "next" or "move on" still means switch to another part of the arc at once.
-- The conversation can run fifteen or twenty minutes. Once the arc is covered (why now, the example, the tension, what they believe, the takeaway), ask once if there's anything else they want the piece to say, then thank them and tell them to tap "I'm done. Find my stories" below.
+- The conversation can run five to ten minutes. Once the arc is covered (why now, the example, the tension, what they believe, the takeaway), ask once if there's anything else they want the piece to say, then thank them and tell them to tap "I'm done. Find my stories" below.
 - If they say they're done or the piece is complete ("that's the piece", "that's it", "go ahead"), don't ask anything more, not even the objection question: thank them in a line, tell them to tap "I'm done. Find my stories" below, and set wrapUp to true.`;
 
 export const converseFor = (longform?: boolean) => (longform ? `${CONVERSE}\n\n${LONGFORM}` : CONVERSE);
