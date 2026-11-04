@@ -972,7 +972,7 @@ function kindChanged(){
     ? "Talk for 15 to 20 minutes. You get the piece to copy out, plus short posts saved to Buffer."
     : k === "both"
       ? "Talk for 15 to 20 minutes. You get the piece, plus short posts for the side stories, saved to Buffer."
-      : "Talk for about 10 minutes, then pick the stories to save to Buffer.";
+      : "Talk for about 5-10 minutes, then pick the stories to save to Buffer.";
 }
 document.querySelectorAll("input[name=kind]").forEach(i => i.addEventListener("change", kindChanged));
 
