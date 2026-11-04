@@ -10,7 +10,7 @@ const STYLE = `
   --live:#d7361f; --warn:#a33a12;
   --add:#e3f4e6; --add-fg:#1d6b2c; --del:#fbe7e6; --del-fg:#a1302b; --code:#f1f2ee;
   --code-cool:96,112,101; --code-hot:168,140,0; --code-iris:62,44;
-  --font:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --font:"Bricolage Grotesque","Bricolage Fallback",ui-sans-serif,system-ui,sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
   --r-card:20px; --r-ctl:999px; --r-in:12px;
   --gut:clamp(16px,3.2vw,40px);
@@ -20,7 +20,7 @@ const STYLE = `
 @media (prefers-color-scheme:dark){:root{
   --ground:#07150e; --surface:#0d2117; --raised:#14301f; --active:#1b3a27;
   --ink:#edf2eb; --muted:#adbcb1; --faint:#98a89c;
-  --border:#1d3a28; --control:#3c5a47;
+  --border:#1d3a28; --control:#557a62;
   --field:#f6e016; --field-ink:#0d2a1c; --field-muted:#3e4a1a; --ink-bg:#14301f;
   --live:#ff6a4d; --warn:#f0a36b;
   --add:#16301d; --add-fg:#7fd492; --del:#3a1b1a; --del-fg:#f29b94; --code:#0a1b12;
@@ -256,8 +256,19 @@ const PAGE_STYLE = `
 
 const MARK = `<svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3C8.8 3 3 8.4 3 15.1c0 3.6 1.7 6.8 4.4 9L6.2 29l5.6-2.8c1.3.4 2.7.6 4.2.6 7.2 0 13-5.4 13-12.1S23.2 3 16 3Z" fill="#f6e016"/><circle cx="16" cy="15" r="4.2" fill="#d7361f"/></svg>`;
 
-const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600&display=swap">`;
+// Self-hosted so the face arrives with the page: preloaded, one origin, no third-party CSS hop.
+// The fallback face is Arial resized to Bricolage's measure, so if the font is late the swap barely moves anything.
+const FONTS = `<link rel="preload" href="/fonts/bricolage-latin.woff2" as="font" type="font/woff2" crossorigin>`;
+const FONT_FACES = `
+@font-face{font-family:"Bricolage Grotesque";font-style:normal;font-weight:200 800;font-display:swap;
+  src:url(/fonts/bricolage-latin.woff2) format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Bricolage Grotesque";font-style:normal;font-weight:200 800;font-display:swap;
+  src:url(/fonts/bricolage-latin-ext.woff2) format("woff2");
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Bricolage Fallback";src:local("Arial"),local("Helvetica"),local("Liberation Sans");
+  size-adjust:106.5%;ascent-override:87.3%;descent-override:25.4%;line-gap-override:0%}
+`;
 
 const FEEDBACK_PILL = `<button class="feedback-open" type="button" data-feedback-open>Feedback or bug</button>`;
 
@@ -300,7 +311,7 @@ function shell(title: string, body: string, opts: { style?: string; script?: str
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://interviewer.lbeebe.com/og.png">
 ${FONTS}
 <script>document.documentElement.classList.add("js")</script>
-<style>${STYLE}${opts.style ?? ""}</style></head><body>${body}${opts.pill === false ? "" : FEEDBACK_PILL}${FEEDBACK_WIDGET}<script>${FEEDBACK_SCRIPT}</script>${opts.script ? `<script>${opts.script}</script>` : ""}</body></html>`;
+<style>${FONT_FACES}${STYLE}${opts.style ?? ""}</style></head><body>${body}${opts.pill === false ? "" : FEEDBACK_PILL}${FEEDBACK_WIDGET}<script>${FEEDBACK_SCRIPT}</script>${opts.script ? `<script>${opts.script}</script>` : ""}</body></html>`;
 }
 
 const NAV = `<header class="wrap nav">
@@ -522,6 +533,21 @@ ${NAV}
 <p><a href="/">Back to the start</a></p>
 </article></main>`,
     { style: PAGE_STYLE },
+  );
+}
+
+export function notFoundPage(): string {
+  return shell(
+    "Not found · The Interviewer",
+    `
+${NAV}
+<main class="wrap"><article class="doc lost">
+<p class="small muted">404</p>
+<h1>Nothing to talk about here.</h1>
+<p>This page doesn't exist, or it moved. Your interview, if you have one going, is still where you left it.</p>
+<div class="lost-act"><a class="btn" href="/">Go to the start</a><a class="btn quiet" href="/app">Back to my interview</a></div>
+</article></main>`,
+    { style: PAGE_STYLE + `.lost{min-height:60vh;align-content:center}.lost-act{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}` },
   );
 }
 

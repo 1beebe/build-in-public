@@ -1,0 +1,4 @@
+# Font files are versioned by name: rename the file if its contents change.
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
