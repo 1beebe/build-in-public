@@ -781,7 +781,7 @@ export function appPage(): string {
 </noscript>
 
 <section id="setup" class="screen" hidden>
-  <header><h1>What did you work on this week?</h1><ul class="steps"><li><b>No GitHub needed.</b> A sentence about your work is enough.</li><li>Have a public repo? Paste it and I'll read this week's work.</li><li id="howLine">Talk for about 5-10 minutes, then pick the stories to save to Buffer.</li></ul></header>
+  <header><h1>What did you work on this week?</h1><p class="lede" id="welcomeBack" hidden></p><ul class="steps"><li><b>No GitHub needed.</b> A sentence about your work is enough.</li><li>Have a public repo? Paste it and I'll read this week's work.</li><li id="howLine">Talk for about 5-10 minutes, then pick the stories to save to Buffer.</li></ul></header>
   <div class="panel">
     <label class="fieldset" id="orgWrap" hidden><span class="lbl">Buffer organization</span><select id="org"></select></label>
     <label class="fieldset"><span class="lbl">A quick note or a repo link</span><span class="hint">Up to 500 characters.</span><textarea id="work" maxlength="500" placeholder="I rebuilt the onboarding for… or github.com/you/project"></textarea></label>
@@ -966,6 +966,8 @@ function renderSetup(){
   }
   $("chanWrap").hidden = !seen.size;
   $("keepLog").checked = state.keepLog !== false;
+  const back = (state.memory || {}).welcome || "";
+  $("welcomeBack").textContent = back; $("welcomeBack").hidden = !back;
   drawMemory();
   $("kindWrap").hidden = !state.longformOffered;
   document.querySelector('input[name=kind][value=' + (state.longform ? (state.alsoShort ? "both" : "long") : "posts") + ']').checked = true;

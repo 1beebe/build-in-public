@@ -168,6 +168,17 @@ export async function recall(env: Env, s: Session): Promise<{ question?: Questio
 export function memoryView(mem: Memory | null) {
   return {
     on: Boolean(mem?.on),
+    welcome: mem?.on ? welcomeBack(mem) : "",
     entries: (mem?.entries ?? []).map(({ id, at, kind, text }) => ({ id, at, kind, text })),
   };
+}
+
+// One line at the top of setup for someone coming back: the thread the next
+// interview will open on, or else the last story found. Empty when there's
+// nothing to pick up.
+function welcomeBack(mem: Memory): string {
+  const open = mem.entries.find((e) => e.kind === "open" && !e.asked);
+  if (open) return `Welcome back. Last time, you were in the middle of ${open.text}.`;
+  const story = mem.entries.find((e) => e.kind === "story");
+  return story ? `Welcome back. Last time, we found the story \u201c${story.text}\u201d.` : "";
 }
