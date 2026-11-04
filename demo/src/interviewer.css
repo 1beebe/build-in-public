@@ -17,14 +17,62 @@ body,
   background: #07150e;
 }
 
-@keyframes iv-deal {
+/* Card entrance, pearl rim, and edge glint: copied from src/pages.ts (APP_STYLE, the #done deck). */
+@property --arc {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes deal {
   from {
     opacity: 0;
-    transform: translate(-50%, 36px) rotate(0deg) scale(0.92);
+    transform: translate(-50%, 70px) rotate(0) scale(0.92);
   }
-  to {
+}
+
+@keyframes rim {
+  0%,
+  100% {
+    box-shadow: 0 24px 40px -26px rgba(0, 0, 0, 0.45), 0 0 0 1.5px hsl(150 60% 70% / 0.45);
+  }
+  33% {
+    box-shadow: 0 24px 40px -26px rgba(0, 0, 0, 0.45), 0 0 0 1.5px hsl(205 65% 72% / 0.45);
+  }
+  66% {
+    box-shadow: 0 24px 40px -26px rgba(0, 0, 0, 0.45), 0 0 0 1.5px hsl(285 50% 76% / 0.45);
+  }
+}
+
+@keyframes edgerun {
+  0% {
+    opacity: 0;
+    --arc: -40deg;
+  }
+  12% {
     opacity: 1;
-    transform: translate(calc(-50% + var(--x)), var(--y)) rotate(var(--r)) scale(1);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    --arc: 360deg;
+  }
+}
+
+/* Pearl sheen on a tap: copied from src/pages.ts (STYLE, .btn.sheen / FEEDBACK_SCRIPT). */
+@keyframes sheen {
+  0% {
+    opacity: 0;
+    background-position: 120% 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    background-position: -20% 0;
   }
 }
 
@@ -272,9 +320,12 @@ body,
   }
 
   .chip {
+    position: relative;
+    isolation: isolate;
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    overflow: hidden;
     will-change: transform;
     min-height: 36px;
     padding: 6px 12px;
@@ -334,11 +385,35 @@ body,
     align-items: center;
   }
 
+  .btn,
+  .chip {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .btn::after,
+  .chip::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    z-index: -1;
+    background: linear-gradient(105deg, transparent 22%, hsl(150 80% 78% / 0.6) 38%, hsl(205 85% 80% / 0.65) 50%, hsl(285 70% 84% / 0.6) 62%, transparent 78%) 120% 0 / 260% 100% no-repeat;
+  }
+
+  .btn.sheen::after,
+  .chip.sheen::after {
+    animation: sheen 0.65s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
+    overflow: hidden;
     min-height: 44px;
     padding: 0 18px;
     border: 0;
@@ -592,49 +667,92 @@ body,
   .done {
     justify-items: center;
     text-align: center;
-    gap: 10px;
-    padding: 16px;
+    gap: 12px;
+    padding: 8px 14px 18px;
   }
 
   .deck {
     position: relative;
     width: 100%;
-    height: 128px;
+    height: 214px;
+    margin-bottom: 4px;
   }
 
+  /* Same deck card as #done in src/pages.ts. The side cards sit in by less than
+     their horizontal padding, so the stack reads as an edge instead of a clipped word. */
   .card {
     position: absolute;
-    top: 0;
+    top: 8px;
     left: 50%;
     box-sizing: border-box;
     display: grid;
-    gap: 6px;
-    width: min(240px, 78%);
-    padding: 12px 14px;
+    grid-template-rows: auto 1fr;
+    gap: 8px;
+    width: min(290px, 78%);
+    height: 188px;
+    padding: 16px 22px;
+    overflow: hidden;
     text-align: left;
     background: #0d2117;
     border: 1px solid #1d3a28;
-    border-radius: 18px;
-    box-shadow: 0 18px 36px -24px rgba(0, 0, 0, 0.7);
+    border-radius: 20px;
+    box-shadow: 0 24px 40px -26px rgba(0, 0, 0, 0.45);
     opacity: 0;
-    transform: translate(calc(-50% + var(--x)), var(--y)) rotate(var(--r));
+    transform: translate(calc(-50% + var(--x) + var(--dx, 0px)), var(--y)) rotate(var(--r));
   }
 
-  .card[data-deal] {
-    animation: iv-deal 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  .card[data-deal]:not(.dealt) {
+    animation: deal 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
     animation-delay: calc(var(--d) * 130ms);
   }
 
-  .ss-stage[data-still] .card[data-deal] {
+  .card.dealt {
+    animation: none;
+    opacity: 1;
+    transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.3s;
+  }
+
+  .card.front.dealt {
+    animation: rim 10s linear infinite;
+  }
+
+  .card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    border-radius: inherit;
+    padding: 2px;
+    background: conic-gradient(from var(--arc), transparent 0deg, hsl(150 70% 62%) 40deg, hsl(205 80% 66%) 75deg, hsl(285 65% 72%) 105deg, transparent 140deg, transparent 360deg);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  }
+
+  .card.glint::after {
+    animation: edgerun 1.8s cubic-bezier(0.45, 0.05, 0.35, 1) both;
+    animation-delay: var(--gd, 0s);
+  }
+
+  .ss-stage[data-still] .card,
+  .ss-stage[data-still] .card.front.dealt,
+  .ss-stage[data-still] .card::after {
     animation: none;
     opacity: 1;
   }
 
-  .card[data-front] {
+  .ss-stage[data-still] .card:not(.front) {
+    opacity: 1;
+  }
+
+  .ss-stage[data-still] .card::after {
+    opacity: 0;
+  }
+
+  .card.front {
     background: #10281c;
-    box-shadow:
-      0 18px 36px -24px rgba(0, 0, 0, 0.7),
-      0 0 0 1.5px hsl(150 60% 70% / 0.45);
+    box-shadow: 0 24px 40px -26px rgba(0, 0, 0, 0.45), 0 0 0 1.5px hsl(150 60% 70% / 0.45);
   }
 
   .ch {
@@ -653,11 +771,14 @@ body,
 
   .card p {
     margin: 0;
+    overflow: hidden;
     color: #edf2eb;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 500;
-    line-height: 1.35;
+    line-height: 1.4;
     letter-spacing: -0.01em;
+    -webkit-mask-image: linear-gradient(#000 60%, transparent);
+    mask-image: linear-gradient(#000 60%, transparent);
   }
 
   .done h1 {
@@ -679,7 +800,9 @@ body,
   .tally b {
     display: flex;
     justify-content: center;
-    font-size: 36px;
+    height: 54px;
+    overflow: hidden;
+    font-size: 54px;
     font-weight: 600;
     letter-spacing: -0.04em;
     line-height: 1;
@@ -696,7 +819,7 @@ body,
 
   .tally span {
     color: #adbcb1;
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1.3;
   }
 
@@ -726,18 +849,58 @@ body,
   }
 
   .iv-app[data-shape='square'] .shimmer {
-    height: 248px;
+    height: 220px;
   }
 
-  .iv-app[data-shape='square'] .done-row,
+  .iv-app[data-shape='square'] .who,
   .iv-app[data-shape='square'] .composer {
     display: none;
+  }
+
+  .iv-app[data-shape='square'] .panel {
+    padding: 10px;
+  }
+
+  .iv-app[data-shape='square'] .convo,
+  .iv-app[data-shape='square'] .log {
+    gap: 6px;
+  }
+
+  .iv-app[data-shape='square'] .orb {
+    width: 44px;
+    height: 44px;
+  }
+
+  .iv-app[data-shape='square'] .deck {
+    height: 128px;
+  }
+
+  .iv-app[data-shape='square'] .card {
+    top: 4px;
+    height: 112px;
+  }
+
+  .iv-app[data-shape='square'] .done {
+    gap: 8px;
+    padding-bottom: 10px;
+  }
+
+  .iv-app[data-shape='square'] .tally b {
+    height: 46px;
+    font-size: 46px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .iv .card,
+  .iv .card.front.dealt,
+  .iv .card::after,
+  .iv .btn.sheen::after,
+  .iv .chip.sheen::after {
+    animation: none !important;
+  }
+
   .iv .card[data-deal] {
-    animation: none;
     opacity: 1;
   }
 

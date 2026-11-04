@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Act } from '../kit/act'
 import { Stage } from '../kit/stage'
 import { Phone } from '../kit/phone'
@@ -79,7 +79,10 @@ const script = async (a: Act<S>) => {
     a.put({ words: i })
     await a.wait(86)
   }
-  await a.wait(720)
+  await a.wait(420)
+  a.mark('harvest')
+  await a.click({ at: 'harvest', x: 0.7, y: 0.55 })
+  await a.wait(480)
   a.mark('wait')
   a.put({ screen: 'wait', quote: false, voice: 'idle' })
   await a.wait(860)
@@ -90,7 +93,7 @@ const script = async (a: Act<S>) => {
   await a.wait(320)
   a.mark('tally')
   a.put({ wordsN: 128, draftsN: 3 })
-  await a.wait(2500)
+  await a.wait(1900)
   a.mark('reset')
   await a.move('rest', { duration: 360 })
   a.put({ screen: 'setup', repo: '', linkedin: false, ask: false, words: 0, quote: false, dealt: false, wordsN: 0, draftsN: 0 })
@@ -219,16 +222,68 @@ const t0 = performance.now() - 4800
 }
 
 const CARDS = [
-  { id: 'x', ch: 'X', x: '-18%', y: '12px', r: '-5deg', d: 0, z: 1 },
-  { id: 't', ch: 'Threads', x: '18%', y: '12px', r: '5deg', d: 1, z: 2 },
-  { id: 'l', ch: 'LinkedIn', x: '0%', y: '0px', r: '0deg', d: 2, z: 3, front: true },
+  { id: 'x', ch: 'X', x: '-12px', y: '10px', r: '-5deg', d: 0, z: 8 },
+  { id: 't', ch: 'Threads', x: '12px', y: '10px', r: '5deg', d: 1, z: 8 },
+  { id: 'l', ch: 'LinkedIn', x: '0px', y: '0px', r: '0deg', d: 2, z: 10, front: true },
 ]
+
+function DraftCard({ card, dealt, text }: { card: (typeof CARDS)[number]; dealt: boolean; text: string }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [settled, setSettled] = useState(false)
+  useEffect(() => {
+    if (!dealt) {
+      setSettled(false)
+      return
+    }
+    const el = ref.current
+    if (!el) return
+    const name = getComputedStyle(el).animationName
+    if (!name || name === 'none') setSettled(true)
+  }, [dealt])
+  return (
+    <div
+      ref={ref}
+      className={`card${card.front ? ' front' : ''}${settled ? ' dealt' : ''}${settled && card.front ? ' glint' : ''}`}
+      data-deal={dealt || undefined}
+      style={{ ['--x' as string]: card.x, ['--y' as string]: card.y, ['--r' as string]: card.r, ['--d' as string]: String(card.d), ['--gd' as string]: '1.1s', zIndex: card.z }}
+      onAnimationEnd={(e) => {
+        if (e.animationName === 'deal') setSettled(true)
+      }}
+    >
+      <div className="ch">
+        <span>{card.ch}</span>
+        <span>Draft</span>
+      </div>
+      <p>{text}</p>
+    </div>
+  )
+}
 
 const VOICE: Record<Voice, string> = { idle: '', speaking: 'Speaking', listening: 'Listening' }
 
 export default function Interviewer({ shape = 'portrait', freeze = null }: { shape?: 'portrait' | 'square'; freeze?: string | null }) {
   const portrait = shape !== 'square'
   const held = freeze === 'setup' || freeze === 'talk' || freeze === 'wait' || freeze === 'done' ? frozen(freeze) : null
+  useEffect(() => {
+    const root = document.querySelector('.iv')
+    if (!root) return
+    const arm = (el: Element) => {
+      if (!(el instanceof HTMLElement)) return
+      if (!el.classList.contains('btn') && !el.classList.contains('chip')) return
+      el.classList.remove('sheen')
+      void el.offsetWidth
+      el.classList.add('sheen')
+      el.addEventListener('animationend', () => el.classList.remove('sheen'), { once: true })
+    }
+    const obs = new MutationObserver((records) => {
+      for (const rec of records) {
+        const el = rec.target
+        if (el instanceof HTMLElement && el.hasAttribute('data-pressed')) arm(el)
+      }
+    })
+    obs.observe(root, { attributes: true, subtree: true, attributeFilter: ['data-pressed'] })
+    return () => obs.disconnect()
+  }, [])
   return (
     <Stage<S>
       width={540}
@@ -336,7 +391,7 @@ export default function Interviewer({ shape = 'portrait', freeze = null }: { sha
                     </div>
                   </div>
                   <div className="done-row">
-                    <button className="btn quiet" type="button">
+                    <button className="btn quiet" type="button" data-target="harvest">
                       I'm done. Find my stories
                     </button>
                   </div>
@@ -366,19 +421,7 @@ export default function Interviewer({ shape = 'portrait', freeze = null }: { sha
                 <div className="panel done">
                   <div className="deck" aria-hidden>
                     {CARDS.map((card) => (
-                      <div
-                        key={card.id}
-                        className="card"
-                        data-deal={s.dealt || undefined}
-                        data-front={card.front || undefined}
-                        style={{ ['--x' as string]: card.x, ['--y' as string]: card.y, ['--r' as string]: card.r, ['--d' as string]: String(card.d), zIndex: card.z }}
-                      >
-                        <div className="ch">
-                          <span>{card.ch}</span>
-                          <span>Draft</span>
-                        </div>
-                        {card.front ? <p>{ANSWER}</p> : null}
-                      </div>
+                      <DraftCard key={card.id} card={card} dealt={s.dealt} text={ANSWER} />
                     ))}
                   </div>
                   <h1>Your drafts are in Buffer.</h1>
@@ -399,6 +442,7 @@ export default function Interviewer({ shape = 'portrait', freeze = null }: { sha
                   <div className="row open">
                     <span className="btn">Open my drafts in Buffer</span>
                   </div>
+                  <p className="next-week roomy">See you next week.</p>
                 </div>
               </section>
             </div>
