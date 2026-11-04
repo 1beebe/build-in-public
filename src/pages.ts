@@ -664,6 +664,11 @@ textarea{resize:vertical;min-height:120px;line-height:1.5}
 .topics:empty{display:none}
 button.chip{font:inherit;font-size:.875rem;border:0;color:var(--ink);white-space:nowrap;max-width:22em;overflow:hidden;text-overflow:ellipsis;flex:none}
 button.chip.on{background:var(--solid);color:var(--solid-ink);box-shadow:none}
+/* Dark scheme: the ink fill is nearly the page, so a checked chip looks quieter than the outlined one. */
+@media (prefers-color-scheme:dark){
+  .chip:has(input:checked),button.chip.on{background:#5f9b79;color:#0d2a1c;box-shadow:inset 0 0 0 2px #f6f6f3}
+  .chip:has(input:checked)::before,button.chip.on::before{content:"";width:14px;height:14px;flex:none;background:center/14px 14px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M3.2 8.2 6.3 11.3 12.8 4.7' stroke='%230d2a1c' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+}
 
 /* The work panel */
 .src{gap:14px}
