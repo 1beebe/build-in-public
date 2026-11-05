@@ -550,18 +550,20 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
                 `INTERVIEW ${day} | ${s.harvestMode === "outline" ? "outline in your words" : "story draft from your words, lightly edited"}${where ? ` | ${where}` : ""}`,
                 draft.why ? `WHY THIS SHAPE: ${draft.why}` : "",
                 words,
-                prompts.length ? `QUESTIONS TO FINISH OR ADAPT IT\n${prompts.map((q) => `- ${q}`).join("\n")}` : "",
+                prompts.length ? `QUESTIONS TO FINISH OR ADAPT IT\n${prompts.map((q) => `• ${q}`).join("\n")}` : "",
               ].filter(Boolean).join("\n\n");
           if (client.nearLimit) throw new RateLimited(60);
           const ideaTitle = draft.later || /^INTERVIEW \|/.test(title) ? title : `INTERVIEW | ${draft.article ? "Article | " : where ? `${where} | ` : ""}${title}`;
           // Each story goes to its channel's Drafts in Buffer, ready to edit and
-          // schedule. Outlines carry their questions; drafts stay clean to post.
+          // schedule, with their questions as bullets underneath.
           const channel = (s.channels ?? []).find((c) => c.service === draft.channel) ??
             (s.channels ?? []).find((c) => c.service === (s.targets ?? [])[0]) ?? (s.channels ?? [])[0];
+          // Their questions ride along as bullets under the words, set apart so they're easy to delete before posting.
+          const bullets = prompts.map((q) => `• ${q}`).join("\n");
           const draftText = draft.later
             ? `${title}\n\n${words}`
-            : s.harvestMode === "outline" && prompts.length
-              ? `${words}\n\nQuestions to finish it:\n${prompts.map((q) => `- ${q}`).join("\n")}`
+            : prompts.length
+              ? `${words}\n\n———\n${s.harvestMode === "outline" ? "Questions to finish it:" : "Questions to keep developing it (delete before posting):"}\n${bullets}`
               : words;
           let asDraft = false;
           // The long-form piece itself can't be a Buffer post: it's kept as an Idea.
