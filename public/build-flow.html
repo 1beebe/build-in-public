@@ -66,7 +66,7 @@ header{display:flex;flex-direction:column;gap:6px;max-width:78ch}h1{font-size:1.
       <path class="loop" d="M1944 582 C1944 690,1044 690,1044 582"/><text x="1325" y="682">review can return to the conversation</text>
     </svg>
 
-    <div class="lane" style="top:30px">Connect · once per person</div><div class="lane" style="top:312px">Each interview</div><div class="lane" style="top:730px">Later · deliberately out of V2</div>
+    <div class="lane" style="top:30px">Connect · once per person</div><div class="lane" style="top:312px">Each interview</div><div class="lane" style="top:730px">Roadmap and later · out of V2</div>
 
     <div class="node t-trigger" style="left:24px;top:68px"><div class="hd"><span>Entry</span></div><div class="bd"><h3>Landing page</h3><p>Explains the blank-page problem, shows a real repo question, and offers one action: Connect with Buffer.</p></div></div>
     <div class="node t-buffer" style="left:324px;top:68px"><div class="hd"><span>Buffer OAuth</span></div><div class="bd"><h3>One sign-in</h3><p>Authorization Code with PKCE. Buffer supplies recent posts, available tags, and the final destination for approved drafts.</p></div></div>
@@ -85,6 +85,7 @@ header{display:flex;flex-direction:column;gap:6px;max-width:78ch}h1{font-size:1.
     <div class="node later t-later" style="left:624px;top:768px"><span class="badge">Later</span><div class="hd"><span>Habit</span></div><div class="bd"><h3>A weekly check-in</h3><p>An optional calendar invite from the done screen to come back each week, with email reminders later.</p></div></div>
     <div class="node later t-later" style="left:924px;top:768px"><span class="badge">Removed</span><div class="hd"><span>Not in V2</span></div><div class="bd"><h3>Parallel voice modes</h3><p>No classic voice switch, recorded-answer transcription, read-aloud toggle, or separate voice setup.</p></div></div>
     <div class="node later t-later" style="left:1224px;top:768px"><span class="badge">Removed</span><div class="hd"><span>Not in V2</span></div><div class="bd"><h3>Pillars before value</h3><p>No required tags or content taxonomy before the interview. Classification moves to optional review-time metadata.</p></div></div>
+    <div class="node later t-later" style="left:1524px;top:768px"><span class="badge">Next</span><div class="hd"><span>Roadmap</span></div><div class="bd"><h3>Long-form pieces</h3><p>A longer piece, or one plus short posts. The interview goes deeper on one piece and returns an article in your words.</p></div></div>
   </div></div>
   <div class="steps" id="steps" hidden></div>
   <p class="hint" id="hint">Drag to move around. Pinch, use the buttons, or hold Ctrl and scroll to zoom.</p>
@@ -94,7 +95,6 @@ header{display:flex;flex-direction:column;gap:6px;max-width:78ch}h1{font-size:1.
     <div><h4>One sign-in</h4><p>Buffer remains the only connected account. GitHub reads public data without authentication; non-GitHub builders describe the work instead.</p></div>
     <div><h4>One voice path</h4><p>GPT-Live is the spoken experience. Typing is the accessible fallback, not a second voice system. Starting to type pauses live voice so one transcript writer stays authoritative.</p></div>
     <div><h4>AI call map</h4><p><b>Read context:</b> no AI; GitHub and Buffer API fetches only. The fetched context enters the model when the conversation begins. <b>Spoken interview:</b> OpenAI GPT-Live 1, one streaming session. <b>Typed interview:</b> DeepSeek Flash through MindStudio, one call after each answer. <b>Find my stories:</b> Claude Sonnet 5.5 through MindStudio, one call at the end.</p></div>
-    <div><h4>Long-form, coming later</h4><p>On the roadmap, not in this version. Setup will ask for a longer piece, or a longer piece plus short posts. The interview stays on one piece and goes deeper; the harvest returns an article in the builder's words, with posts to share it.</p></div>
     <div><h4>Memory</h4><p>Off unless ticked. It keeps a few open threads and story titles, never transcripts, so the next interview picks up where the last stopped. Each item can be forgotten from setup.</p></div>
     <div><h4>Transcript log</h4><p>A setup box, ticked by default, keeps that interview's transcript for 14 days so the owner can improve the interviewer. Untick it and nothing is kept.</p></div>
     <div><h4>Authorship boundary</h4><p>The harvest may remove fillers, join and reorder the builder's thoughts, and in drafts add transitions, tighten and fix grammar. It cannot invent a claim, feeling, detail, hook or call to action. Outlines use only their sentences. The builder reviews every card and writes the eventual post.</p></div>
