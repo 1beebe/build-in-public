@@ -62,7 +62,7 @@ export class VoiceError extends Error {}
 
 export async function gptLiveSession(env: Env, s: Session, sdp: string): Promise<{ sdp: string; model: string; opening: string }> {
   const model = env.LIVE_MODEL || LIVE_MODEL;
-  const res = await fetch("https://api.openai.com/v1/live/sessions", {
+  const open = (delegation: boolean) => fetch("https://api.openai.com/v1/live/sessions", {
     method: "POST",
     headers: { Authorization: `Bearer ${openaiKey(env)}`, "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -70,7 +70,7 @@ export async function gptLiveSession(env: Env, s: Session, sdp: string): Promise
         model,
         instructions: liveInstructions(s, LIVE_RULES),
         // If it does hand a turn to the app anyway, no automatic "give me a second" filler.
-        delegation: { type: "client", acknowledgement_delay_ms: 8000 },
+        ...(delegation ? { delegation: { type: "client", acknowledgement_delay_ms: 8000 } } : {}),
         // GPT-Live waits for the caller unless told to open; OpenAI's advice is a developer
         // message here plus the same words via session.commentary.append once it starts.
         input: [{ type: "message", role: "developer", content: [{ type: "input_text", text: liveOpening(s) }] }],
@@ -79,6 +79,12 @@ export async function gptLiveSession(env: Env, s: Session, sdp: string): Promise
       transport: { type: "webrtc", sdp },
     }),
   });
+  let res = await open(true);
+  // If OpenAI ever refuses the delegation setting, open the session without it rather than fail.
+  if (res.status === 400) {
+    const why = await res.clone().text();
+    if (/delegation|acknowledgement/i.test(why)) { console.error("gpt-live refused delegation config", why.slice(0, 300)); res = await open(false); }
+  }
   if (!res.ok) {
     const body = (await res.text()).slice(0, 300);
     if (isSpendCap(res.status, body)) throw new SpendCapError(body);
