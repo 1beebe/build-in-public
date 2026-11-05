@@ -1519,7 +1519,7 @@ function renderReview(){
     }
     for (const f of d.flags || []) card.append(el("p", "flag", f));
     if ((d.prompts||[]).length) {
-      const pw = el("details", "fold"); pw.append(el("summary", "lbl", (outline ? "Questions to help you write it, added under your outline" : "Questions to help you finish it, just for you") + " (" + d.prompts.length + ")"));
+      const pw = el("details", "fold"); pw.append(el("summary", "lbl", (outline ? "Questions to help you write it, added under your outline" : "Questions to help you finish it, added under your draft") + " (" + d.prompts.length + ")"));
       pw.addEventListener("toggle", () => pw.querySelectorAll("textarea").forEach(grow));
       const pr = el("textarea", "prompts"); pr.maxLength = 1000; pr.value = d.prompts.join("\\n"); pr.setAttribute("aria-label", "Questions, one per line"); pw.append(pr); card.append(pw);
     }
