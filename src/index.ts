@@ -368,6 +368,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         s.brief = [
           s.repo
             ? [
+                `They shared their repo, so this work is what they came to talk about. Open on one specific thing they shipped in it and keep both threads anchored in specific changes from it (named in plain words); their note and recent posts are context, not the topic, unless they steer there.`,
                 `Repo: ${shipped.repo}${shipped.description ? ` — ${shipped.description}` : ""}`,
                 shipped.readme ? `What the project is, from the start of its README (their own description; use it to know what they're building and for whom): ${shipped.readme.slice(0, 1500)}` : "",
                 shippedSummary(shipped) ? `What they shipped lately (newest first):\n${shippedSummary(shipped)}` : "",
@@ -375,6 +376,13 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
                 TECH_DEPTH,
               ].filter(Boolean).join("\n")
             : "They don't have a GitHub repo for this. Everything you know about their work is what they told you below, so let them show you around it.",
+          ...(() => {
+            // Any other link to their work (a site, a demo, a doc): that's the topic, but we can't open it.
+            const links = s.repo ? [] : [...(s.weekNote ?? "").matchAll(/https?:\/\/[^\s)>\]]+/gi)].map((m) => m[0]).slice(0, 2);
+            return links.length
+              ? [`They shared a link to their work (${links.join(", ")}), so that's what they came to talk about. You can't open it: ask them to show you around it, and keep the conversation anchored in that piece of work.`]
+              : [];
+          })(),
           s.weekNote ? `What they said they worked on this week: ${s.weekNote}` : "They didn't add a note about their week (that's optional; it doesn't mean they did nothing).",
           ...(() => {
             const where = s.targets ?? mainServices(s.channels ?? []);

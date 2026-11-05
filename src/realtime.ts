@@ -54,7 +54,7 @@ export function liveOpening(s: Session): string {
       ? "Speak first, in English: say hi in a few words, mention one specific thing you noticed in their recent posts or work, and ask whether the piece they want to write is about that or something else. Then listen."
       : s.weekNote && !s.repo
         ? "Speak first, in English: say hi in a few words, then open on what they said they want to talk about in their setup note (in your own words, never quoting it), and ask your first question about it. Then listen."
-        : "Speak first, in English: say hi in a few words, show you've looked at their week by naming one specific thing they shipped or posted in plain words, and ask your first question about it. Then listen.";
+        : "Speak first, in English: say hi in a few words, show you've looked at their repo by naming one specific thing they shipped in it, in plain words, and ask your first question about the moment behind it. Their repo is what they came to talk about. Then listen.";
 }
 
 /** The voice provider refused or failed to open a session. */
