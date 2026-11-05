@@ -2,7 +2,7 @@
 
 The single source of truth for user-facing behavior. When a change alters what a person sees, what the interviewer does, what comes back, or where it's saved, update this file in the same commit. Every other surface (landing page, README, build-flow diagram, plugin references) is checked against it before each deploy.
 
-Checked through: `ec12067`
+Checked through: `2b18bf9`
 
 ## The flow
 
@@ -13,7 +13,7 @@ Checked through: `ec12067`
    - Voice runs on GPT-Live, which speaks first and never hands its turn off to "think". Typed answers go to Claude Sonnet (`TALK_MODEL=deepseek` switches back to DeepSeek Flash).
    - Every turn ends on one question.
    - The voice model has no tools and never says "let me take a look".
-   - Short mode goes deep on one thread, then one more, in three beats: the moment (a specific thing from their week), what it meant in that moment, then what they'd tell someone else facing it. Every question builds on the last answer in their words. It ends on something light. Asked why it's asking, it says what the question is for in the post.
+   - Short mode goes deep on one thread, then one more, in three beats: the moment (a specific thing from their week), what it meant in that moment, then the lesson (zoom out, or what they'd tell someone else facing it, anchored with one concrete example). Every question builds on the last answer in their words, with a few warm words that pick up their point or exact word (no generic praise). It asks one honest evidence question, leaves room after short or negative answers, and ends on something concrete. Asked why it's asking, it says what the question is for in the post.
    - Long mode stays on one piece and goes deeper. It wraps up when you say "that's the piece".
    - Both goes deep on the piece and takes one easy follow-up on any side story that could stand alone.
    - There's a "Next topic" button.
