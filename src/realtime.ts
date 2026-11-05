@@ -53,8 +53,8 @@ export function liveOpening(s: Session): string {
     : s.longform
       ? "Speak first, in English: say hi in a few words, mention one specific thing you noticed in their recent posts or work, and ask whether the piece they want to write is about that or something else. Then listen."
       : s.weekNote && !s.repo
-        ? "Speak first, in English: say hi in a few words, then open on what they said they want to talk about in their setup note (in your own words, never quoting it), and ask your first question about it. Before that question, in one short warm line, tell them the more they share the better their stories will be, and that they can steer you anytime (ask me about...). Then listen."
-        : "Speak first, in English: say hi in a few words, show you've looked at their repo by naming one specific thing they shipped in it, in plain words, and ask your first question about the moment behind it. Their repo is what they came to talk about. Before that question, in one short warm line, tell them the more they share the better their stories will be, and that they can steer you anytime (ask me about...). Then listen.";
+        ? "Speak first, in English: say hi in a few words, then open on what they said they want to talk about in their setup note (in your own words, never quoting it), and ask your first question about it. Before that question, add one short line close to: The more you say, the better this works. Steer me anytime. Then listen."
+        : "Speak first, in English: say hi in a few words, show you've looked at their repo by naming one specific thing they shipped in it, in plain words, and ask your first question about the moment behind it. Their repo is what they came to talk about. Before that question, add one short line close to: The more you say, the better this works. Steer me anytime. Then listen.";
 }
 
 /** The voice provider refused or failed to open a session. */
