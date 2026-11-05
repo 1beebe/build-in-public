@@ -152,7 +152,7 @@ p{margin:0}
 /* Hero: the bubble, enormous, cropped by the viewport, as the stage for the demo */
 .hero{position:relative;min-height:calc(4vh + min(60vw,940px) * 1.008 + 8px);overflow:hidden;display:grid;grid-template-columns:minmax(0,6fr) minmax(0,6fr);align-items:start}
 .hero .copy{position:relative;z-index:1;padding:clamp(48px,9vh,120px) 0 64px var(--m);max-width:760px}
-.hero h1{font-size:var(--t-display)}
+.hero h1{font-size:clamp(44px,5vw,84px);max-width:13ch}
 .hero .lead{font-size:var(--t-lead);line-height:1.45;max-width:34ch;margin-top:36px}
 .hero .act{margin-top:40px;display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px}
 .hero .act .small{font-size:var(--t-small);color:var(--muted);max-width:30ch}
@@ -163,7 +163,7 @@ p{margin:0}
 @media (max-width:860px){
   .hero{display:block;min-height:0}
   .hero .copy{padding:28px var(--m) 32px}
-  .hero h1{font-size:13vw}
+  .hero h1{font-size:10.5vw}
   .hero .lead{margin-top:24px}
   .hero-phone{position:relative;overflow:hidden;padding-bottom:4vw}
   .stage{position:relative;right:auto;top:auto;width:118vw;margin:0 0 0 -4vw}
@@ -378,8 +378,8 @@ ${NAV}
 <main>
 <section class="hero" aria-labelledby="heroH">
   <div class="copy">
-    <h1 id="heroH" class="rise">Unblock your stories.</h1>
-    <p class="lead rise" style="--i:1">Thoughtful questions about your actual work. Stories in your own words, ready to edit and schedule in Buffer.</p>
+    <h1 id="heroH" class="rise">A 15-minute conversation becomes a week’s worth of content.</h1>
+    <p class="lead rise" style="--i:1">For builders who want to post more but stall at the blank page. Talk through what you worked on and get drafts in your own words, ready to edit in Buffer.</p>
     ${error ? `<p class="alert" role="alert">${escapeHtml(error)}</p>` : ""}
     <div class="act rise" style="--i:2"><a class="btn" href="/connect"><span class="dot" aria-hidden="true"></span>Connect with Buffer</a><span class="small">Signs in with Buffer, the social media planner. <a href="https://buffer.com" target="_blank" rel="noopener">The free plan</a> works.</span></div>
   </div>
@@ -863,6 +863,7 @@ body:has(#talk:not([hidden])) .app-foot{display:none}
 .dock .side{display:flex;align-items:center;gap:4px}
 .dock .side .btn{white-space:nowrap}
 #doneBtn{min-height:52px}
+.steer{margin:0;color:var(--muted);font-size:.9375rem}
 #doneBtn.nudge{animation:nudge 1.6s ease-in-out 3}
 @media (prefers-reduced-motion:reduce){#doneBtn.nudge{animation:none}}
 #handPop{position:absolute;right:10px;bottom:calc(100% + 10px);width:min(400px,calc(100vw - 2 * var(--gut)));background:var(--solid);color:#f2f5ef;border:0;border-radius:24px 24px 6px 24px;padding:20px;display:grid;gap:14px;justify-content:stretch;box-shadow:0 24px 48px -20px rgba(0,0,0,.5);animation:fadein .25s var(--ease)}
@@ -969,7 +970,7 @@ export function appPage(): string {
 </noscript>
 
 <section id="setup" class="screen" hidden>
-  <header><h1>What did you work on this week?</h1><p class="lede" id="welcomeBack" hidden></p><ul class="steps"><li><span><b>No GitHub needed.</b> A sentence about your work is enough.</span></li><li>Have a public repo? Paste it and I'll read this week's work. Any other link, like a demo or a doc, sets the topic, and you walk me through it.</li><li id="howLine">Talk for 5-10 minutes, then pick the stories to save to Buffer.</li></ul></header>
+  <header><h1>What did you work on this week?</h1><p class="lede" id="welcomeBack" hidden></p><ul class="steps"><li><span><b>No GitHub needed.</b> A sentence about your work is enough.</span></li><li>Have a public repo? Paste it and I'll read this week's work. Any other link, like a demo or a doc, sets the topic, and you walk me through it.</li><li id="howLine">Give it about 15 minutes and say a lot. The more you share, the more stories it finds.</li></ul></header>
   <div class="panel">
     <label class="fieldset" id="orgWrap" hidden><span class="lbl">Buffer organization</span><select id="org"></select></label>
     <label class="fieldset"><span class="lbl">A sentence, a repo or a link</span><span class="hint">A repo link plus a few words works too. Up to 500 characters.</span><textarea id="work" maxlength="500" placeholder="I rebuilt the onboarding for… or github.com/you/project or a link to your demo"></textarea></label>
@@ -991,6 +992,7 @@ export function appPage(): string {
     <div><h1>Your interview</h1><p id="voiceState" aria-live="polite"></p></div>
   </div>
   <div id="topics" class="topics" aria-label="Topics from your week"></div>
+  <p class="steer" id="steerHint">You can steer. Say “ask me about…” or tap Next topic.</p>
   <ol id="log" class="log" aria-live="polite"></ol>
 </div>
 <div class="dock"><div class="dock-in">
@@ -1188,10 +1190,10 @@ function kindChosen(){ return $("kindWrap").hidden ? "short" : ({posts:"short", 
 function kindChanged(){
   const k = kindChosen();
   $("howLine").textContent = k === "long"
-    ? "Talk for 5-10 minutes. You get the piece to copy out, plus short posts saved to Buffer."
+    ? "Give it about 15 minutes and say a lot. You get the piece to copy out, plus short posts saved to Buffer."
     : k === "both"
-      ? "Talk for 5-10 minutes. You get the piece, plus short posts for the side stories, saved to Buffer."
-      : "Talk for 5-10 minutes, then pick the stories to save to Buffer.";
+      ? "Give it about 15 minutes and say a lot. You get the piece, plus short posts for the side stories, saved to Buffer."
+      : "Give it about 15 minutes and say a lot. The more you share, the more stories it finds.";
 }
 document.querySelectorAll("input[name=kind]").forEach(i => i.addEventListener("change", kindChanged));
 
