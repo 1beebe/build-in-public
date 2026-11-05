@@ -152,7 +152,7 @@ p{margin:0}
 /* Hero: the bubble, enormous, cropped by the viewport, as the stage for the demo */
 .hero{position:relative;min-height:calc(4vh + min(60vw,940px) * 1.008 + 8px);overflow:hidden;display:grid;grid-template-columns:minmax(0,6fr) minmax(0,6fr);align-items:start}
 .hero .copy{position:relative;z-index:1;padding:clamp(48px,9vh,120px) 0 64px var(--m);max-width:760px}
-.hero h1{font-size:var(--t-display)}
+.hero h1{font-size:clamp(44px,5vw,84px);max-width:13ch}
 .hero .lead{font-size:var(--t-lead);line-height:1.45;max-width:34ch;margin-top:36px}
 .hero .act{margin-top:40px;display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px}
 .hero .act .small{font-size:var(--t-small);color:var(--muted);max-width:30ch}
@@ -163,7 +163,7 @@ p{margin:0}
 @media (max-width:860px){
   .hero{display:block;min-height:0}
   .hero .copy{padding:28px var(--m) 32px}
-  .hero h1{font-size:13vw}
+  .hero h1{font-size:10.5vw}
   .hero .lead{margin-top:24px}
   .hero-phone{position:relative;overflow:hidden;padding-bottom:4vw}
   .stage{position:relative;right:auto;top:auto;width:118vw;margin:0 0 0 -4vw}
@@ -318,6 +318,7 @@ const FEEDBACK_ICON = `<svg class="ico" width="18" height="18" viewBox="0 0 24 2
 
 
 const PLUGIN_ICON = `<svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M4 14V18.4C4 18.7314 4.26863 19 4.6 19H10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 14V18.4C19 18.7314 18.7314 19 18.4 19H14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 5H18.4C18.7314 5 19 5.26863 19 5.6V10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 10V5.6C4 5.26863 4.26863 5 4.6 5H10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 19V20C14 21.1046 13.1046 22 12 22C10.8954 22 10 21.1046 10 20V19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 10H5C6.10457 10 7 10.8954 7 12C7 13.1046 6.10457 14 5 14H4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 10H20C21.1046 10 22 10.8954 22 12C22 13.1046 21.1046 14 20 14H19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 5V4C14 2.89543 13.1046 2 12 2C10.8954 2 10 2.89543 10 4V5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const TRANSCRIPT_ICON = `<svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M4 21.4V2.6C4 2.26863 4.26863 2 4.6 2H16.2515C16.4106 2 16.5632 2.06321 16.6757 2.17574L19.8243 5.32426C19.9368 5.43679 20 5.5894 20 5.74853V21.4C20 21.7314 19.7314 22 19.4 22H4.6C4.26863 22 4 21.7314 4 21.4Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 10L16 10M8 18L16 18M8 14L12 14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 2V5.4C16 5.73137 16.2686 6 16.6 6H20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const STAR_ICON = `<svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M16 22.0268V19.1568C16.0375 18.68 15.9731 18.2006 15.811 17.7506C15.6489 17.3006 15.3929 16.8902 15.06 16.5468C18.2 16.1968 21.5 15.0068 21.5 9.54679C21.4997 8.15062 20.9627 6.80799 20 5.79679C20.4558 4.5753 20.4236 3.22514 19.91 2.02679C19.91 2.02679 18.73 1.67679 16 3.50679C13.708 2.88561 11.292 2.88561 8.99999 3.50679C6.26999 1.67679 5.08999 2.02679 5.08999 2.02679C4.57636 3.22514 4.54413 4.5753 4.99999 5.79679C4.03011 6.81549 3.49251 8.17026 3.49999 9.57679C3.49999 14.9968 6.79998 16.1868 9.93998 16.5768C9.61098 16.9168 9.35725 17.3222 9.19529 17.7667C9.03334 18.2112 8.96679 18.6849 8.99999 19.1568V22.0268" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 20.0267C6 20.9999 3.5 20.0267 2 17.0267" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 const FEEDBACK_LINK = `<button class="btn text" type="button" data-feedback-open>${FEEDBACK_ICON}Feedback or bug</button>`;
@@ -378,8 +379,8 @@ ${NAV}
 <main>
 <section class="hero" aria-labelledby="heroH">
   <div class="copy">
-    <h1 id="heroH" class="rise">Unblock your stories.</h1>
-    <p class="lead rise" style="--i:1">Thoughtful questions about your actual work. Stories in your own words, ready to edit and schedule in Buffer.</p>
+    <h1 id="heroH" class="rise">A 15-minute conversation becomes a week’s worth of content.</h1>
+    <p class="lead rise" style="--i:1">For builders who want to post more but stall at the blank page. Talk through what you worked on and get drafts in your own words, ready to edit in Buffer.</p>
     ${error ? `<p class="alert" role="alert">${escapeHtml(error)}</p>` : ""}
     <div class="act rise" style="--i:2"><a class="btn" href="/connect"><span class="dot" aria-hidden="true"></span>Connect with Buffer</a><span class="small">Signs in with Buffer, the social media planner. <a href="https://buffer.com" target="_blank" rel="noopener">The free plan</a> works.</span></div>
   </div>
@@ -863,6 +864,7 @@ body:has(#talk:not([hidden])) .app-foot{display:none}
 .dock .side{display:flex;align-items:center;gap:4px}
 .dock .side .btn{white-space:nowrap}
 #doneBtn{min-height:52px}
+.steer{margin:0;color:var(--muted);font-size:.9375rem}
 #doneBtn.nudge{animation:nudge 1.6s ease-in-out 3}
 @media (prefers-reduced-motion:reduce){#doneBtn.nudge{animation:none}}
 #handPop{position:absolute;right:10px;bottom:calc(100% + 10px);width:min(400px,calc(100vw - 2 * var(--gut)));background:var(--solid);color:#f2f5ef;border:0;border-radius:24px 24px 6px 24px;padding:20px;display:grid;gap:14px;justify-content:stretch;box-shadow:0 24px 48px -20px rgba(0,0,0,.5);animation:fadein .25s var(--ease)}
@@ -881,6 +883,9 @@ body:has(#talk:not([hidden])) .app-foot{display:none}
 #review > header{grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:12px 32px;align-items:end}
 #review > header h1{font-size:clamp(2.5rem,1.6rem + 3.4vw,4.75rem);line-height:.96;letter-spacing:-.04em}
 #review .lede{font-size:clamp(1.05rem,1rem + .3vw,1.25rem)}
+#reviewTx{margin:0}
+#review > header #reviewTx{grid-column:2}
+#reviewTx .btn{display:inline;min-height:0;padding:0;border:0;background:none;font:inherit;color:var(--ink);text-decoration:underline;text-underline-offset:3px;vertical-align:baseline}
 .drafts{grid-template-columns:1fr!important;gap:20px;counter-reset:story}
 .draft{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);column-gap:clamp(20px,4vw,56px);row-gap:12px;align-items:start;background:var(--surface);border:0;border-radius:24px 24px 24px 6px;box-shadow:0 0 0 1px var(--border)}
 .draft > *{grid-column:1}
@@ -896,6 +901,7 @@ body:has(#talk:not([hidden])) .app-foot{display:none}
 .draft .lbl{font-weight:500}
 @media (max-width:900px){
   #review > header{grid-template-columns:1fr}
+  #review > header #reviewTx{grid-column:auto}
   .draft{grid-template-columns:1fr}
   .draft > .why{grid-column:1;grid-row:auto}
 }
@@ -969,7 +975,7 @@ export function appPage(): string {
 </noscript>
 
 <section id="setup" class="screen" hidden>
-  <header><h1>What did you work on this week?</h1><p class="lede" id="welcomeBack" hidden></p><ul class="steps"><li><span><b>No GitHub needed.</b> A sentence about your work is enough.</span></li><li>Have a public repo? Paste it and I'll read this week's work. Any other link, like a demo or a doc, sets the topic, and you walk me through it.</li><li id="howLine">Talk for 5-10 minutes, then pick the stories to save to Buffer.</li></ul></header>
+  <header><h1>What did you work on this week?</h1><p class="lede" id="welcomeBack" hidden></p><ul class="steps"><li><span><b>No GitHub needed.</b> A sentence about your work is enough.</span></li><li>Have a public repo? Paste it and I'll read this week's work. Any other link, like a demo or a doc, sets the topic, and you walk me through it.</li><li id="howLine">Give it about 15 minutes and say a lot. The more you share, the more stories it finds.</li></ul></header>
   <div class="panel">
     <label class="fieldset" id="orgWrap" hidden><span class="lbl">Buffer organization</span><select id="org"></select></label>
     <label class="fieldset"><span class="lbl">A sentence, a repo or a link</span><span class="hint">A repo link plus a few words works too. Up to 500 characters.</span><textarea id="work" maxlength="500" placeholder="I rebuilt the onboarding for… or github.com/you/project or a link to your demo"></textarea></label>
@@ -991,6 +997,7 @@ export function appPage(): string {
     <div><h1>Your interview</h1><p id="voiceState" aria-live="polite"></p></div>
   </div>
   <div id="topics" class="topics" aria-label="Topics from your week"></div>
+  <p class="steer" id="steerHint">You can steer. Say “ask me about…” or tap Next topic.</p>
   <ol id="log" class="log" aria-live="polite"></ol>
 </div>
 <div class="dock"><div class="dock-in">
@@ -1018,10 +1025,10 @@ export function appPage(): string {
   <div class="shimmer" id="shimmer"><canvas aria-hidden="true"></canvas><p class="shimmer-line" id="shimmerLine" aria-live="polite"></p></div>
 </section>
 <section id="review" class="screen wide" hidden>
-  <header><h1 id="reviewHead">Stories from your interview</h1><p class="lede" id="reviewLede"></p></header>
+  <header><h1 id="reviewHead">Stories from your interview</h1><p class="lede" id="reviewLede"></p><p class="muted" id="reviewTx">Not what you hoped for? <button class="btn text" type="button" data-transcript>Get the transcript</button> and write from your own words.</p></header>
   <div class="panel few" id="fewNote" hidden><p id="fewText"></p><div class="row"><button id="moreBtn" class="btn quiet" type="button">Keep talking to find more</button></div></div>
   <div id="drafts" class="drafts"></div>
-  <div class="savebar"><button id="showMore" class="btn quiet small" type="button" hidden></button><span class="count" id="saveCount"></span><div class="row"><button id="backTalk" class="btn quiet small" type="button">Keep talking</button><button id="getTranscript" class="btn quiet small" type="button">Transcript</button><button id="saveAll" class="btn" type="button">Save to Buffer</button></div></div>
+  <div class="savebar"><button id="showMore" class="btn quiet small" type="button" hidden></button><span class="count" id="saveCount"></span><div class="row"><button id="backTalk" class="btn quiet small" type="button">Keep talking</button><button id="getTranscript" class="btn quiet small" type="button">Get the transcript</button><button id="saveAll" class="btn" type="button">Save to Buffer</button></div></div>
 </section>
 
 <section id="transcript" class="screen" hidden>
@@ -1041,7 +1048,7 @@ export function appPage(): string {
     <div class="row open-drafts"><a class="btn solid" href="https://publish.buffer.com/schedule?tab=drafts" target="_blank" rel="noopener">Open my drafts in Buffer</a><button id="again" class="btn text" type="button">Or start another now</button></div>
     <p class="muted" id="ideaNote" style="max-width:52ch" hidden></p>
     <div id="articleDone" hidden><p class="muted" style="max-width:52ch">Your article is kept in Buffer under Create, then Ideas. Copy it into Substack or LinkedIn when you're ready.</p><div class="row" style="justify-content:center"><button class="btn quiet" type="button" id="copyArticle">Copy the article</button><button class="btn text" type="button" id="downloadArticle">Download it</button></div></div>
-    <div class="done-foot"><a class="btn text" href="https://github.com/1beebe/build-in-public/tree/main/plugin" target="_blank" rel="noopener">${PLUGIN_ICON}Get the plugin for your own agent</a><a class="btn text" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">${STAR_ICON}Star it on GitHub</a>
+    <div class="done-foot"><button class="btn text" type="button" data-transcript>${TRANSCRIPT_ICON}Get the transcript</button><a class="btn text" href="https://github.com/1beebe/build-in-public/tree/main/plugin" target="_blank" rel="noopener">${PLUGIN_ICON}Get the plugin for your own agent</a><a class="btn text" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">${STAR_ICON}Star it on GitHub</a>
       <details><summary class="btn text"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M12 16.01L12.01 15.9989" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 19.4V4.6C7 4.26863 7.26863 4 7.6 4H16.4C16.7314 4 17 4.26863 17 4.6V19.4C17 19.7314 16.7314 20 16.4 20H7.6C7.26863 20 7 19.7314 7 19.4Z" stroke="currentColor"/></svg>Finding them on your phone</summary><p>In Buffer's app, tap the menu at the top left, then <b>Channels</b>, <b>All Channels</b>, and <b>Drafts</b> at the bottom.</p></details></div>
   </div>
 </section>
@@ -1188,10 +1195,10 @@ function kindChosen(){ return $("kindWrap").hidden ? "short" : ({posts:"short", 
 function kindChanged(){
   const k = kindChosen();
   $("howLine").textContent = k === "long"
-    ? "Talk for 5-10 minutes. You get the piece to copy out, plus short posts saved to Buffer."
+    ? "Give it about 15 minutes and say a lot. You get the piece to copy out, plus short posts saved to Buffer."
     : k === "both"
-      ? "Talk for 5-10 minutes. You get the piece, plus short posts for the side stories, saved to Buffer."
-      : "Talk for 5-10 minutes, then pick the stories to save to Buffer.";
+      ? "Give it about 15 minutes and say a lot. You get the piece, plus short posts for the side stories, saved to Buffer."
+      : "Give it about 15 minutes and say a lot. The more you share, the more stories it finds.";
 }
 document.querySelectorAll("input[name=kind]").forEach(i => i.addEventListener("change", kindChanged));
 
@@ -1614,7 +1621,8 @@ function transcriptMd(){
 }
 function renderTranscript(){ $("transcriptText").value = transcriptMd(); show("transcript"); window.scrollTo({top:0}); }
 $("getTranscript").onclick = renderTranscript;
-$("transcriptBack").onclick = () => (state.drafts||[]).length ? renderReview() : renderTalk();
+document.querySelectorAll("[data-transcript]").forEach(b => { b.onclick = renderTranscript; });
+$("transcriptBack").onclick = () => (state.saved||[]).length ? renderDone() : (state.drafts||[]).length ? renderReview() : renderTalk();
 $("copyTranscript").onclick = async () => {
   try { await navigator.clipboard.writeText($("transcriptText").value); $("copyTranscript").textContent = "Copied"; }
   catch { $("transcriptText").select(); $("copyTranscript").textContent = "Press Cmd+C or Ctrl+C"; }
