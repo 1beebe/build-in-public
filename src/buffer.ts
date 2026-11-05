@@ -309,6 +309,8 @@ export async function createDraft(
     metadata[draft.service] = { thread: parts.map((t) => ({ text: t })) };
   }
   if (draft.service === "facebook") metadata.facebook = { type: "post" };
+  // Instagram needs a type; a feed post saves as a draft without media (they add the image in Buffer).
+  if (draft.service === "instagram") metadata.instagram = { type: "post", shouldShareToFeed: true };
   if (draft.service === "googlebusiness") metadata.google = { type: "whats_new" };
   const data = await client.query<{ createPost: { post?: { id: string }; message?: string } }>(
     `mutation Draft($input: CreatePostInput!) {
