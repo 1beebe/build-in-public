@@ -2,13 +2,13 @@
 
 The single source of truth for user-facing behavior. When a change alters what a person sees, what the interviewer does, what comes back, or where it's saved, update this file in the same commit. Every other surface (landing page, README, build-flow diagram, plugin references) is checked against it before each deploy.
 
-Checked through: `b1f28da`
+Checked through: `24befcd`
 
 ## The flow
 
 1. **Sign in with Buffer.** OAuth with PKCE is the only sign-in. Users never paste an API key. The signed-in page goes straight to the interview, with no loading screen in between. If the load fails, or the page script can't run, a centered card says what happened and what to do, with Try again and a feedback link, instead of an empty page.
 2. **Name the work.** A single field takes either a public GitHub repo or a sentence about what you're working on. Setup is three short bullets that say up front that no GitHub is needed. With one channel connected, setup just says which one the drafts are for; with several, you tap the ones you want. Starting goes straight to the talk screen, where a faint line of shimmering characters stands in for the first question and resolves into it when it arrives (the same line shows while it thinks about a typed answer). With a repo, the interviewer reads the README, the repo's top level, and that week's commits, pull requests (with their descriptions) and issues before it asks the first question. Its first question names something you shipped in plain words, never a PR title or commit hash, and skips housekeeping like version bumps, syncs and docs bookkeeping. Early on it asks once whether you want to get into the technical decisions or keep it big picture. Technical questions are about choices and tradeoffs (why this over that, what you dropped), never how the code works. It also reads up to 20 Buffer posts from the last 30 days, so it knows who you write for.
-3. **Choose what you're making.** The options are posts about my week, a longer piece, or both. Long and both are owner-only unless `LONGFORM=on`.
+3. **Choose what you're making.** The options are posts about my week, a longer piece, or both. Long and both are owner-only unless `LONGFORM=on`. The owner can preview setup as everyone else sees it at `/app?as=guest`.
 4. **Talk.**
    - Voice runs on GPT-Live, which speaks first. Typed answers go to DeepSeek Flash.
    - Every turn ends on one question.
@@ -38,7 +38,7 @@ Checked through: `b1f28da`
 
 - Run log: opt-out. Ticked by default, it keeps the transcript, harvest output and timings, sealed, for 14 days. Only the owner can read it, at `/runs`.
 - Memory: opt-in. It keeps up to 12 open threads and 30 story titles, never transcripts, for one year after last use. Each item can be forgotten individually.
-  - The next interview opens on the newest open thread it hasn't asked about yet, and steers away from stories already found.
+  - Setup greets a returning person with one line ("Welcome back. Last time, you were in the middle of …"). The next interview opens on the newest open thread it hasn't asked about yet, and steers away from stories already found.
   - It's filed under the Buffer account, not the browser, so Disconnect doesn't erase it. Setup lists it with Forget per item, Download as Markdown, and Forget everything, which deletes it at once.
 
 ## Plugin
