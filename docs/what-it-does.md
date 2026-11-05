@@ -2,7 +2,7 @@
 
 The single source of truth for user-facing behavior. When a change alters what a person sees, what the interviewer does, what comes back, or where it's saved, update this file in the same commit. Every other surface (landing page, README, build-flow diagram, plugin references) is checked against it before each deploy.
 
-Checked through: `24befcd`
+Checked through: `111af7e`
 
 ## The flow
 
@@ -31,6 +31,7 @@ Checked through: `24befcd`
    - **Both:** the article and its share posts first, then standalone short-post stories from the same talk.
 7. **Save.**
    - Posts go to Buffer Drafts, one per channel, and are never scheduled or published.
+   - Under each draft come up to five questions to keep developing it, as bullets under a rule, marked to delete before posting. On X, Bluesky, Threads and Mastodon they go in as extra thread items, one question each, so the post never runs over the character limit.
    - If a draft can't be saved, that story is saved as an Idea instead.
    - A long-form article is saved as an Idea titled "INTERVIEW | Article | …", and can also be copied or downloaded as Markdown.
 

@@ -264,16 +264,22 @@ export async function getChannels(client: BufferClient, organizationId: string):
 const THREADED = new Set(["twitter", "threads", "bluesky", "mastodon"]);
 export async function createDraft(
   client: BufferClient,
-  draft: { channelId: string; service: string; text: string; format?: string; tagIds: string[] },
+  draft: { channelId: string; service: string; text: string; notes?: { heading: string; items: string[] }; format?: string; tagIds: string[] },
 ): Promise<string> {
   let text = draft.text;
   const metadata: Record<string, unknown> = {};
-  if (draft.format === "Thread" && THREADED.has(draft.service)) {
-    const parts = draft.text.split(/\n\s*\n/).map((p) => p.replace(/^\s*\d+\s*\/\s*/, "").trim()).filter(Boolean);
-    if (parts.length > 1) {
-      text = parts[0];
-      metadata[draft.service] = { thread: parts.map((t) => ({ text: t })) };
-    }
+  const threaded = THREADED.has(draft.service);
+  let parts = draft.format === "Thread" && threaded
+    ? draft.text.split(/\n\s*\n/).map((p) => p.replace(/^\s*\d+\s*\/\s*/, "").trim()).filter(Boolean)
+    : [draft.text];
+  // Questions to keep developing it: their own thread items on short-post services,
+  // bullets under a rule everywhere else.
+  const notes = draft.notes?.items.length ? draft.notes : undefined;
+  if (notes && threaded) parts = [...parts, ...notes.items.map((q, i) => `${i === 0 ? `${notes.heading}\n` : ""}• ${q}`)];
+  if (notes && !threaded) text = `${draft.text}\n\n———\n${notes.heading}\n${notes.items.map((q) => `• ${q}`).join("\n")}`;
+  if (parts.length > 1) {
+    text = parts[0];
+    metadata[draft.service] = { thread: parts.map((t) => ({ text: t })) };
   }
   if (draft.service === "facebook") metadata.facebook = { type: "post" };
   if (draft.service === "googlebusiness") metadata.google = { type: "whats_new" };

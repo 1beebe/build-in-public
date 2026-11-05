@@ -559,17 +559,18 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           const channel = (s.channels ?? []).find((c) => c.service === draft.channel) ??
             (s.channels ?? []).find((c) => c.service === (s.targets ?? [])[0]) ?? (s.channels ?? [])[0];
           // Their questions ride along as bullets under the words, set apart so they're easy to delete before posting.
-          const bullets = prompts.map((q) => `• ${q}`).join("\n");
-          const draftText = draft.later
-            ? `${title}\n\n${words}`
-            : prompts.length
-              ? `${words}\n\n———\n${s.harvestMode === "outline" ? "Questions to finish it:" : "Questions to keep developing it (delete before posting):"}\n${bullets}`
-              : words;
+          // On X, Bluesky, Threads and Mastodon they go in as extra thread items, one question each,
+          // so a short post never runs over the character limit and gets refused.
+          const draftText = draft.later ? `${title}\n\n${words}` : words;
+          const notes = draft.later || !prompts.length ? undefined : {
+            heading: s.harvestMode === "outline" ? "Questions to finish it:" : "Questions to keep developing it (delete before posting):",
+            items: prompts,
+          };
           let asDraft = false;
           // The long-form piece itself can't be a Buffer post: it's kept as an Idea.
           if (channel && !draft.article) {
             try {
-              await createDraft(client, { channelId: channel.id, service: channel.service, text: draftText, format: draft.format, tagIds: tags.map((t) => t.id) });
+              await createDraft(client, { channelId: channel.id, service: channel.service, text: draftText, notes, format: draft.format, tagIds: tags.map((t) => t.id) });
               asDraft = true;
             } catch (err) {
               if (err instanceof RateLimited || err instanceof NeedsReconnect) throw err;
