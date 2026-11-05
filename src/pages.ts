@@ -54,11 +54,11 @@ a:hover{text-decoration-thickness:2px}
 .btn:active{transform:scale(.97)}
 /* Tap: no browser highlight box; a quick pearl sheen crosses the control instead, a hint of the shimmer to come. */
 a,button,label,summary,.chip{-webkit-tap-highlight-color:transparent}
-.btn{position:relative}
-.btn,.chip{isolation:isolate}
-.btn::after,.chip::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;z-index:-1;
+.btn,.tap{position:relative}
+.btn,.chip,.tap{isolation:isolate}
+.btn::after,.chip::after,.tap::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;z-index:-1;
   background:linear-gradient(105deg,transparent 22%,hsl(150 80% 78% / .6) 38%,hsl(205 85% 80% / .65) 50%,hsl(285 70% 84% / .6) 62%,transparent 78%) 120% 0 / 260% 100% no-repeat}
-.btn.sheen::after,.chip.sheen::after{animation:sheen .65s cubic-bezier(.2,.7,.2,1)}
+.btn.sheen::after,.chip.sheen::after,.tap.sheen::after{animation:sheen .65s cubic-bezier(.2,.7,.2,1)}
 @keyframes sheen{0%{opacity:0;background-position:120% 0}25%{opacity:1}100%{opacity:0;background-position:-20% 0}}
 .btn:disabled{opacity:.55;cursor:default;transform:none}
 .btn.quiet{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--control)}
@@ -335,7 +335,7 @@ const FEEDBACK_WIDGET = `<dialog class="feedback-dialog" id="feedbackDialog">
 const FEEDBACK_SCRIPT = `(() => {
   // A tap sends a pearl sheen across the button (skipped with reduced motion).
   document.addEventListener("pointerdown", (e) => {
-    const b = e.target instanceof Element && e.target.closest(".btn,.chip");
+    const b = e.target instanceof Element && e.target.closest(".btn,.chip,.tap");
     if (!b || b.disabled || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     b.classList.remove("sheen"); void b.offsetWidth; b.classList.add("sheen");
     b.addEventListener("animationend", () => b.classList.remove("sheen"), {once: true});
@@ -440,7 +440,7 @@ ${NAV}
 <section class="close" aria-labelledby="closeH">
   <div class="wrap">
     <h2 id="closeH" class="rise" style="font-size:0;position:absolute;width:1px;height:1px;overflow:hidden">Start an interview</h2>
-    <form class="rise" action="/connect" method="get"><span class="l1">This week I worked on</span><input name="work" aria-label="What you worked on: a repo link or a note" placeholder="a repo or a note" autocomplete="off"> <button type="submit">Start</button></form>
+    <form class="rise" action="/connect" method="get"><span class="l1">This week I worked on</span><input name="work" aria-label="What you worked on: a repo link or a note" placeholder="a repo or a note" autocomplete="off"> <button class="tap" type="submit">Start</button></form>
     <p class="after rise" style="--i:1">You'll sign in with Buffer first, and land straight in the interview. Nothing is posted without you.</p>
   </div>
 </section>
