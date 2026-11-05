@@ -243,6 +243,7 @@ Structure and visual directions go in square brackets, and only there: "[Slide 2
 Formats:
 - Text post: 60 to 150 words in short paragraphs. Edit it the way a thread forces you to: open on their sentence that carries the tension or surprise, never on background or a description of what they built; keep only the strongest four to six beats; cut anything a reader doesn't need to feel the turn; end on their line about what it means or what changed.
 - Thread: three to six parts separated by a blank line, each starting "1/", "2/"...; each part stands on its own and stays under 270 characters (X's limit is 280).
+- Character limits per post on short-post channels: X 280, Bluesky 300, Threads and Mastodon 500. A Text post for one of those must fit in one post (aim for 250 on X and Bluesky, 450 on Threads and Mastodon), so cut to the strongest beats; if the story needs more room, make it a Thread instead. The 60 to 150 words above is for LinkedIn, Facebook and other long-post channels.
 - Carousel outline: five to eight slides, each starting "[Slide N]" then their words for that slide.
 - Pair with an image: the post text, then one line "[Image: ...]" saying what picture would carry it.
 - Video script: 30 to 60 seconds spoken, in short lines, with "[On screen: ...]" directions between.
