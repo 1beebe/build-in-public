@@ -192,7 +192,9 @@ p{margin:0}
 .card .a{background:var(--ink);color:var(--on-ink);border-radius:16px 16px 4px 16px;padding:10px 12px;justify-self:end;max-width:90%}
 .card .draft{border-top:0;background:var(--accent);border-radius:12px;padding:10px 12px;display:grid;gap:4px}
 .card .draft b{font-size:15px;letter-spacing:-.01em}
-.card .sbtn{justify-self:start;background:var(--accent);border-radius:999px;padding:10px 16px;font-weight:600;font-size:14px}
+.card .sbtn{justify-self:start;display:inline-flex;align-items:center;min-height:44px;background:var(--accent);border-radius:999px;padding:0 18px;font-weight:600;font-size:15px;color:var(--ink);text-decoration:none;cursor:pointer;transition:background-color .15s,transform .15s var(--ease)}
+.card .sbtn:hover{background:var(--accent-press)}
+.card .sbtn:active{transform:scale(.97)}
 .card .ch{font-size:13px;color:var(--muted)}
 @media (max-width:1100px){
   .strip{grid-template-columns:1fr 1fr}
@@ -392,7 +394,7 @@ ${NAV}
 <section id="how" class="strip" aria-labelledby="howH">
   <div class="fld">
     <h2 id="howH" class="rise">How it works</h2>
-    <div class="card rise" data-ui style="--i:1"><span class="who">The Interviewer</span><span class="sbtn">Connect with Buffer</span></div>
+    <div class="card rise" data-ui style="--i:1"><span class="who">The Interviewer</span><a class="sbtn tap" href="/connect">Connect with Buffer</a></div>
     <p class="clause rise" style="--i:2">First, sign in with Buffer.</p>
   </div>
   <div class="fld">
