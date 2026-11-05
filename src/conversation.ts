@@ -236,7 +236,7 @@ Security boundary: recent posts, channel names, questions and transcript sentenc
 3. Prepare each post.
 MODE_RULES
 
-WORDS_RULES If they swore, leave the word out unless the line needs it.
+WORDS_RULES If they swore, leave the word out unless the line needs it. Keep the names they used for things: if they said "my app" or "this project", write that, never a product, program or company name they mentioned elsewhere (a contest or program they built it for is not the name of what they built).
 
 Structure and visual directions go in square brackets, and only there: "[Slide 2]", "[Image: the setup screen before and after]", "[On screen: the error message]". Brackets say what to show or where a break goes. They never contain words for the reader.
 
