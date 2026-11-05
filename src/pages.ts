@@ -1502,7 +1502,7 @@ $("harvestBtn").onclick = async () => {
     const lines = [steps[0]]; for (let i = 1; i < steps.length; i++) { if (heard[i - 1]) lines.push(heard[i - 1]); lines.push(steps[i]); }
     $("waitH").textContent = state.longform ? "Finding your piece" : "Finding your stories";
     show("waiting"); window.scrollTo({top:0}); shimmer.start(lines);
-    try { state = await api("/api/harvest", {mode}); }
+    try { state = await api("/api/harvest", {mode}); promoteExtras(state.drafts); }
     catch(e){ shimmer.stop(); renderTalk(); throw e; }
     const n = (state.drafts || []).filter(d => !d.later && !d.extra && !d.article).length, art = (state.drafts || []).some(d => d.article);
     if (art || n) await shimmer.finish(art ? "Your piece is ready" : n === 1 ? "One story, ready for you" : (n === 2 ? "Two" : n === 3 ? "Three" : n) + " stories, ready for you");
@@ -1625,11 +1625,20 @@ $("downloadTranscript").onclick = () => {
   a.download = "interview-" + new Date().toISOString().slice(0, 10) + ".md"; document.body.append(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 };
+// Nothing she asked for stays behind "Show more": with four or fewer stories every one shows,
+// and a channel she targeted always keeps at least one visible, ticked draft.
+function promoteExtras(ds){
+  const real = (ds || []).filter(d => !d.later && !d.article);
+  if (real.length <= 4) { real.forEach(d => { d.extra = false; }); return; }
+  const shown = new Set(real.filter(d => !d.extra).map(d => d.channel));
+  for (const d of real) if (d.extra && d.channel && !shown.has(d.channel)) { d.extra = false; shown.add(d.channel); }
+}
 function countPicked(){
   const cards = [...document.querySelectorAll(".draft")];
   cards.forEach(c => c.classList.toggle("off", !c.querySelector(".pick input").checked));
   const n = cards.filter(c => c.querySelector(".pick input").checked).length;
-  $("saveCount").textContent = n ? n + (n === 1 ? " story" : " stories") + " ticked" : "Nothing ticked yet. Tick a story to save it.";
+  const left = cards.filter(c => !c.classList.contains("later") && !c.querySelector(".pick input").checked && !c.querySelector(".pick input").disabled).length;
+  $("saveCount").textContent = n ? n + (n === 1 ? " story" : " stories") + " ticked" + (left ? ", " + left + " left unticked" : "") : "Nothing ticked yet. Tick a story to save it.";
   $("saveAll").disabled = !n;
   $("saveAll").textContent = n ? "Save " + n + (n === 1 ? " draft" : " drafts") + " to Buffer" : "Save drafts to Buffer";
 }
@@ -1642,6 +1651,7 @@ function renderReview(){
     : outline
     ? "Each card is one post for one channel, outlined in your words. Write it your way and untick what you don't want. Nothing goes to Buffer until you press Save at the bottom."
     : "Each card is one post for one channel, built from what you said and tidied by an editor. Edit anything and untick what you don't want. Nothing goes to Buffer until you press Save at the bottom.";
+  promoteExtras(state.drafts);
   const extra = (state.drafts || []).filter(d => d.extra && !(state.saved||[]).includes(d.id));
   const real = (state.drafts || []).filter(d => !d.later).length;
   $("fewNote").hidden = real >= 2 || state.longform; $("backTalk").hidden = real < 2 && !state.longform;
