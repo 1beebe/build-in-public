@@ -798,6 +798,149 @@ body:has(main.app) .feedback-open{display:none}
   .studio > .row{display:grid;width:100%}
   .studio > .row .btn{width:100%}
 }
+
+/* ---------- Redesign: the home page's language inside the app ---------- */
+.btn.solid{background:var(--solid);color:var(--accent)}
+.btn.solid:hover{background:color-mix(in srgb,var(--solid) 86%,#fff)}
+.top{border-bottom:0}
+.top .scope{flex:0 1 auto;background:var(--raised);border-radius:999px;padding:4px 12px}
+.top .scope:empty{display:none}
+.sr-lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+/* Setup: the question on the left, a yellow field to answer it on the right */
+#setup{max-width:1280px;align-items:start}
+@media (min-width:900px){#setup{grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(32px,5vw,80px);padding-top:clamp(8px,2vw,32px)}}
+#setup > header h1{font-size:clamp(2.5rem,1.6rem + 3.4vw,4.75rem);line-height:.96;letter-spacing:-.04em}
+#setup .steps{list-style:none;padding:0;margin:28px 0 0;gap:16px;font-size:clamp(1.05rem,1rem + .3vw,1.25rem);color:var(--ink);counter-reset:step}
+#setup .steps li{display:grid;grid-template-columns:30px 1fr;gap:12px;align-items:baseline;counter-increment:step}
+#setup .steps li::before{content:counter(step);width:28px;height:28px;border-radius:50%;background:var(--solid);color:var(--accent);font-weight:600;font-size:.875rem;display:grid;place-items:center;transform:translateY(3px)}
+#setup .steps b{font-weight:600}
+#setup .panel{--ink:#0d2a1c;--muted:#3c4a41;--ground:#f6f6f3;--surface:#fff;--raised:rgba(13,42,28,.08);--control:rgba(13,42,28,.28);--border:rgba(13,42,28,.16);
+  background:var(--accent);color:var(--ink);border:0;border-radius:32px 32px 32px 8px;padding:clamp(22px,3vw,44px);gap:24px}
+#setup .panel .fieldset > .lbl{font-weight:600;font-size:clamp(1.4rem,1.2rem + .8vw,2rem);letter-spacing:-.03em;line-height:1.05}
+#setup .panel textarea{border:0;border-radius:18px;font-size:1.2rem;line-height:1.4;padding:16px 18px;min-height:140px}
+#setup .panel textarea:focus{box-shadow:0 0 0 2px var(--ink)}
+#setup .panel select{border-color:transparent}
+#setup .panel .chip{background:rgba(13,42,28,.08);box-shadow:none;min-height:44px;padding:0 18px;font-size:1rem;font-weight:500}
+#setup .panel .chip:has(input:checked){background:var(--ink);color:var(--accent)}
+#setup .panel .chip:has(input:checked)::before{content:none}
+#setup .panel .keep{color:var(--ink);font-size:.95rem}
+#setup .panel .keep input{accent-color:var(--ink)}
+#saveSetup{background:var(--solid);color:var(--accent);min-height:52px;padding-inline:26px}
+#saveSetup:hover{background:#163a28}
+
+/* Talk: the conversation is the page; every way to answer sits in one dock */
+body:has(#talk:not([hidden])) main.app{padding-bottom:calc(200px + env(safe-area-inset-bottom))}
+body:has(#talk:not([hidden])) .app-foot{display:none}
+#talk.split.solo{grid-template-columns:minmax(0,820px)}
+@media (min-width:1000px){#talk.split:not(.solo){grid-template-columns:minmax(0,1fr) minmax(260px,360px)}}
+#talk .convo{background:none;border:0;padding:0;border-radius:0;gap:28px}
+#talk .src{background:var(--raised);border:0;border-radius:24px}
+.convo .head .orb{width:56px;height:56px}
+.log{max-height:none;overflow:visible;gap:28px;padding:0}
+.log li{max-width:100%}
+.log .them{grid-template-columns:34px 1fr;column-gap:16px;align-items:start}
+.log .them::before{content:"";grid-row:1 / span 3;width:34px;height:34px;background:center/contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3C8.8 3 3 8.4 3 15.1c0 3.6 1.7 6.8 4.4 9L6.2 29l5.6-2.8c1.3.4 2.7.6 4.2.6 7.2 0 13-5.4 13-12.1S23.2 3 16 3Z' fill='%23f6e016'/%3E%3Ccircle cx='16' cy='15' r='4.2' fill='%23d7361f'/%3E%3C/svg%3E")}
+.log .them > *{grid-column:2}
+.log .them .who,.log .you .who{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.log .them p{font-size:clamp(1.35rem,1.1rem + 1vw,2rem);line-height:1.2;letter-spacing:-.025em;max-width:30ch}
+.log .them.typing p{font-size:1rem}
+.log .you{max-width:min(600px,88%);background:var(--solid);color:#f2f5ef;border-radius:24px 24px 6px 24px;padding:16px 20px;font-size:clamp(1.05rem,1rem + .2vw,1.2rem);line-height:1.45}
+@media (prefers-color-scheme:dark){.log .you{background:var(--raised);color:var(--ink)}}
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:0 var(--gut) max(16px,env(safe-area-inset-bottom));pointer-events:none}
+.dock-in{pointer-events:auto;position:relative;max-width:1280px;margin-inline:auto;background:var(--surface);border-radius:28px;box-shadow:0 0 0 1px var(--border),0 18px 40px -18px rgba(0,0,0,.4);padding:10px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:end}
+.dock-in > #msg{grid-column:1 / -1;margin:0}
+.dock .live{background:none;padding:0;border-radius:0;flex-wrap:nowrap;gap:10px}
+.dock .live .state{flex:none;min-width:0;max-width:12em;font-size:.8125rem}
+.dock .live .state:empty{display:none}
+#liveBtn{min-width:0;min-height:56px;padding-inline:22px;font-size:1.0625rem}
+.dock .composer{display:flex;align-items:end;gap:6px;background:var(--ground);border-radius:24px;padding:6px 6px 6px 18px;min-height:56px}
+.dock .composer .saylbl{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.dock .composer textarea{flex:1;border:0;background:none;box-shadow:none;resize:none;min-height:44px;padding:11px 0;font-size:1.0625rem;line-height:1.4;overflow-y:auto}
+.dock .composer textarea:focus{box-shadow:none;background:none}
+.dock-in:has(#say:focus-visible) .composer{box-shadow:0 0 0 2px var(--ink)}
+.dock .composer #sendBtn{min-height:44px}
+.dock .side{display:flex;align-items:center;gap:4px}
+.dock .side .btn{white-space:nowrap}
+#doneBtn{min-height:52px}
+#doneBtn.nudge{animation:nudge 1.6s ease-in-out 3}
+@media (prefers-reduced-motion:reduce){#doneBtn.nudge{animation:none}}
+#handPop{position:absolute;right:10px;bottom:calc(100% + 10px);width:min(400px,calc(100vw - 2 * var(--gut)));background:var(--solid);color:#f2f5ef;border:0;border-radius:24px 24px 6px 24px;padding:20px;display:grid;gap:14px;justify-content:stretch;box-shadow:0 24px 48px -20px rgba(0,0,0,.5);animation:fadein .25s var(--ease)}
+#handPop[hidden]{display:none}
+#handPop .handback .lbl{color:#f2f5ef;font-size:1.05rem}
+#handPop .chips{display:grid;gap:6px}
+#handPop .chip{background:transparent;color:#f2f5ef;box-shadow:inset 0 0 0 1px rgba(242,245,239,.25);justify-content:flex-start;min-height:44px;font-size:.95rem;white-space:normal}
+#handPop .chip:has(input:checked){background:rgba(246,224,22,.16);color:#fff;box-shadow:inset 0 0 0 1.5px var(--accent)}
+#handPop .chip:has(input:checked)::before{content:none}
+#handPop #harvestBtn{width:100%}
+#handPop .busyline{color:#c3cfc6}
+#handPop .busyline:empty{display:none}
+
+/* Review: big heading, each draft reads as a post, the editor's note in the margin */
+#review{max-width:1280px;margin-inline:auto}
+#review > header{grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:12px 32px;align-items:end}
+#review > header h1{font-size:clamp(2.5rem,1.6rem + 3.4vw,4.75rem);line-height:.96;letter-spacing:-.04em}
+#review .lede{font-size:clamp(1.05rem,1rem + .3vw,1.25rem)}
+.drafts{grid-template-columns:1fr!important;gap:20px;counter-reset:story}
+.draft{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);column-gap:clamp(20px,4vw,56px);row-gap:12px;align-items:start;background:var(--surface);border:0;border-radius:24px 24px 24px 6px;box-shadow:0 0 0 1px var(--border)}
+.draft > *{grid-column:1}
+.draft > .why{grid-column:2;grid-row:1 / span 8;align-self:start;background:var(--raised);border-radius:20px;padding:18px 20px;color:var(--ink);font-size:1.05rem;line-height:1.4;max-width:none}
+.draft > .why::before{content:"Why this story";display:block;font-size:.8125rem;font-weight:600;color:var(--muted);margin-bottom:6px}
+.draft:not(.repeat):not(.later) .shape::before{counter-increment:story;content:counter(story);width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-weight:600;font-size:.8125rem;display:inline-grid;place-items:center;margin-right:2px;align-self:center}
+.draft .shape{align-items:center}
+.draft .title{font-size:clamp(1.3rem,1.15rem + .6vw,1.75rem);letter-spacing:-.03em}
+@media (max-width:640px){.draft .title{font-size:1.1rem;letter-spacing:-.02em}}
+.draft .text{border:0;background:transparent;font-size:1.125rem;line-height:1.5;padding:6px 8px;margin-left:-8px;width:calc(100% + 16px);min-height:7.5em;field-sizing:content}
+.draft .text:hover{background:var(--ground)}
+.draft .text:focus{background:var(--ground)}
+.draft .lbl{font-weight:500}
+@media (max-width:900px){
+  #review > header{grid-template-columns:1fr}
+  .draft{grid-template-columns:1fr}
+  .draft > .why{grid-column:1;grid-row:auto}
+}
+
+/* Done: the close of the home page, at the end of the interview */
+#done{max-width:none}
+#done .panel{--ink:#0d2a1c;--muted:#3c4a41;--surface:#fff;--border:rgba(13,42,28,.14);--ground:#f6f6f3;--raised:rgba(13,42,28,.08);
+  width:100vw;margin-left:calc(50% - 50vw);border:0;border-radius:0;background:var(--accent);color:var(--ink);
+  padding:clamp(48px,6vw,96px) max(var(--gut),calc(50vw - 640px));min-height:calc(100svh - 64px);
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:clamp(32px,5vw,80px);row-gap:20px;align-content:center;justify-items:start;text-align:left}
+#done .panel > *{grid-column:2}
+#done .panel > .deck{grid-column:1;grid-row:1 / span 7;align-self:center;height:clamp(280px,28vw,380px)}
+#done .panel > .deck-count{grid-column:1;grid-row:1 / span 7;align-self:center;justify-self:center;transform:translateY(clamp(170px,15vw,220px))}
+#done h1{font-size:clamp(2.5rem,1.6rem + 3.4vw,4.75rem);line-height:.96;letter-spacing:-.04em;max-width:12ch}
+#done h1 .num{font-variant-numeric:tabular-nums}
+#done .sub{font-size:clamp(1.05rem,1rem + .3vw,1.25rem);margin:0}
+#done .open-drafts{gap:8px 20px}
+#done .open-drafts .btn.solid{min-height:56px;padding-inline:28px}
+#done .done-foot{justify-content:flex-start;border-top-color:rgba(13,42,28,.18);color:var(--ink)}
+#done .done-foot,#done .done-foot details p{text-align:left}
+#done .sub{animation:rise .6s var(--ease) .65s both}
+@media (max-width:900px){
+  #done .panel{grid-template-columns:1fr;min-height:0;padding-top:24px}
+  #done .panel > *,#done .panel > .deck,#done .panel > .deck-count{grid-column:1;grid-row:auto}
+  #done .panel > .deck-count{transform:none}
+  #done .open-drafts{width:100%}
+  #done .open-drafts .btn.solid{width:100%}
+}
+#done .panel{overflow:hidden}
+
+@media (max-width:640px){
+  body:has(#talk:not([hidden])) main.app{padding-bottom:calc(240px + env(safe-area-inset-bottom))}
+  .log .them{grid-template-columns:28px 1fr;column-gap:12px}
+  .log .them::before{width:28px;height:28px}
+  .log .them p{font-size:1.3rem}
+  .log .you{max-width:92%;padding:12px 16px;font-size:1rem}
+  .dock{padding-inline:8px}
+  .dock-in{grid-template-columns:1fr;border-radius:24px;gap:8px;padding:8px}
+  .dock .live{display:flex}
+  #liveBtn{flex:1;width:auto}
+  .dock .side{justify-content:space-between}
+  .dock .side #doneBtn{flex:1;max-width:60%}
+  #handPop{left:0;right:0;width:auto}
+  .draft .text{font-size:1.05rem}
+}
 `;
 
 export function appPage(): string {
@@ -826,7 +969,7 @@ export function appPage(): string {
 </noscript>
 
 <section id="setup" class="screen" hidden>
-  <header><h1>What did you work on this week?</h1><p class="lede" id="welcomeBack" hidden></p><ul class="steps"><li><b>No GitHub needed.</b> A sentence about your work is enough.</li><li>Have a public repo? Paste it and I'll read this week's work.</li><li id="howLine">Talk for 5-10 minutes, then pick the stories to save to Buffer.</li></ul></header>
+  <header><h1>What did you work on this week?</h1><p class="lede" id="welcomeBack" hidden></p><ul class="steps"><li><span><b>No GitHub needed.</b> A sentence about your work is enough.</span></li><li>Have a public repo? Paste it and I'll read this week's work.</li><li id="howLine">Talk for 5-10 minutes, then pick the stories to save to Buffer.</li></ul></header>
   <div class="panel">
     <label class="fieldset" id="orgWrap" hidden><span class="lbl">Buffer organization</span><select id="org"></select></label>
     <label class="fieldset"><span class="lbl">A quick note or a repo link</span><span class="hint">Up to 500 characters.</span><textarea id="work" maxlength="500" placeholder="I rebuilt the onboarding for… or github.com/you/project"></textarea></label>
@@ -849,24 +992,25 @@ export function appPage(): string {
   </div>
   <div id="topics" class="topics" aria-label="Topics from your week"></div>
   <ol id="log" class="log" aria-live="polite"></ol>
-  <div class="live" id="liveBox" hidden><button id="liveBtn" class="btn" type="button"><span class="rec"></span><span class="lt">Start talking</span></button><span id="liveState" class="state" aria-live="polite"></span></div>
-  <div class="composer">
-    <label for="say" class="saylbl">Type your answer</label>
-    <textarea id="say" maxlength="1500" placeholder="Enter sends. Shift+Enter for a new line. 1,500 characters maximum."></textarea>
-    <div class="row">
-      <button id="sendBtn" class="btn small" type="button">Send</button><button id="nextBtn" class="btn small text" type="button" title="Enough on this one. Ask about something else.">Next topic</button>
-    </div>
-  </div>
-  <div class="done-row">
+</div>
+<div class="dock"><div class="dock-in">
+  <div class="done-row" id="handPop" hidden>
     <div class="handback"><span class="lbl">When you're done, hand me back</span><div class="chips" id="modes" role="radiogroup" aria-label="What to hand back">
       <label class="chip"><input type="radio" name="mode" value="draft"><span>Drafts from my words, lightly edited</span></label>
       <label class="chip"><input type="radio" name="mode" value="outline"><span>An outline. I'll write it</span></label>
       <label class="chip"><input type="radio" name="mode" value="transcript"><span>Just the transcript</span></label>
     </div></div>
-    <button id="harvestBtn" class="btn quiet" type="button">I'm done. Find my stories</button>
+    <button id="harvestBtn" class="btn" type="button">Find my stories</button>
     <p class="busyline" id="harvestBusy" aria-live="polite"></p>
   </div>
-</div>
+  <div class="live" id="liveBox" hidden><button id="liveBtn" class="btn" type="button"><span class="rec"></span><span class="lt">Start talking</span></button><span id="liveState" class="state" aria-live="polite"></span></div>
+  <div class="composer">
+    <label for="say" class="saylbl">Type your answer</label>
+    <textarea id="say" rows="1" maxlength="1500" placeholder="Or type your answer"></textarea>
+    <button id="sendBtn" class="btn small" type="button">Send</button>
+  </div>
+  <div class="side"><button id="nextBtn" class="btn small text" type="button" title="Enough on this one. Ask about something else.">Next topic</button><button id="doneBtn" class="btn solid" type="button" aria-expanded="false" aria-controls="handPop">I'm done</button></div>
+</div></div>
 </section>
 
 <section id="waiting" class="screen" hidden aria-labelledby="waitH">
@@ -891,12 +1035,12 @@ export function appPage(): string {
 <section id="done" class="screen" hidden>
   <div class="panel">
     <div class="deck" id="deck" aria-hidden="true"></div><p class="deck-count" id="deckCount" aria-hidden="true"></p>
-    <h1>Your drafts are in Buffer.</h1>
-    <div class="tally" id="tally"></div>
-    <div class="row open-drafts"><a class="btn" href="https://publish.buffer.com/schedule?tab=drafts" target="_blank" rel="noopener">Open my drafts in Buffer</a></div>
+    <h1 id="doneHead">Your drafts are in Buffer.</h1>
+    <div class="tally" id="tally" hidden></div>
+    <p class="sub" id="doneSub">See you next week.</p>
+    <div class="row open-drafts"><a class="btn solid" href="https://publish.buffer.com/schedule?tab=drafts" target="_blank" rel="noopener">Open my drafts in Buffer</a><button id="again" class="btn text" type="button">Or start another now</button></div>
     <p class="muted" id="ideaNote" style="max-width:52ch" hidden></p>
     <div id="articleDone" hidden><p class="muted" style="max-width:52ch">Your article is kept in Buffer under Create, then Ideas. Copy it into Substack or LinkedIn when you're ready.</p><div class="row" style="justify-content:center"><button class="btn quiet" type="button" id="copyArticle">Copy the article</button><button class="btn text" type="button" id="downloadArticle">Download it</button></div></div>
-    <p class="next-week">See you next week. <button id="again" class="btn text" type="button">Or start another now</button></p>
     <div class="done-foot"><a class="btn text" href="https://github.com/1beebe/build-in-public/tree/main/plugin" target="_blank" rel="noopener">${PLUGIN_ICON}Get the plugin for your own agent</a><a class="btn text" href="https://github.com/1beebe/build-in-public" target="_blank" rel="noopener">${STAR_ICON}Star it on GitHub</a>
       <details><summary class="btn text"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="1.5" aria-hidden="true"><path d="M12 16.01L12.01 15.9989" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 19.4V4.6C7 4.26863 7.26863 4 7.6 4H16.4C16.7314 4 17 4.26863 17 4.6V19.4C17 19.7314 16.7314 20 16.4 20H7.6C7.26863 20 7 19.7314 7 19.4Z" stroke="currentColor"/></svg>Finding them on your phone</summary><p>In Buffer's app, tap the menu at the top left, then <b>Channels</b>, <b>All Channels</b>, and <b>Drafts</b> at the bottom.</p></details></div>
   </div>
@@ -946,8 +1090,10 @@ document.addEventListener("click", (e) => { const b = e.target instanceof Elemen
 document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target instanceof Element && e.target.matches("textarea,input")) lastAction = e.target; }, true);
 function err(m){
   const box = $("msg"); box.textContent = m || ""; box.hidden = !m; if (!m) return;
-  const spot = lastAction && lastAction.isConnected && lastAction.closest(".screen:not([hidden])") && lastAction.closest(".savebar,.live,.composer .row,.done-row,.row,.panel");
-  if (spot) spot.before(box); else document.querySelector("main.app").prepend(box);
+  const live = lastAction && lastAction.isConnected && lastAction.closest(".screen:not([hidden])");
+  const dock = live && lastAction.closest(".dock-in");
+  const spot = live && !dock && lastAction.closest(".savebar,.live,.composer .row,.done-row,.row,.panel");
+  if (dock) dock.prepend(box); else if (spot) spot.before(box); else document.querySelector("main.app").prepend(box);
   box.scrollIntoView({block:"nearest", behavior:"smooth"});
 }
 function showFault(m){
@@ -1096,18 +1242,19 @@ function viewH(){ return window.visualViewport ? window.visualViewport.height : 
 function isFollowing(log){
   if (log.hidden || !log.lastElementChild) return true;
   if (log.scrollHeight > log.clientHeight + 2) return log.scrollHeight - log.scrollTop - log.clientHeight < 120;
-  return log.getBoundingClientRect().bottom < viewH() + 160;
+  return log.getBoundingClientRect().bottom < viewH() - dockH() + 160;
 }
 function follow(log){
   if (log.scrollHeight > log.clientHeight + 2) { log.scrollTop = log.scrollHeight; return; }
   const last = log.lastElementChild; if (!last) return;
-  const over = last.getBoundingClientRect().bottom - (viewH() - 24);
+  const over = last.getBoundingClientRect().bottom - (viewH() - dockH() - 24);
   if (over > 0) { const now = Date.now(); window.scrollBy({top: over, behavior: now - followAt < 400 ? "auto" : "smooth"}); followAt = now; }
 }
 // The typing box grows with what they write, up to about 40% of what's visible, so the top of the answer stays readable.
+function dockH(){ const d = document.querySelector("#talk:not([hidden]) .dock-in"); return d ? d.getBoundingClientRect().height + 16 : 0; }
 function fitSay(){
   const t = $("say"); t.style.height = "auto";
-  const max = Math.max(120, Math.round(viewH() * 0.4));
+  const max = Math.max(96, Math.round(viewH() * 0.3));
   t.style.height = Math.min(t.scrollHeight + 2, max) + "px";
 }
 // The interviewer thinking: a sentence-wide line of glyphs drifting through the pearl colors.
@@ -1168,7 +1315,7 @@ function renderTalk(){
   drawn = turns.length;
   // The interviewer wrapped up (or they asked for a draft): put the next step right there.
   const wrap = !busy && turns.length && turns[turns.length - 1].wrapUp;
-  $("harvestBtn").classList.toggle("nudge", !!wrap);
+  $("doneBtn").classList.toggle("nudge", !!wrap);
   if (wrap) {
     const go = el("button", "btn small wrap-go", HARVEST_LABEL); go.type = "button";
     go.onclick = () => { go.disabled = true; $("harvestBtn").click(); };
@@ -1329,6 +1476,11 @@ function handBack(){ const c = document.querySelector('#modes input:checked'); r
 (function(){ let m = "draft"; try { m = localStorage.getItem("handBack") || "draft"; } catch {} const i = document.querySelector('#modes input[value="' + m + '"]') || document.querySelector('#modes input'); i.checked = true; })();
 $("modes").onchange = () => { try { localStorage.setItem("handBack", handBack()); } catch {} };
 const HARVEST_LABEL = "I'm done. Find my stories";
+// "I'm done" opens the hand-back choice above the dock; Find my stories runs the harvest.
+function handOpen(on){ $("handPop").hidden = !on; $("doneBtn").setAttribute("aria-expanded", String(on)); if (on) { const c = $("modes").querySelector("input:checked") || $("modes").querySelector("input"); if (c) c.focus(); } }
+$("doneBtn").onclick = () => handOpen($("handPop").hidden);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("handPop").hidden) { handOpen(false); $("doneBtn").focus(); } });
+document.addEventListener("pointerdown", (e) => { if (!$("handPop").hidden && !e.target.closest("#handPop,#doneBtn")) handOpen(false); });
 $("harvestBtn").onclick = async () => {
   err(""); $("harvestBtn").disabled = true; $("harvestBtn").textContent = "Reading the conversation…";
   try {
@@ -1352,7 +1504,7 @@ $("harvestBtn").onclick = async () => {
     shimmer.stop(); renderReview(); window.scrollTo({top:0});
     if (!matchMedia("(prefers-reduced-motion: reduce)").matches) [...$("drafts").children].slice(0, 4).forEach((c, i) => { c.style.animation = "rise .6s cubic-bezier(.2,.7,.2,1) " + (i * 0.12) + "s both"; c.addEventListener("animationend", () => { c.style.animation = ""; }, {once: true}); });
   }
-  catch(e){ err(e.message); } finally { busyDone("harvestBusy"); orbState("idle"); $("harvestBtn").disabled = false; $("harvestBtn").textContent = HARVEST_LABEL; }
+  catch(e){ err(e.message); } finally { busyDone("harvestBusy"); orbState("idle"); $("harvestBtn").disabled = false; $("harvestBtn").textContent = "Find my stories"; }
 };
 // The wait, made to look at: a thread of code characters weaves across the panel (the ripple from lbeebe.com),
 // bright where it's moving and cooling behind, behind one quiet line. A tap sends a ring out. Reduced motion: a still thread.
@@ -1495,7 +1647,7 @@ function renderReview(){
   for (const d of state.drafts || []) {
     const card = el("article", "panel draft" + (d.later ? " later" : "")); card.dataset.id = d.id;
     if (d.extra) { card.hidden = true; card.classList.add("extra"); }
-    const top = el("label", "pick"); const cb = el("input"); cb.type = "checkbox"; cb.checked = !d.later && !d.extra; top.append(cb, el("span", "", d.later ? "Include this question" : d.article ? "Keep in Buffer as an Idea" : "Include in Buffer")); card.append(top);
+    const top = el("label", "pick"); const cb = el("input"); cb.type = "checkbox"; cb.checked = !d.later && !d.extra; top.append(cb, el("span", "", d.later ? "Include this question" : d.article ? "Keep in Buffer as an Idea" : "Include")); card.append(top);
     if ((state.saved||[]).includes(d.id)) { cb.checked = false; cb.disabled = true; top.lastChild.textContent = "Saved"; }
     cb.onchange = countPicked;
     if (d.format) {
@@ -1613,6 +1765,8 @@ function renderDone(){
     return c;
   });
   deck.replaceChildren(...cards); deckFront = 0; layDeck(true);
+  const head = $("doneHead"), num = el("span", "num", "0"); head.replaceChildren(num, n === 1 ? " draft is in Buffer." : " drafts are in Buffer."); countUp(num, n);
+  $("doneSub").textContent = (w >= 40 ? "From " + w.toLocaleString() + " words you said. " : "") + "See you next week.";
   const tally = $("tally"); tally.replaceChildren();
   const stat = (num, label) => { const d = el("div"), b = el("b", "", "0"); d.append(b, el("span", "", label)); tally.append(d); countUp(b, num); };
   if (w >= 40) stat(w, "words you said");
