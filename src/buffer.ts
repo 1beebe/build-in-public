@@ -229,9 +229,11 @@ export async function getRecent(
   return {
     ideas: data.ideas.edges.map((e) => ({ id: e.node.id, ...e.node.content })),
     posts: data.posts.edges
-      .filter((e) => e.node.text?.trim() && (!e.node.createdAt || Date.now() - Date.parse(e.node.createdAt) < POST_DAYS * 86400_000))
+      // Skip the questions-for-later this app saved, and drop the questions block under its drafts:
+      // neither is something they wrote.
+      .filter((e) => e.node.text?.trim() && !e.node.text.includes("Saved by The Interviewer") && (!e.node.createdAt || Date.now() - Date.parse(e.node.createdAt) < POST_DAYS * 86400_000))
       .slice(0, MAX_POSTS)
-      .map((e) => e.node.text),
+      .map((e) => e.node.text.split(/\n+———\n/)[0]),
   };
 }
 
@@ -262,6 +264,30 @@ export async function getChannels(client: BufferClient, organizationId: string):
 // A post saved to the channel's Drafts, never scheduled or published. Threads
 // go in as real thread items on the services that support them.
 const THREADED = new Set(["twitter", "threads", "bluesky", "mastodon"]);
+// Each network's limit for one post in a thread. A part over it is split at
+// sentence breaks (then word breaks), so Buffer never flags it as too long.
+const PART_LIMIT: Record<string, number> = { twitter: 280, bluesky: 300, threads: 500, mastodon: 500 };
+export function fitParts(parts: string[], limit: number): string[] {
+  const out: string[] = [];
+  for (const part of parts) {
+    if (part.length <= limit) { out.push(part); continue; }
+    let cur = "";
+    const pieces = part.match(/[^.!?\n]+[.!?]*["')\]]*\s*|\n+/g) ?? [part];
+    const flush = () => { if (cur.trim()) out.push(cur.trim()); cur = ""; };
+    for (const piece of pieces) {
+      if ((cur + piece).trim().length <= limit) { cur += piece; continue; }
+      flush();
+      if (piece.trim().length <= limit) { cur = piece; continue; }
+      // One sentence longer than the limit: break it between words.
+      for (const word of piece.split(/\s+/).filter(Boolean)) {
+        if ((cur ? cur + " " + word : word).length > limit) flush();
+        cur = cur ? cur + " " + word : word;
+      }
+    }
+    flush();
+  }
+  return out;
+}
 export async function createDraft(
   client: BufferClient,
   draft: { channelId: string; service: string; text: string; notes?: { heading: string; items: string[] }; format?: string; tagIds: string[] },
@@ -277,6 +303,7 @@ export async function createDraft(
   const notes = draft.notes?.items.length ? draft.notes : undefined;
   if (notes && threaded) parts = [...parts, ...notes.items.map((q, i) => `${i === 0 ? `${notes.heading}\n` : ""}• ${q}`)];
   if (notes && !threaded) text = `${draft.text}\n\n———\n${notes.heading}\n${notes.items.map((q) => `• ${q}`).join("\n")}`;
+  if (threaded) parts = fitParts(parts, PART_LIMIT[draft.service] ?? 280);
   if (parts.length > 1) {
     text = parts[0];
     metadata[draft.service] = { thread: parts.map((t) => ({ text: t })) };
