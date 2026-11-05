@@ -396,7 +396,7 @@ ${NAV}
     <p class="clause rise" style="--i:2">First, sign in with Buffer.</p>
   </div>
   <div class="fld">
-    <div class="card rise" data-ui><span class="who">This week</span><div class="in">Let people try it before they sign up</div><span class="who">or a public repo</span></div>
+    <div class="card rise" data-ui><span class="who">What did you work on this week?</span><div class="in">I changed the app so people can try it before they sign up.</div><span class="who">Or paste a public repo.</span></div>
     <p class="clause rise" style="--i:1">Tell it what you worked on.</p>
   </div>
   <div class="fld">
