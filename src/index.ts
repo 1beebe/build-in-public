@@ -157,7 +157,7 @@ async function limitedBody(req: Request): Promise<string> {
 }
 
 export default {
-  async fetch(req: Request, env: Env): Promise<Response> {
+  async fetch(req: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(req.url);
     try {
       if (req.method === "GET" && url.pathname === "/") {
@@ -183,7 +183,7 @@ export default {
         const page = url.pathname === "/stats" ? await statsPage(env) : await runsPage(env);
         return html(page, { headers: { "Cache-Control": "no-store" } });
       }
-      if (req.method === "GET" && url.pathname === "/connect") return connect(env);
+      if (req.method === "GET" && url.pathname === "/connect") return connect(env, ctx);
       if (req.method === "GET" && url.pathname === "/callback") return callback(req, env, url);
       if (req.method === "POST" && url.pathname === "/feedback") return feedback(req, env);
       if (req.method === "POST" && url.pathname === "/logout") {
@@ -217,8 +217,9 @@ async function isOwner(req: Request, env: Env): Promise<boolean> {
   }
 }
 
-async function connect(env: Env): Promise<Response> {
-  await countFunnel(env, "connectStart");
+async function connect(env: Env, ctx: ExecutionContext): Promise<Response> {
+  // The tally waits for no one: only the auth state has to be stored before Buffer opens.
+  ctx.waitUntil(countFunnel(env, "connectStart"));
   const { verifier, challenge } = await pkcePair();
   const state = randomToken(16);
   // The verifier never leaves the server. The state is also pinned to this
