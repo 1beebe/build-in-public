@@ -1,6 +1,6 @@
 {
   "name": "interviewer",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "A weekly interview about your work that builds a library of your own words on your own machine, then drafts posts from it.",
   "author": { "name": "Ligaya Beebe", "url": "https://github.com/1beebe" },
   "homepage": "https://interviewer.lbeebe.com",
