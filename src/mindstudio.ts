@@ -70,22 +70,24 @@ export async function chatModel(env: Env): Promise<string> {
 // into Ideas. Typed live turns stay on DeepSeek Flash for speed.
 const THINKING_MODEL = "claude-5-5-sonnet";
 
-export async function generateText(env: Env, system: string, message: string, timeoutMs?: number, maxTokens = 1200, deep = false): Promise<string> {
+export async function generateText(env: Env, system: string, message: string, timeoutMs?: number, maxTokens = 1200, deep = false, talk = false): Promise<string> {
   system = system.slice(0, 12_000);
   message = message.slice(0, 40_000);
   maxTokens = Math.max(1, Math.min(maxTokens, deep ? 8_000 : 2_500));
+  // Typed interviewer turns run on Claude by default: the conversation is the product.
+  const claudeTalk = talk && env.TALK_MODEL !== "deepseek";
   const modelOverride: Record<string, unknown> = {
-    model: deep ? env.THINKING_MODEL || THINKING_MODEL : await chatModel(env),
+    model: deep ? env.THINKING_MODEL || THINKING_MODEL : claudeTalk ? env.TALK_MODEL || THINKING_MODEL : await chatModel(env),
     maxResponseTokens: maxTokens,
     preamble: system,
   };
   // Current Claude models reject temperature. It remains useful for the short,
   // conversational DeepSeek turns, where some variation keeps the interview natural.
-  if (!deep) modelOverride.temperature = 0.6;
+  if (!deep && !claudeTalk) modelOverride.temperature = 0.6;
   const out = await step<{ content: string }>(env, "userMessage", {
     message,
     modelOverride,
   }, timeoutMs);
-  await countModelCall(env, deep ? "deep" : "chat");
+  await countModelCall(env, deep ? "deep" : claudeTalk ? "talk" : "chat");
   return out.content;
 }

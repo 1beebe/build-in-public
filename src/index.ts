@@ -717,12 +717,12 @@ async function view(env: Env, client: BufferClient, s: Session, refresh = false)
 // read up, not a template around a PR title. Falls back to the rule-based one.
 async function modelOpener(env: Env, s: Session): Promise<Turn> {
   const note = s.repo
-    ? "\n\nThis is the very start of the conversation. Say hi in a few words like a friend catching up, show you've looked at their work by naming one specific thing they shipped lately in plain words (what it does for people; never a PR title, number, commit hash or file name, and skip housekeeping like docs syncs or version bumps), and ask one easy, open question about it."
-    : "\n\nThis is the very start of the conversation. Say hi in a few words like a friend catching up, show you've read what they wrote by naming one specific thing from their note in your own words (never quote it back), and ask one easy, open question about it.";
+    ? "\n\nThis is the very start of the conversation. Say hi in a few words like a friend catching up, show you've looked at their work by naming one specific thing they shipped lately in plain words (what it does for people; never a PR title, number, commit hash or file name, and skip housekeeping like docs syncs or version bumps), and ask one easy, open question about the moment behind it: what made them decide to do it, or what was happening when they did."
+    : "\n\nThis is the very start of the conversation. Say hi in a few words like a friend catching up, show you've read what they wrote by naming one specific thing from their note in your own words (never quote it back), and ask one easy, open question about the moment behind it. If the note is vague, ask about one moment from their week that stuck with them.";
   // The opener only needs the overview, not the build notes: a shorter prompt answers faster,
   // and if the model is slow the rule-based question (in plain words) starts things instead.
   const overview = (s.brief ?? "").replace(/\nBuild notes \(background[\s\S]*?(?=\nTechnical depth is their choice)/, "");
-  const { fallback, wrapUp: _w, ...first } = await reply(env, s.questions ?? [], [], overview + note, false, 7_000);
+  const { fallback, wrapUp: _w, ...first } = await reply(env, s.questions ?? [], [], overview + note, false, 10_000);
   if (fallback && s.repo) return opening(s.questions ?? []);
   return { ...first, about: first.about ?? 0 };
 }
@@ -730,7 +730,7 @@ async function modelOpener(env: Env, s: Session): Promise<Turn> {
 // How deep to go on the build is their call, asked once. The interviewer
 // asks about choices and tradeoffs, never how the code works: people who
 // built with AI often can't (and shouldn't have to) explain implementation.
-const TECH_DEPTH = `Technical depth is their choice. Within your first two or three questions, ask once, in your own words, whether they want to get into the technical decisions behind it or keep it big picture. If they say technical, use the build notes: ask why they chose one approach over another, what they tried first, what they dropped, a tradeoff they made, naming the specific thing in plain words. If they say big picture, leave the build notes alone unless they bring it up. Either way, never ask how the code works, how something is implemented or what a file does. Ask about decisions, not mechanics. If they change their mind later, follow them.`;
+const TECH_DEPTH = `Technical depth is their choice. Once, early, at a natural break (after the first beat or when you bridge to a new thread, never mid-story), ask in your own words whether they want to get into the technical decisions behind it or keep it big picture. If they say technical, use the build notes: ask why they chose one approach over another, what they tried first, what they dropped, a tradeoff they made, naming the specific thing in plain words. If they say big picture, leave the build notes alone unless they bring it up. Either way, never ask how the code works, how something is implemented or what a file does. Ask about decisions, not mechanics. If they change their mind later, follow them.`;
 
 // What the build looks like under the hood: recent PR descriptions, the rest
 // of the README and the repo's top level. Background for technical questions.

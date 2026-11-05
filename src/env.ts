@@ -12,6 +12,8 @@ export interface Env {
   // Optional overrides for the MindStudio model ids.
   INTERVIEW_MODEL?: string;
   THINKING_MODEL?: string;
+  // The model for live typed interviewer turns. Defaults to Claude Sonnet; "deepseek" uses DeepSeek Flash.
+  TALK_MODEL?: string;
   CHALLENGER?: string; // "on": a second model reviews each harvested post
   // Optional. Turns on the live voice conversation (OpenAI's realtime model).
   OPENAI_API_KEY?: string;

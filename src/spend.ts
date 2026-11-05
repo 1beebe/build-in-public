@@ -6,7 +6,8 @@ import { recentFeedback } from "./feedback";
 // provider dashboards are the truth, this is the early warning.
 const VOICE_PER_MIN = { "gpt-live": 0.06, realtime: 0.08 } as const;
 export type VoiceKind = keyof typeof VOICE_PER_MIN;
-const MODEL_CALL = { deep: 0.03, chat: 0.002, speech: 0.01 } as const;
+// talk: a typed interviewer turn on Claude Sonnet (about 5k tokens in, 150 out).
+const MODEL_CALL = { deep: 0.03, chat: 0.002, talk: 0.02, speech: 0.01 } as const;
 
 // App-wide voice minutes a day before new voice sessions switch to typing.
 // About $10 a day at GPT-Live prices. DAILY_VOICE_MINUTES overrides it.
@@ -60,7 +61,7 @@ export const countFunnel = (env: Env, event: FunnelEvent) => add(env, {
 export const countModelCall = (env: Env, kind: keyof typeof MODEL_CALL) =>
   add(env, {
     mindstudio: MODEL_CALL[kind],
-    ...(kind === "deep" ? { harvestCalls: 1 } : kind === "chat" ? { typedCalls: 1 } : {}),
+    ...(kind === "deep" ? { harvestCalls: 1 } : kind === "chat" || kind === "talk" ? { typedCalls: 1 } : {}),
   });
 
 const DAILY_TYPED_CALLS = 500;
