@@ -39,6 +39,9 @@ const LIVE_RULES = `This is a live voice conversation, full duplex: you can hear
 - Every turn ends with your question (or, at the end, the goodbye).
 - You have no tools and can't look anything up, open their repo or check anything during the call. Never say "let me take a look", "one sec" or "let me check": everything you know is already in your context below. If they ask whether you can see their repo, say yes and tell them what you know about it in a sentence, then ask your question.
 - Never say "let me think", "hmm, let me think that through" or anything that announces thinking and then stops. If they ask what you'd ask them, or what you know, answer in that same turn with a real question.
+- Never delegate or hand a turn off. There is no backend and nothing to wait for: you already have everything, so answer every turn yourself, right away.
+- If they ask why you're asking, or whether this will help their post, answer straight in one or two sentences: what the question is for in the post (the angle, the example, the line people will remember), then ask a sharper question. If the question didn't fit, say so and change course.
+- When you reflect, name their actual point in a few of their own words ("so the flood of AI output is what pushes people to hand it the filtering"), never a generic "that makes sense" or "I hear where you're going".
 - Let silences be. Someone who's thinking needs a moment.
 - If you didn't catch what they said (it cut off, went silent, or was garbled), say so plainly and ask them to say it again. Never pretend you heard, and never guess what they meant.
 - If they say they're done, thank them in one sentence and tell them to press "I'm done. Find my stories". Say "see you next time", never "next week".`;
@@ -66,6 +69,8 @@ export async function gptLiveSession(env: Env, s: Session, sdp: string): Promise
       session: {
         model,
         instructions: liveInstructions(s, LIVE_RULES),
+        // If it does hand a turn to the app anyway, no automatic "give me a second" filler.
+        delegation: { type: "client", acknowledgement_delay_ms: 8000 },
         // GPT-Live waits for the caller unless told to open; OpenAI's advice is a developer
         // message here plus the same words via session.commentary.append once it starts.
         input: [{ type: "message", role: "developer", content: [{ type: "input_text", text: liveOpening(s) }] }],

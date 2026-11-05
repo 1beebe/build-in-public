@@ -1425,13 +1425,18 @@ function onGptLiveEvent(ev){
       break;
     case "session.input_transcript.delta": glFragment("you", ev.delta); setLive("Listening"); break;
     case "session.output_transcript.delta":
-      glFragment("interviewer", ev.delta); setLive("Speaking");
+      glFragment("interviewer", ev.delta); setLive("Speaking"); gl.spoke = (gl.spoke || 0) + 1;
       clearTimeout(gl.quiet); gl.quiet = setTimeout(() => { if (liveOn()) setLive("Your turn"); }, 900);
       break;
-    // The model sometimes hands off a "let me think" task to the app and waits for an answer.
-    // There's nothing to look up, so answer at once and tell it to carry on, or it goes silent.
+    // The model sometimes hands a turn off to the app ("let me think") and waits. There's no
+    // backend to think for it, so hand it straight back: silently first, and if it still hasn't
+    // spoken a moment later, as speakable context too, so it never stalls.
     case "session.delegation.created":
-      if (ev.delegation && ev.delegation.target === "client" && dc && dc.readyState === "open") dc.send(JSON.stringify({type:"session.commentary.append", event_id:"deleg_" + Date.now(), delegation_id:ev.delegation.id, content:"Nothing to look up. Don't mention thinking or checking. Respond to what they just said and ask one short question now."}));
+      if (ev.delegation && ev.delegation.target === "client" && dc && dc.readyState === "open") {
+        const id = ev.delegation.id, said = gl.spoke || 0;
+        dc.send(JSON.stringify({type:"session.thinking.append", event_id:"think_" + Date.now(), delegation_id:id, content:"Nothing to look up and nothing to wait for. Answer them yourself now: reflect their actual point in a few of their words, then ask one short question. Never mention thinking, framing or needing a second."}));
+        setTimeout(() => { if (liveOn() && dc && dc.readyState === "open" && (gl.spoke || 0) === said) dc.send(JSON.stringify({type:"session.commentary.append", event_id:"deleg_" + Date.now(), delegation_id:id, content:"Ask your next question now."})); }, 1500);
+      }
       break;
     case "session.closed": if (liveOn()) stopLive(); break;
     case "error": console.warn("gpt-live", ev.error || ev); break;
