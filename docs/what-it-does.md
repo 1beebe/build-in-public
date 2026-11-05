@@ -31,7 +31,7 @@ Checked through: `b2e4842`
    - **Both:** the article and its share posts first, then standalone short-post stories from the same talk.
 7. **Save.**
    - Posts go to Buffer Drafts, one per channel, and are never scheduled or published.
-   - Under each draft come up to five questions to keep developing it, as bullets under a rule, marked to delete before posting. On X, Bluesky, Threads and Mastodon they go in as extra thread items, one question each, so the post never runs over the character limit.
+   - Under each draft come up to five questions to keep developing it, as bullets under a rule, marked to delete before posting. On X, Bluesky, Threads and Mastodon they go in as extra thread items, one question each, so the post never runs over the character limit. Posts for those networks are written to each one's limit (X 280, Bluesky 300, Threads and Mastodon 500), and any part still over it is split at sentence breaks into the thread.
    - If a draft can't be saved, that story is saved as an Idea instead.
    - A long-form article is saved as an Idea titled "INTERVIEW | Article | …", and can also be copied or downloaded as Markdown.
 
