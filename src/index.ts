@@ -325,7 +325,11 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
       case "/api/setup": {
         // One input accepts either a public repo or a plain-language note.
         const work = textInput(body.work, 500, "Keep that to 500 characters or fewer.");
-        const repo = parseRepo(work) ?? undefined;
+        // A repo link can come with a few words about the week ("github.com/a/b Working on X"):
+        // use the link as the repo and keep the words as their note.
+        const link = work.match(/(?:https?:\/\/)?(?:www\.)?github\.com\/[A-Za-z0-9-]+\/[A-Za-z0-9._-]+/i)?.[0].replace(/[.]+$/, "");
+        const repo = parseRepo(work) ?? (link ? parseRepo(link) : null) ?? undefined;
+        const aside = repo && link ? work.replace(link, "").replace(/^[\s,.:;-]+|[\s,]+$/g, "") : "";
         const noRepo = !repo;
         if (noRepo && work.length < 15) throw new UserError("Paste a public GitHub repo, or tell me a sentence or two about what you worked on.");
         if (body.organizationId && String(body.organizationId) !== s.organizationId) {
@@ -344,7 +348,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const keepMemory = body.keepMemory === true;
         if (!s.accountId) s.accountId = (await getStart(client)).accountId;
         if (s.accountId) await setMemoryOn(env, s.accountId, keepMemory);
-        Object.assign(s, { repo, noRepo, weekNote: repo ? undefined : work, targets, keepLog: body.keepLog !== false, keepMemory, longform, alsoShort, questions: [], turns: [], drafts: [], saved: [], savedAsIdeas: [], harvestMode: undefined });
+        Object.assign(s, { repo, noRepo, weekNote: repo ? (aside.length >= 3 ? aside : undefined) : work, targets, keepLog: body.keepLog !== false, keepMemory, longform, alsoShort, questions: [], turns: [], drafts: [], saved: [], savedAsIdeas: [], harvestMode: undefined });
         result = await view(env, client, s, true);
         break;
       }
