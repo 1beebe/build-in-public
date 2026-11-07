@@ -22,7 +22,7 @@ Checked through: `b43a817`
 5. **Hand back.** You choose what comes back: story drafts, an outline, or the transcript. The transcript is built in the browser with no model call. Drafts and outlines come from Claude Sonnet.
    - Draft mode works as a light editor: it adds transitions, tightens and fixes grammar, but adds no new claims.
    - Outlines use only your sentences.
-   - An own-words check requires 65% of the words to be yours for drafts and 80% for outlines. A post that fails is retried once (on DeepSeek Flash), then falls back to your cleaned-up words.
+   - An own-words check requires 65% of the words to be yours for drafts and 80% for outlines. A post that fails is retried once (on Claude Sonnet), then falls back to your cleaned-up words.
    - Swear words are masked and flagged.
    - The top three stories show first, and the rest sit behind "Show more".
    - While it works, a waiting screen shows a shimmering thread of code characters and one line at a time: what it's doing, and now and then a clean sentence you said (no fillers, fragments or swearing). When the stories are ready, a yellow sweep runs along the thread and the cards rise into place. Reduced motion shows a still thread.

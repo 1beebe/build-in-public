@@ -7,9 +7,9 @@ export interface Env {
   TOKEN_KEY: string;
   // Optional. Raises GitHub's public API limit from 60 to 5,000 requests an hour.
   GITHUB_TOKEN?: string;
-  // Optional. Turns on Claude Sonnet 5.5 typed turns and harvesting, plus DeepSeek Flash retries, through MindStudio.
+  // Optional. Turns on Claude Sonnet 5.5 typed turns and harvesting through MindStudio.
   MINDSTUDIO_API_KEY?: string;
-  // Optional overrides for the MindStudio model ids (INTERVIEW_MODEL pins DeepSeek Flash, THINKING_MODEL the harvest).
+  // Optional overrides for the MindStudio model ids (INTERVIEW_MODEL pins DeepSeek Flash, THINKING_MODEL the harvest, retry and challenger).
   INTERVIEW_MODEL?: string;
   THINKING_MODEL?: string;
   // The model for live typed interviewer turns. Defaults to Claude Sonnet; "deepseek" uses DeepSeek Flash.

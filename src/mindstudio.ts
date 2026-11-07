@@ -1,8 +1,8 @@
 import type { Env } from "./env";
 import { countModelCall } from "./spend";
 
-// MindStudio's step API: one key reaches Claude Sonnet for typed turns and the
-// harvest, and DeepSeek Flash for the quick passes. A step is started, then polled until it finishes.
+// MindStudio's step API: one key reaches Claude Sonnet, and DeepSeek Flash
+// when TALK_MODEL=deepseek. A step is started, then polled until it finishes.
 const BASE = "https://v1.mindstudio-api.com/developer/v2";
 const STEP_TIMEOUT_MS = 25_000;
 
@@ -66,8 +66,8 @@ export async function chatModel(env: Env): Promise<string> {
   return pick.id;
 }
 
-// The harvest (and, unless TALK_MODEL says otherwise, typed live turns) runs on
-// Claude. DeepSeek Flash handles the own-words retry and the challenger.
+// The harvest, its own-words retry, the challenger and (unless TALK_MODEL says
+// otherwise) typed live turns all run on Claude.
 const THINKING_MODEL = "claude-5-5-sonnet";
 
 export async function generateText(env: Env, system: string, message: string, timeoutMs?: number, maxTokens = 1200, deep = false, talk = false): Promise<string> {
@@ -82,7 +82,7 @@ export async function generateText(env: Env, system: string, message: string, ti
     preamble: system,
   };
   // Current Claude models reject temperature. It remains useful for the short,
-  // DeepSeek calls, where some variation keeps the wording natural.
+  // DeepSeek typed turns, where some variation keeps the interview natural.
   if (!deep && !claudeTalk) modelOverride.temperature = 0.6;
   const out = await step<{ content: string }>(env, "userMessage", {
     message,

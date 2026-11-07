@@ -499,7 +499,6 @@ ${NAV}
 <p>Each service gets only what its step needs: your week on GitHub, a summary of your recent posts, the questions and your answers. None of them ever sees your Buffer sign-in.</p>
 <ul>
 <li><b>Claude Sonnet 5.5</b>, by Anthropic, through MindStudio: asks the next question when you type your answers. At the end, it finds the stories in the conversation and shapes each one for your channels from your words. Drafts get a light edit for flow and grammar, never a new claim; outlines use only your sentences. If you ask for the transcript instead, no model is called.</li>
-<li><b>DeepSeek Flash</b>, through MindStudio: if a draft drifts from your words, takes one more pass at it with your sentences so the check can run again.</li>
 <li><b>OpenAI GPT-Live</b>: holds the live spoken conversation.</li>
 </ul>
 <h2>Voice</h2>
