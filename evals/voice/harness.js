@@ -11,6 +11,8 @@
     const clips = await fetch("https://api.github.com/repos/1beebe/build-in-public/contents/evals/voice/" + (window.__voiceClips || "deadend-clips.json") + "?ref=" + (window.__voiceRef || "main"), { headers: { Accept: "application/vnd.github.raw+json" } }).then((r) => r.json());
     const ctx = new AudioContext(); await ctx.resume();
     const dest = ctx.createMediaStreamDestination();
+    // A real mic is never digitally silent. Faint noise keeps the call's timeline moving the same way.
+    if (!window.__voiceSilent) { const n = ctx.createBufferSource(), nb = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate), d = nb.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * 0.003; n.buffer = nb; n.loop = true; n.connect(dest); n.start(); }
     const bufs = await Promise.all(clips.map((b64) => ctx.decodeAudioData(Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)).buffer)));
     log("decoded " + bufs.length + " clips, audio " + ctx.state);
     navigator.mediaDevices.getUserMedia = async () => dest.stream;

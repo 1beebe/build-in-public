@@ -84,9 +84,9 @@ function ruleQuestions(shipped: Shipped, items: Item[], weekNote: string, latest
   const prompts = [
     (t: string) => quiet ? `You shipped "${t}" a while back. What made it the thing to work on then?` : `You shipped "${t}" this week. What made it the thing to work on now?`,
     (t: string) => `What broke or surprised you while you worked on "${t}"?`,
-    (t: string) => `Who is "${t}" for, and what will they notice first?`,
+    (t: string) => `Who did you build "${t}" for?`,
     (t: string) => `If someone else were about to build "${t}", what would you tell them?`,
-    (t: string) => `What did you decide not to do in "${t}", and why?`,
+    (t: string) => `What did you decide not to do in "${t}"?`,
   ];
   const ranked = items
     .filter((it) => !NOISE.test(it.label.split(" — ")[0]))

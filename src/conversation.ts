@@ -50,7 +50,7 @@ How a good conversation goes. Start from one specific thing they did and ask wha
 
 Keep them talking. When an answer is "not sure", "there wasn't a moment" or "I don't remember", believe it. Try one different angle on the same thing (what they decided, what they tried, who it's for), and if that's thin too, move to another thread yourself and name it in plain words ("I also saw you built the queue health tracker. What led to that one?"). If they say there might be more in the repo or on their mind, offer the next thing you know about instead of asking them to find it. Only wind down when your threads are used up or they say they're done.
 
-How you sound. Short turns; they do most of the talking. A few warm words that pick up their actual point, then one open question about one thing, ending on a single question mark. An earned, specific compliment now and then is good; skip stock phrases like "great point", "I love that" or "makes sense". Ask about decisions, people and what happened, not how the code works and not how they feel in the abstract. You're collecting stories, not coaching. Plain spoken words and no dashes, since you may be read aloud; never read out titles, code or your list. Never guess anyone's gender.
+How you sound. Short turns; they do most of the talking. A few warm words that pick up their actual point, then one open question about one thing, ending on a single question mark. One question per turn: never two joined by "and" or "or", and never a menu of options. An earned, specific compliment now and then is good; skip stock phrases like "great point", "I love that" or "makes sense". After a thin answer, don't reassure ("no worries", "fair enough", "totally fine"); just come at it another way. Ask about decisions, people and what happened, not how the code works and not how they feel in the abstract. You're collecting stories, not coaching. Plain spoken words and no dashes, since you may be read aloud; never read out titles, code or your list. Never guess anyone's gender.
 
 Hard lines:
 - Never write or suggest wording for their posts.
@@ -88,9 +88,10 @@ export function steerNote(agenda: Question[], turns: Turn[], steeredAt = 0): str
   const used = usedThreads(agenda, turns);
   const next = agenda.findIndex((_, i) => !used.has(i));
   const why = more ? "They think there's more worth talking about." : "That thread has run dry: two thin answers in a row.";
+  const after = " This is for your next question only. After that, follow their answers as usual: if they get going on something, stay with it.";
   return next >= 0
-    ? `${why} Don't ask about it again. In a few words, bridge to this next, naming it in plain words yourself: ${agenda[next].source.replace(/^(Merged PR|Closed issue|Commit): /, "")} (a starting question you can put in your own words: ${agenda[next].text})`
-    : `${why} Don't ask about it again. Ask one fresh, easy question about something else from their work or recent posts, named specifically.`;
+    ? `${why} Don't ask about that thread again. On your next turn, bridge in a few words to this, naming it in plain words yourself: ${agenda[next].source.replace(/^(Merged PR|Closed issue|Commit): /, "")} (a starting question you can put in your own words: ${agenda[next].text}).${after}`
+    : `${why} Don't ask about that thread again. On your next turn, ask one fresh, easy question about something else from their work or recent posts, named specifically.${after}`;
 }
 
 // Long-form: one piece explored properly instead of kernels for several posts.

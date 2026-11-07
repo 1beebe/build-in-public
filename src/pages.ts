@@ -1442,9 +1442,16 @@ function glFragment(who, delta){
   // is a backchannel ("mm", "yeah"): drop it and keep their turn going.
   if (who === "you" && last && last === gl.cur.interviewer && last.text.trim().split(/ +/).length <= 3 && last.text.indexOf("?") < 0 && liveTurns[liveTurns.length - 2] === gl.cur.you) {
     liveTurns.pop(); gl.cur.interviewer = null;
+    // It may not be a backchannel but the start of its answer ("Yes, I can" ... "hear you").
+    gl.dropped = {text: last.text, at: Date.now()};
   }
   let t = liveTurns[liveTurns.length - 1];
-  if (!t || t !== gl.cur[who]) { t = {who, text:"", about: who === "interviewer" ? liveAbout : undefined}; liveTurns.push(t); gl.cur[who] = t; }
+  if (!t || t !== gl.cur[who]) {
+    t = {who, text:"", about: who === "interviewer" ? liveAbout : undefined}; liveTurns.push(t); gl.cur[who] = t;
+    // Its words resumed within a moment of being set aside: put the start back on.
+    if (who === "interviewer" && gl.dropped && Date.now() - gl.dropped.at < 2500) t.text = gl.dropped.text.trimEnd() + " ";
+    if (who === "interviewer") gl.dropped = null;
+  }
   t.text += delta;
   drawLive(); syncLive();
 }
@@ -1453,6 +1460,8 @@ function onGptLiveEvent(ev){
     case "session.started":
       setLive("Connected");
       if (gl && gl.opening && dc && dc.readyState === "open") dc.send(JSON.stringify({type:"session.commentary.append", event_id:"open_" + Date.now(), delegation_id:null, content:gl.opening}));
+      // GPT-Live sometimes stays quiet until it hears something (OpenAI says it may). Don't leave them guessing.
+      setTimeout(() => { if (liveOn() && gl && !gl.spoke) setLive("Say hi to get it started."); }, 5000);
       break;
     case "session.input_transcript.delta": glFragment("you", ev.delta); setLive("Listening"); break;
     case "session.output_transcript.delta":
