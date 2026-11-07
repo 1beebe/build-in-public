@@ -58,5 +58,6 @@
       "That's the piece."
     ],
     "harvest": "draft"
-  }
+  },
+  {"id": "deadend", "about": "Says there wasn't a moment and isn't sure, then hints there's more in the repo (from real Nov 7 runs). Tests that it believes 'not sure', switches threads itself, and offers unused threads instead of asking them to find one.", "setup": {"work": "1beebe/build-in-public", "targets": ["linkedin"], "longform": false}, "answers": ["There wasn't really a moment. It just seemed like the obvious next thing.", "Not sure.", "I don't remember, honestly.", "I think there might be more in the repo that we're missing.", "Oh, that one. I wanted people to be able to steer it, because the first testers kept getting questions about things they didn't care about.", "That's probably it for now."], "harvest": "draft"}
 ]

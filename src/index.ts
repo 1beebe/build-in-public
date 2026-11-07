@@ -19,7 +19,7 @@ import {
 import { QUIET_LOOKBACK_DAYS, RepoError, getSource, parseRepo, shippedNothing, whatShipped, type Shipped, type Source } from "./github";
 import { hasModel, planQuestions } from "./interview";
 import { clip } from "./interview";
-import { channelLabel, harvest, opening, reply, harvestArticle, LONGFORM_OPENING } from "./conversation";
+import { channelLabel, harvest, opening, reply, harvestArticle, LONGFORM_OPENING, steerNote } from "./conversation";
 import { gptLiveSession, openaiKey, VoiceError } from "./realtime";
 import { MindStudioError } from "./mindstudio";
 import { storeFeedback } from "./feedback";
@@ -350,7 +350,9 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const keepMemory = body.keepMemory === true;
         if (!s.accountId) s.accountId = (await getStart(client)).accountId;
         if (s.accountId) await setMemoryOn(env, s.accountId, keepMemory);
-        Object.assign(s, { repo, noRepo, weekNote: repo ? (aside.length >= 3 ? aside : undefined) : work, targets, keepLog: body.keepLog !== false, keepMemory, longform, alsoShort, questions: [], turns: [], drafts: [], saved: [], savedAsIdeas: [], harvestMode: undefined });
+        // The v2 prompt is owner-only until the evals say it's better ("promptV": 2 in setup).
+        const promptV = body.promptV === 2 && env.OWNER_ORG_ID && s.organizationId === env.OWNER_ORG_ID ? 2 as const : undefined;
+        Object.assign(s, { promptV, steeredAt: undefined, repo, noRepo, weekNote: repo ? (aside.length >= 3 ? aside : undefined) : work, targets, keepLog: body.keepLog !== false, keepMemory, longform, alsoShort, questions: [], turns: [], drafts: [], saved: [], savedAsIdeas: [], harvestMode: undefined });
         result = await view(env, client, s, true);
         break;
       }
@@ -440,9 +442,12 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         s.turns.push({ who: "you", text });
         const asked = Date.now();
         const left = answersLeft(s.turns);
-        const { fallback, ...next } = await reply(env, s.questions, s.turns, (s.brief ?? "") + (left <= 0 ? OUT_OF_ROOM : left === 1 ? LAST_QUESTION : ""), s.longform);
+        const v2 = s.promptV === 2;
+        const steer = v2 && left > 1 ? steerNote(s.questions, s.turns, s.steeredAt) : undefined;
+        if (steer) s.steeredAt = s.turns.length;
+        const { fallback, ...next } = await reply(env, s.questions, s.turns, (s.brief ?? "") + (left <= 0 ? OUT_OF_ROOM : left === 1 ? LAST_QUESTION : ""), s.longform, undefined, v2, steer);
         s.turns.push(next);
-        await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: fallback ? "typed reply FAILED, used the canned agenda question" : "typed reply", ms: Date.now() - asked }));
+        await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: (fallback ? "typed reply FAILED, used the canned agenda question" : "typed reply") + (steer ? " (app steered to a new thread)" : ""), ms: Date.now() - asked }));
         result = { ...(await view(env, client, s)), replyFallback: Boolean(fallback), replyMs: Date.now() - asked };
         break;
       }
@@ -481,7 +486,13 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           s.runLoggedAt = Date.now();
           await logRun(env, s, () => {});
         }
-        result = { ok: true, answersLeft: answersLeft(s.turns) };
+        // v2: the app, not the model, decides when a thread has run dry; the page passes this to the voice.
+        const steer = s.promptV === 2 && answersLeft(s.turns) > 2 ? steerNote(s.questions ?? [], s.turns, s.steeredAt) : undefined;
+        if (steer) {
+          s.steeredAt = s.turns.length;
+          await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: "app steered the voice to a new thread" }));
+        }
+        result = { ok: true, answersLeft: answersLeft(s.turns), steer };
         break;
       }
       case "/api/harvest": {
@@ -541,7 +552,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const note = s.longform
           ? `\n\nThey just read the draft of their piece and came back to keep talking. Welcome them back in a few words, without recapping, and ask one easy, open question about a part of the piece that's still thin.`
           : `\n\nThey just looked for stories and found ${found === 1 ? "only one" : found === 0 ? "none yet" : `only ${found}`}, so they came back to keep talking. Welcome them back in a few words, without recapping, and ask one easy, open question from a fresh angle you haven't covered yet.`;
-        const { fallback, wrapUp: _ended, ...next } = await reply(env, s.questions ?? [], s.turns, (s.brief ?? "").slice(0, 12000) + note, s.longform);
+        const { fallback, wrapUp: _ended, ...next } = await reply(env, s.questions ?? [], s.turns, (s.brief ?? "").slice(0, 12000) + note, s.longform, undefined, s.promptV === 2);
         s.turns.push(next);
         s.drafts = []; // back to talking: a reload lands on the conversation, and the next harvest reads it all
         await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: fallback ? "keep talking, reply FAILED" : "keep talking" }));
@@ -742,7 +753,7 @@ async function modelOpener(env: Env, s: Session): Promise<Turn> {
   // The opener only needs the overview, not the build notes: a shorter prompt answers faster,
   // and if the model is slow the rule-based question (in plain words) starts things instead.
   const overview = (s.brief ?? "").replace(/\nBuild notes \(background[\s\S]*?(?=\nTechnical depth is their choice)/, "");
-  const { fallback, wrapUp: _w, ...first } = await reply(env, s.questions ?? [], [], overview + note, false, 10_000);
+  const { fallback, wrapUp: _w, ...first } = await reply(env, s.questions ?? [], [], overview + note, false, 10_000, s.promptV === 2);
   if (fallback && s.repo) return opening(s.questions ?? []);
   return { ...first, about: first.about ?? 0 };
 }

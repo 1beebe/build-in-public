@@ -1396,7 +1396,7 @@ function liveOn(){ return pc && pc.connectionState !== "closed"; }
 function drawLive(){ state.turns = liveTurns.filter(t => t.text.trim()).map(t => ({who:t.who, text:t.text, about:t.about})); renderTalk(); }
 function syncLive(now){
   clearTimeout(syncTimer);
-  const send = () => api("/api/voice-turns", {turns: state.turns}).then(nearlyFull).catch(() => {});
+  const send = () => api("/api/voice-turns", {turns: state.turns}).then((r) => { nearlyFull(r); steerLive(r); }).catch(() => {});
   if (now) return send();
   syncTimer = setTimeout(send, 1500);
 }
@@ -1407,6 +1407,12 @@ function nearlyFull(r){
   if (!r || typeof r.answersLeft !== "number" || r.answersLeft > 2 || !gl || gl.wrapSent || !dc || dc.readyState !== "open") return;
   gl.wrapSent = true;
   dc.send(JSON.stringify({type:"session.instructions.append", event_id:"wrap_" + Date.now(), delegation_id:null, content:WRAP_UP}));
+}
+// The app decides when a thread has run dry (two thin answers, or "there's more in the repo")
+// and names the next one; pass that to the voice once, the way Next topic does.
+function steerLive(r){
+  if (!r || !r.steer || !liveOn() || !dc || dc.readyState !== "open") return;
+  dc.send(JSON.stringify({type:"session.instructions.append", event_id:"steer_" + Date.now(), delegation_id:null, content:r.steer}));
 }
 // Keep the phone awake while voice is live: a sleeping screen cuts the mic and loses the answer.
 let wake = null;

@@ -85,6 +85,8 @@ export interface Session {
   accountId?: string; // their Buffer account: where memory between interviews is filed
   keepMemory?: boolean; // they ticked "remember my interviews" at setup
   memRun?: string; // this interview, as memory knows it
+  promptV?: 2; // the slimmer interviewer prompt with app-side steering (owner-only while it's evaluated)
+  steeredAt?: number; // turn count when the app last told the interviewer to switch threads
 }
 
 const SESSION_TTL = 60 * 60 * 24 * 30; // 30 days, matches a refresh token's useful life for us
