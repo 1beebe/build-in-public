@@ -59,7 +59,8 @@ export async function planQuestions(
 
 export const hasModel = (env: Env) => Boolean(env.MINDSTUDIO_API_KEY || env.ANTHROPIC_API_KEY);
 
-// MindStudio (DeepSeek) when it's set up, Claude as a fallback.
+// MindStudio when it's set up (Claude Sonnet, or DeepSeek Flash for typed turns
+// when TALK_MODEL=deepseek), the Anthropic API as a fallback.
 export async function complete(env: Env, system: string, message: string, timeoutMs?: number, maxTokens = 1200, deep = false, talk = false): Promise<string> {
   system = system.slice(0, 12_000);
   message = message.slice(0, 40_000);

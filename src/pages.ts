@@ -379,7 +379,7 @@ ${NAV}
 <main>
 <section class="hero" aria-labelledby="heroH">
   <div class="copy">
-    <h1 id="heroH" class="rise">A 15-minute conversation becomes a week’s worth of content.</h1>
+    <h1 id="heroH" class="rise">A conversation of up to 10-15 minutes becomes a week’s worth of content.</h1>
     <p class="lead rise" style="--i:1">For builders who want to post more but stall at the blank page. Talk through what you worked on and get drafts in your own words, ready to edit in Buffer.</p>
     ${error ? `<p class="alert" role="alert">${escapeHtml(error)}</p>` : ""}
     <div class="act rise" style="--i:2"><a class="btn" href="/connect"><span class="dot" aria-hidden="true"></span>Connect with Buffer</a><span class="small">Signs in with Buffer, the social media planner. <a href="https://buffer.com" target="_blank" rel="noopener">The free plan</a> works.</span></div>
@@ -498,8 +498,7 @@ ${NAV}
 <h2>Which AI does what</h2>
 <p>Each service gets only what its step needs: your week on GitHub, a summary of your recent posts, the questions and your answers. None of them ever sees your Buffer sign-in.</p>
 <ul>
-<li><b>Claude Sonnet 5.5</b>, by Anthropic, through MindStudio: at the end, finds the stories in the conversation and shapes each one for your channels from your words. Drafts get a light edit for flow and grammar, never a new claim; outlines use only your sentences. If you ask for the transcript instead, no model is called.</li>
-<li><b>DeepSeek Flash</b>, through MindStudio: asks the next question when you type your answers.</li>
+<li><b>Claude Sonnet 5.5</b>, by Anthropic, through MindStudio: asks the next question when you type your answers. At the end, it finds the stories in the conversation and shapes each one for your channels from your words. Drafts get a light edit for flow and grammar, never a new claim; outlines use only your sentences. If you ask for the transcript instead, no model is called.</li>
 <li><b>OpenAI GPT-Live</b>: holds the live spoken conversation.</li>
 </ul>
 <h2>Voice</h2>
@@ -975,7 +974,7 @@ export function appPage(): string {
 </noscript>
 
 <section id="setup" class="screen" hidden>
-  <header><h1>What did you work on this week?</h1><p class="lede" id="welcomeBack" hidden></p><ul class="steps"><li><span><b>No GitHub needed.</b> A sentence about your work is enough.</span></li><li>Have a public repo? Paste it and I'll read this week's work. Any other link, like a demo or a doc, sets the topic, and you walk me through it.</li><li id="howLine">Give it about 15 minutes and say a lot. The more you share, the more stories it finds.</li></ul></header>
+  <header><h1>What did you work on this week?</h1><p class="lede" id="welcomeBack" hidden></p><ul class="steps"><li><span><b>No GitHub needed.</b> A sentence about your work is enough.</span></li><li>Have a public repo? Paste it and I'll read this week's work. Any other link, like a demo or a doc, sets the topic, and you walk me through it.</li><li id="howLine">Give it up to 10-15 minutes and say a lot. The more you share, the more stories it finds.</li></ul></header>
   <div class="panel">
     <label class="fieldset" id="orgWrap" hidden><span class="lbl">Buffer organization</span><select id="org"></select></label>
     <label class="fieldset"><span class="lbl">A sentence, a repo or a link</span><span class="hint">A repo link plus a few words works too. Up to 500 characters.</span><textarea id="work" maxlength="500" placeholder="I rebuilt the onboarding for… or github.com/you/project or a link to your demo"></textarea></label>
@@ -1195,10 +1194,10 @@ function kindChosen(){ return $("kindWrap").hidden ? "short" : ({posts:"short", 
 function kindChanged(){
   const k = kindChosen();
   $("howLine").textContent = k === "long"
-    ? "Give it about 15 minutes and say a lot. You get the piece to copy out, plus short posts saved to Buffer."
+    ? "Give it up to 10-15 minutes and say a lot. You get the piece to copy out, plus short posts saved to Buffer."
     : k === "both"
-      ? "Give it about 15 minutes and say a lot. You get the piece, plus short posts for the side stories, saved to Buffer."
-      : "Give it about 15 minutes and say a lot. The more you share, the more stories it finds.";
+      ? "Give it up to 10-15 minutes and say a lot. You get the piece, plus short posts for the side stories, saved to Buffer."
+      : "Give it up to 10-15 minutes and say a lot. The more you share, the more stories it finds.";
 }
 document.querySelectorAll("input[name=kind]").forEach(i => i.addEventListener("change", kindChanged));
 
