@@ -7,6 +7,7 @@ export interface FeedbackEntry {
   message: string;
   contact?: string;
   path?: string;
+  device?: string; // coarse label like "iPhone · Safari", never the user-agent
 }
 
 const DAY = 86_400;

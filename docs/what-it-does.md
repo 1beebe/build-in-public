@@ -38,7 +38,7 @@ Checked through: `78083f5`
 
 ## Privacy and memory
 
-- Run log: opt-out. Ticked by default, it keeps the transcript, harvest output and timings, sealed, for 14 days. Only the owner can read it, at `/runs`.
+- Run log: opt-out. Ticked by default, it keeps the transcript, harvest output, timings and a rough device label ("iPhone · Safari", never the user-agent string), sealed, for 14 days. Feedback entries carry the same label, and `/stats` splits interviews by phone, tablet and desktop. Only the owner can read it, at `/runs`.
 - Memory: opt-in. It keeps up to 12 open threads and 30 story titles, never transcripts, for one year after last use. Each item can be forgotten individually.
   - Setup greets a returning person with one line ("Welcome back. Last time, you were in the middle of …"). The next interview opens on the newest open thread it hasn't asked about yet, and steers away from stories already found.
   - It's filed under the Buffer account, not the browser, so Disconnect doesn't erase it. Setup lists it with Forget per item, Download as Markdown, and Forget everything, which deletes it at once.
