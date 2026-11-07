@@ -34,6 +34,8 @@
       out.turns = (state.turns || []).map((t) => ({ who: t.who, text: t.text })); save();
       const now = Date.now();
       if (!liveOn() || now - t0 > 8 * 60 * 1000) { clearInterval(timer); out.status = "done"; log(liveOn() ? "timeout" : "session ended"); if (liveOn()) await stopLive(); save(); return; }
+      // GPT-Live should speak first; if it hasn't after 6s, open with the first clip like a person would.
+      if (!lastOut && started && !playing && next === 0 && now - started > 6000) { log("no opener after 6s, speaking first"); await play(next++); playing = false; lastIn = Date.now(); return; }
       if (playing || !lastOut) return;
       const quiet = now - Math.max(lastOut, lastIn);
       // The interviewer finished a turn: 2.5s of silence after it last spoke.
