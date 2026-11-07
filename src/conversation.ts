@@ -85,6 +85,12 @@ export function steerNote(agenda: Question[], turns: Turn[], steeredAt = 0): str
   const more = MORE.test(last.t.text);
   const stuck = theirs.length >= 2 && isThin(last.t.text) && isThin(theirs[theirs.length - 2].t.text);
   if (!more && !stuck) return undefined;
+  // Someone answering in a few words all along isn't stuck on a topic; they need easier
+  // questions. Walk one thing through COIN (Ligaya's call) instead of hopping topics.
+  const all = turns.filter((t) => t.who === "you" && !isControlLine(t.text)).map((t) => t.text.trim().split(/\s+/).length).sort((a, b) => a - b);
+  if (!more && all.length >= 3 && all[Math.floor(all.length / 2)] <= 6) {
+    return "They're answering in a few words, so make it easy instead of changing topics. Pick the one concrete thing they've named (or the thing they shipped) and walk it through COIN, one small question per turn: Context (when or where it happened, who was there), Observation (what they saw happen), Impact (what changed because of it), Next (what happens with it now). Each question should be answerable in a sentence. A few words back is fine: take what they give and ask the next small step.";
+  }
   const used = usedThreads(agenda, turns);
   const next = agenda.findIndex((_, i) => !used.has(i));
   const why = more ? "They think there's more worth talking about." : "That thread has run dry: two thin answers in a row.";

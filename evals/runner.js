@@ -40,9 +40,19 @@
       out.exchanges.push({ kind, said: text, reply: turn.text, ms: data.replyMs ?? ms, fallback: Boolean(data.replyFallback), wrapUp: Boolean(turn.wrapUp) });
       return turn;
     };
-    for (const answer of p.answers) {
-      const turn = await say(answer);
-      if (p.stopOnWrapUp && turn.wrapUp) break;
+    if (p.backstory) {
+      // Simulated persona: a model answers from a hidden backstory, so a better interviewer
+      // can actually draw out more. Stops on wrapUp, "done", or maxAnswers.
+      for (let i = 0; i < (p.maxAnswers ?? 12); i++) {
+        const { data } = await api("/api/eval/answer", { backstory: p.backstory });
+        const turn = await say(data.answer, "sim");
+        if (turn.wrapUp || /\b(done for now|that's (it|all)( for now)?|gotta go)\b/i.test(data.answer)) break;
+      }
+    } else {
+      for (const answer of p.answers) {
+        const turn = await say(answer);
+        if (p.stopOnWrapUp && turn.wrapUp) break;
+      }
     }
     let h = await api("/api/harvest", { mode: p.harvest ?? "draft" });
     out.harvests.push({ ms: h.ms, drafts: h.data.drafts });
@@ -54,6 +64,7 @@
       out.harvests.push({ ms: h.ms, drafts: h.data.drafts });
     }
     out.turns = h.data.turns;
+    out.theirWords = out.turns.filter((t) => t.who === "you").reduce((n, t) => n + t.text.trim().split(/\s+/).length, 0);
     return out;
   }
 

@@ -17,7 +17,7 @@ import {
   type Tag,
 } from "./buffer";
 import { QUIET_LOOKBACK_DAYS, RepoError, getSource, parseRepo, shippedNothing, whatShipped, type Shipped, type Source } from "./github";
-import { hasModel, planQuestions } from "./interview";
+import { complete, hasModel, planQuestions } from "./interview";
 import { clip } from "./interview";
 import { channelLabel, harvest, opening, reply, harvestArticle, LONGFORM_OPENING, steerNote } from "./conversation";
 import { gptLiveSession, openaiKey, VoiceError } from "./realtime";
@@ -646,6 +646,16 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         result = await view(env, client, s);
         break;
       }
+      case "/api/eval/answer": {
+        // Owner-only eval helper: a model plays a test persona from a hidden backstory, so the
+        // evals can measure how much a prompt draws out of someone, not just replay a script.
+        if (!env.OWNER_ORG_ID || s.organizationId !== env.OWNER_ORG_ID) throw new UserError("Not found.");
+        const backstory = textInput(body.backstory, 6000, "Backstory too long.");
+        const convo = (s.turns ?? []).map((t) => `${t.who === "you" ? "YOU" : "INTERVIEWER"}: ${t.text}`).join("\n");
+        const text = await complete(env, PERSONA, `Your backstory (private; never recite it):\n${backstory}\n\nThe conversation so far:\n${convo}\n\nReply with only what you say next, as plain text.`, 30_000, 400, false, true);
+        result = { answer: text.trim().replace(/^YOU:\s*/i, "").slice(0, 1500) };
+        break;
+      }
       case "/api/reset":
         Object.assign(s, { questions: [], turns: [], drafts: [], saved: [], savedAsIdeas: [], brief: undefined, voice: undefined, harvestMode: undefined, runKey: undefined });
         result = await view(env, client, s);
@@ -757,6 +767,9 @@ async function modelOpener(env: Env, s: Session): Promise<Turn> {
   if (fallback && s.repo) return opening(s.questions ?? []);
   return { ...first, about: first.about ?? 0 };
 }
+
+// The test user in the evals: answers like a real, busy person, not a cooperative model.
+const PERSONA = `You are playing a real person being interviewed about your work, in a test of the interviewer. Stay in character. Answer only the question you were asked, the way this person really talks (their length, their words, their mood, from the backstory). Never volunteer a story from your backstory unless a question actually points at it: a specific, easy, concrete question gets a real answer with a detail; a vague or abstract one gets a short or vague answer, and a question you don't understand gets "not sure what you mean". If you can't remember, say so. You don't help the interviewer. If you've been asked about everything you care about or the talk has gone on about ten answers, say you're done for now. Never mention the backstory, the test, or that you're an AI.`;
 
 // How deep to go on the build is their call, asked once. The interviewer
 // asks about choices and tradeoffs, never how the code works: people who
