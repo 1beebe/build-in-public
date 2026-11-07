@@ -1361,8 +1361,27 @@ $("nextBtn").onclick = () => {
   $("say").value = "That's enough on that one. Let's move on to something else."; say();
 };
 $("say").addEventListener("input", fitSay);
-$("say").addEventListener("focus", () => { if (matchMedia("(max-width:640px)").matches) setTimeout(() => $("say").closest(".composer").scrollIntoView({block:"end", behavior:"smooth"}), 300); });
-if (window.visualViewport) window.visualViewport.addEventListener("resize", () => { if (document.activeElement === $("say")) fitSay(); });
+// Tapping Send (or Next topic) while typing must not take focus from the box. A blur closes
+// the phone keyboard mid-tap, the dock jumps, and the tap misses, so people had to tap
+// outside the box first. Keeping focus also keeps the keyboard up for the next answer.
+["sendBtn", "nextBtn"].forEach((id) => $(id).addEventListener("pointerdown", (e) => {
+  if (document.activeElement === $("say") && e.button === 0) e.preventDefault();
+}));
+// iPhones keep a fixed dock pinned to the full page while the keyboard is up, so it is drawn
+// above the keyboard but taps land somewhere else. Lift the dock to the bottom of what is
+// actually visible. Android already resizes the page for the keyboard, so the gap there is 0.
+const dockBox = document.querySelector(".dock");
+function pinDock(){
+  const v = window.visualViewport; if (!v || !dockBox) return;
+  const gap = Math.round(document.documentElement.clientHeight - v.height - v.offsetTop);
+  dockBox.style.transform = gap > 1 && Math.abs(v.scale - 1) < 0.01 ? "translateY(" + (-gap) + "px)" : "";
+}
+// On a phone, keep the newest question in view above the keyboard.
+$("say").addEventListener("focus", () => { if (matchMedia("(max-width:640px)").matches) setTimeout(() => { pinDock(); follow($("log")); }, 300); });
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", () => { pinDock(); if (document.activeElement === $("say")) fitSay(); });
+  window.visualViewport.addEventListener("scroll", pinDock);
+}
 $("say").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); say(); } });
 
 // GPT-Live voice. The transcript is synced back so the harvest can read it.
