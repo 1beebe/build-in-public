@@ -25,7 +25,7 @@ import { MindStudioError } from "./mindstudio";
 import { storeFeedback } from "./feedback";
 import { deviceOf } from "./device";
 import { beginRun, logRun, runsPage } from "./runs";
-import { forget, loadMemory, memoryView, recall, remember, setMemoryOn } from "./memory";
+import { angleLine, forget, loadMemory, memoryView, recall, remember, setMemoryOn } from "./memory";
 import { appPage, landingPage, notFoundPage, privacyPage } from "./pages";
 import { SpendCapError, countFunnel, countInterview, modelAllowedToday, statsPage, tickVoice, voiceAllowedToday } from "./spend";
 import { cookie, createSession, destroySession, loadSession, readCookie, saveSession, type Channel, type HarvestMode, type Session, type Turn } from "./session";
@@ -401,6 +401,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           ...recent.posts.slice(0, 8).map((p) => `- ${p.slice(0, 200)}`),
         ].join("\n");
         if (recalled.brief) s.brief += `\n${recalled.brief}`;
+        if (!s.longform) s.brief += `\n${angleLine(recalled.angle)}`;
         if (s.longform) s.brief += "\nThey chose to work on one longer piece today, like a newsletter issue or an article. The piece is the topic; their repo, threads and posts are what you know about them, to draw on whenever it connects.";
         if (s.alsoShort) s.brief += "\nThey also want a few standalone short posts from this conversation. Go deep on the piece, but when a side story comes up (a decision, a surprise, a moment with a user) that could stand on its own, take one easy follow-up on it before coming back to the piece.";
         // Long-form opens on something they've said lately, so it's clear the interviewer knows them.

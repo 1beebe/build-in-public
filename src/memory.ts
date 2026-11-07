@@ -28,6 +28,26 @@ export interface Memory {
   on: boolean;
   updatedAt: string;
   entries: MemoryEntry[];
+  lastAngle?: number; // which closing angle the last interview used, so the next one differs
+}
+
+// How a thread zooms out at the end. The app picks one per interview, so someone who comes
+// back every week isn't asked "what would you tell someone starting out" every time.
+export const ANGLES = [
+  "what it taught them, in their own words (\"What did that teach you about...?\")",
+  "what they'd tell someone just starting who hits the same wall",
+  "what they'd do differently if they started it again today",
+  "where they disagree with the usual advice about this kind of work",
+  "what's next for it, and what would tell them it's working",
+];
+
+export function angleLine(i: number): string {
+  return `Today's closing angle: when a thread's story has landed, zoom out once toward ${ANGLES[i]}. Use only this angle in this interview, then ask for one concrete example if it's abstract.`;
+}
+
+function pickAngle(last?: number): number {
+  const choices = ANGLES.map((_, i) => i).filter((i) => i !== last);
+  return choices[Math.floor(Math.random() * choices.length)];
 }
 
 const key = (accountId: string) => `mem:${accountId}`;
@@ -149,18 +169,20 @@ export function memoryBrief(mem: Memory): string {
 
 // Before the interview starts: mark the memory as read for this run, and
 // return the opening thread and the brief to add.
-export async function recall(env: Env, s: Session): Promise<{ question?: Question; brief: string }> {
+export async function recall(env: Env, s: Session): Promise<{ question?: Question; brief: string; angle: number }> {
   s.memRun = randomToken(6);
-  if (!s.accountId || !s.keepMemory) return { brief: "" };
+  if (!s.accountId || !s.keepMemory) return { brief: "", angle: pickAngle() };
   try {
     const mem = await loadMemory(env, s.accountId);
-    if (!mem?.on) return { brief: "" };
+    if (!mem?.on) return { brief: "", angle: pickAngle() };
     const question = s.longform ? undefined : pickUpQuestion(mem);
-    if (question) await saveMemory(env, s.accountId, mem);
-    return { question, brief: memoryBrief(mem) };
+    const angle = pickAngle(mem.lastAngle);
+    mem.lastAngle = angle;
+    await saveMemory(env, s.accountId, mem);
+    return { question, brief: memoryBrief(mem), angle };
   } catch (err) {
     console.error(`memory read failed: ${err instanceof Error ? err.message : String(err)}`);
-    return { brief: "" };
+    return { brief: "", angle: pickAngle() };
   }
 }
 
