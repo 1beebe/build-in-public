@@ -401,7 +401,8 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           ...recent.posts.slice(0, 8).map((p) => `- ${p.slice(0, 200)}`),
         ].join("\n");
         if (recalled.brief) s.brief += `\n${recalled.brief}`;
-        if (!s.longform) s.brief += `\n${angleLine(recalled.angle)}`;
+        // Owner-only with prompt v2 until the evals say it goes to everyone.
+        if (!s.longform && s.promptV === 2) s.brief += `\n${angleLine(recalled.angle)}`;
         if (s.longform) s.brief += "\nThey chose to work on one longer piece today, like a newsletter issue or an article. The piece is the topic; their repo, threads and posts are what you know about them, to draw on whenever it connects.";
         if (s.alsoShort) s.brief += "\nThey also want a few standalone short posts from this conversation. Go deep on the piece, but when a side story comes up (a decision, a surprise, a moment with a user) that could stand on its own, take one easy follow-up on it before coming back to the piece.";
         // Long-form opens on something they've said lately, so it's clear the interviewer knows them.
