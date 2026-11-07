@@ -2,7 +2,7 @@ import type { Env } from "./env";
 import type { Tag } from "./buffer";
 import type { Draft, HarvestMode, Question, Turn } from "./session";
 import { randomToken } from "./crypto";
-import { complete, hasModel } from "./interview";
+import { clip, complete, hasModel } from "./interview";
 
 // The live interviewer, built on qualitative interviewing and coaching
 // practice: rapport, open descriptive questions, reflective listening, probes,
@@ -149,10 +149,17 @@ function lastAbout(turns: Turn[]): number | undefined {
 // source material without having to reproduce the raw transcript.
 interface Sentence { id: number; turn: number; text: string }
 
+// Lines that steer the call rather than say anything: the Next topic button types the first
+// one for them, and many people open a voice call by checking the line. Never story material.
+const MOVE_ON_LINE = "That's enough on that one. Let's move on to something else.";
+const LINE_CHECK = /^\W*(hi|hey|hello|ok(ay)?|so)?[\s,.!?]*(can|do) you hear me|^\W*(hello|hi|hey)?[\s,.!?]*(are you there|is (this|it) (working|on))\W*$/i;
+export const isControlLine = (text: string) =>
+  text.trim() === MOVE_ON_LINE || (text.trim().split(/\s+/).length <= 8 && LINE_CHECK.test(text.trim()));
+
 function sentences(turns: Turn[]): Sentence[] {
   const out: Sentence[] = [];
   turns.forEach((t, turn) => {
-    if (t.who !== "you") return;
+    if (t.who !== "you" || isControlLine(t.text)) return;
     for (const m of t.text.matchAll(/[^.!?\n]+(?:[.!?]+["'”’)\]]*|$)/g)) {
       const text = m[0].trim();
       if (text) out.push({ id: out.length + 1, turn, text });
@@ -367,6 +374,10 @@ export async function harvest(
   const pillarIds = new Set(pillars.map((p) => p.id));
   const channels = targets.length ? targets : [""];
   let drafts: Draft[] = [];
+  // The plain-words fallback below is for when the model is missing or fails. When it ran and
+  // found no story, that is the answer: the page asks them to keep talking instead of turning
+  // one stray line into a "post".
+  let modelAnswered = false;
 
   if (hasModel(env) && all.length) {
     try {
@@ -394,6 +405,8 @@ export async function harvest(
       const parsed = parseArray(text) as (Proposed & { pillar?: string })[];
       await retryRejected(env, parsed, all, MIN_OWN[mode]);
       drafts = shape(parsed, all, channels, pillarIds, pillars, MIN_OWN[mode]);
+      // A real answer: stories it proposed, or a plain empty list. Garbled output still falls back.
+      modelAnswered = parsed.length > 0 || /^[\s`]*(json)?\s*\[\s*\][\s`]*$/i.test(text);
       if (env.CHALLENGER === "on" && drafts.length) drafts = await challenge(env, drafts, all, mode);
     } catch (err) {
       console.error("harvest failed, grouping by topic", err);
@@ -402,7 +415,7 @@ export async function harvest(
 
   // Without a model, or if nothing usable came back: one Idea per topic they
   // talked about, from their substantial answers.
-  if (!drafts.length) {
+  if (!drafts.length && !modelAnswered) {
     const byTopic = new Map<string, { title: string; parts: Sentence[] }>();
     let topic = "", title = "";
     turns.forEach((t, i) => {
@@ -412,16 +425,20 @@ export async function harvest(
         topic = key;
         return;
       }
-      if (t.text.trim().length < 40 || /\?\s*$/.test(t.text)) return; // non-answers and questions back
+      if (t.text.trim().length < 40 || /\?\s*$/.test(t.text) || isControlLine(t.text)) return; // non-answers, questions back, steering
       const group = byTopic.get(topic) ?? { title, parts: [] };
       group.parts.push(...all.filter((x) => x.turn === i));
       byTopic.set(topic, group);
     });
-    drafts = [...byTopic.values()].map((g) => {
+    // Same bar as a model story: real material, not one stray line.
+    drafts = [...byTopic.values()].filter((g) => words(g.parts.map((x) => x.text).join(" ")).length >= 25).map((g) => {
       const { text, softened } = soften(cleanSpoken(g.parts));
+      // A bare repo name ("owner/repo") says nothing as a title: use their own opening words.
+      const source = g.title.replace(/^(Merged PR|Closed issue|Commit): /, "");
+      const title = /^[\w.-]+\/[\w.-]+$/.test(source.trim()) || /^Nothing public changed/.test(source) ? clip(text, 60) : source;
       return {
         id: randomToken(6),
-        title: g.title.replace(/^(Merged PR|Closed issue|Commit): /, "").slice(0, 120),
+        title: title.slice(0, 120),
         text,
         prompts: DEFAULT_PROMPTS,
         tagId: pillars[0]?.id,

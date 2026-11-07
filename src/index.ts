@@ -16,7 +16,7 @@ import {
   type Org,
   type Tag,
 } from "./buffer";
-import { RepoError, getSource, parseRepo, whatShipped, type Shipped, type Source } from "./github";
+import { QUIET_LOOKBACK_DAYS, RepoError, getSource, parseRepo, shippedNothing, whatShipped, type Shipped, type Source } from "./github";
 import { hasModel, planQuestions } from "./interview";
 import { clip } from "./interview";
 import { channelLabel, harvest, opening, reply, harvestArticle, LONGFORM_OPENING } from "./conversation";
@@ -319,6 +319,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
 
   try {
     let result: unknown;
+    let live: Awaited<ReturnType<typeof gptLiveSession>>;
     switch (path) {
       case "/api/state":
         result = await view(env, client, s, true);
@@ -360,7 +361,8 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const noShip: Shipped = { repo: "", commits: [], pulls: [], issues: [] };
         const began = Date.now();
         // Memory doesn't depend on the repo or posts, so it's read at the same time.
-        const [shipped, recent, recalled] = await Promise.all([s.repo ? whatShipped(env, s.repo) : noShip, getRecent(client, s.organizationId), recall(env, s)]);
+        let [shipped, recent, recalled] = await Promise.all([s.repo ? whatShipped(env, s.repo) : noShip, getRecent(client, s.organizationId), recall(env, s)]);
+        if (s.repo && shippedNothing(shipped)) shipped = await whatShipped(env, s.repo, QUIET_LOOKBACK_DAYS);
         const fetched = Date.now() - began;
         s.questions = await planQuestions(shipped, recent, s.weekNote ?? "");
         // If they asked to be remembered, open on what they were in the middle of last time.
@@ -372,7 +374,9 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
                 `They shared their repo, so this work is what they came to talk about. Open on one specific thing they shipped in it and keep both threads anchored in specific changes from it (named in plain words); their note and recent posts are context, not the topic, unless they steer there.`,
                 `Repo: ${shipped.repo}${shipped.description ? ` — ${shipped.description}` : ""}`,
                 shipped.readme ? `What the project is, from the start of its README (their own description; use it to know what they're building and for whom): ${shipped.readme.slice(0, 1500)}` : "",
-                shippedSummary(shipped) ? `What they shipped lately (newest first):\n${shippedSummary(shipped)}` : "",
+                shippedSummary(shipped)
+                  ? `What they shipped lately (newest first)${(shipped.days ?? 7) > 7 ? `. Nothing changed in the last week, so this goes back up to ${shipped.days} days: never call it "this week", and ask what they're doing now that isn't in the repo yet` : ""}:\n${shippedSummary(shipped)}`
+                  : "",
                 buildNotes(shipped),
                 TECH_DEPTH,
               ].filter(Boolean).join("\n")
@@ -455,14 +459,15 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         if (!(await voiceAllowedToday(env))) throw new UserError(VOICE_RESTING);
         await saveSession(env, id, s); // reserve before the paid session
         try {
-          result = await gptLiveSession(env, s, offer);
+          live = await gptLiveSession(env, s, offer);
+          result = live;
         } catch (err) {
           // OpenAI refused before any audio, so nothing was spent: give the start back.
           if (err instanceof VoiceError) { s.voiceStarts = s.voiceStarts?.slice(0, -1); await saveSession(env, id, s); }
           throw err;
         }
         s.voice = { kind: "gpt-live", startedAt: now, counted: 0 };
-        await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: "voice started" }));
+        await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: live.degraded ?? "voice started" }));
         break;
       }
       case "/api/voice-turns": {

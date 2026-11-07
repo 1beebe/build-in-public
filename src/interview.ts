@@ -80,8 +80,9 @@ export async function complete(env: Env, system: string, message: string, timeou
 // Works with no model at all: specific, if less clever, questions about the
 // biggest pieces of work in the repo this week.
 function ruleQuestions(shipped: Shipped, items: Item[], weekNote: string, latestPost?: string): Question[] {
+  const quiet = (shipped.days ?? 7) > 7;
   const prompts = [
-    (t: string) => `You shipped "${t}" this week. What made it the thing to work on now?`,
+    (t: string) => quiet ? `You shipped "${t}" a while back. What made it the thing to work on then?` : `You shipped "${t}" this week. What made it the thing to work on now?`,
     (t: string) => `What broke or surprised you while you worked on "${t}"?`,
     (t: string) => `Who is "${t}" for, and what will they notice first?`,
     (t: string) => `If someone else were about to build "${t}", what would you tell them?`,
@@ -95,8 +96,6 @@ function ruleQuestions(shipped: Shipped, items: Item[], weekNote: string, latest
     const title = plainTitle(it.label.replace(/^(Merged PR|Closed issue|Commit): /, "").split(" — ")[0]);
     return { id: randomToken(8), text: prompts[i % prompts.length](clip(title, 80)), source: it.label.split(" — ")[0], sourceUrl: it.url, ref: it.ref };
   });
-  // One follow-up on what they last posted, after the GitHub questions.
-  if (latestPost && out.length) out.push(postQuestion(latestPost));
   if (!out.length) {
     out.push({
       id: randomToken(8),
@@ -106,6 +105,9 @@ function ruleQuestions(shipped: Shipped, items: Item[], weekNote: string, latest
       source: weekNote ? "What you said about your week" : shipped.repo,
     });
   }
+  // One follow-up on what they last posted, after the GitHub questions. A quiet repo needs
+  // it most: it's often the only other thread there is.
+  if (latestPost) out.push(postQuestion(latestPost));
   return out;
 }
 

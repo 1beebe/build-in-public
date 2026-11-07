@@ -43,6 +43,7 @@ const LIVE_RULES = `This is a live voice conversation, full duplex: you can hear
 - If they ask why you're asking, or whether this will help their post, answer straight in one or two sentences: what the question is for in the post (the angle, the example, the line people will remember), then ask a sharper question. If the question didn't fit, say so and change course.
 - Show you heard them in a few words that pick up their actual point or exact word, never a generic "that makes sense" or "I hear where you're going".
 - Let silences be. Someone who's thinking needs a moment.
+- Many people open a voice call with "can you hear me?" or "hello?" to check it works. Answer "Yes, I can hear you" in a few words, then carry on with your opening or your last question. It is a line check, never an answer to react to.
 - If you didn't catch what they said (it cut off, went silent, or was garbled), say so plainly and ask them to say it again. Never pretend you heard, and never guess what they meant.
 - If they say they're done, thank them in one sentence and tell them to press "I'm done. Find my stories". Say "see you next time", never "next week".`;
 
@@ -60,7 +61,7 @@ export function liveOpening(s: Session): string {
 /** The voice provider refused or failed to open a session. */
 export class VoiceError extends Error {}
 
-export async function gptLiveSession(env: Env, s: Session, sdp: string): Promise<{ sdp: string; model: string; opening: string }> {
+export async function gptLiveSession(env: Env, s: Session, sdp: string): Promise<{ sdp: string; model: string; opening: string; degraded?: string }> {
   const model = env.LIVE_MODEL || LIVE_MODEL;
   const open = (delegation: boolean) => fetch("https://api.openai.com/v1/live/sessions", {
     method: "POST",
@@ -69,8 +70,10 @@ export async function gptLiveSession(env: Env, s: Session, sdp: string): Promise
       session: {
         model,
         instructions: liveInstructions(s, LIVE_RULES),
-        // If it does hand a turn to the app anyway, no automatic "give me a second" filler.
-        ...(delegation ? { delegation: { type: "client", acknowledgement_delay_ms: 8000 } } : {}),
+        // If it does hand a turn to the page anyway, wait before any automatic "give me a second"
+        // filler; the page answers a delegation at once, which cancels the filler. 800 is
+        // OpenAI's maximum (the default is 0: filler right away).
+        ...(delegation ? { delegation: { type: "client", acknowledgement_delay_ms: 800 } } : {}),
         // GPT-Live waits for the caller unless told to open; OpenAI's advice is a developer
         // message here plus the same words via session.commentary.append once it starts.
         input: [{ type: "message", role: "developer", content: [{ type: "input_text", text: liveOpening(s) }] }],
@@ -80,10 +83,17 @@ export async function gptLiveSession(env: Env, s: Session, sdp: string): Promise
     }),
   });
   let res = await open(true);
-  // If OpenAI ever refuses the delegation setting, open the session without it rather than fail.
+  let degraded: string | undefined;
+  // If OpenAI ever refuses the delegation setting, open the session without it rather than
+  // fail, but say so in the run log too: without it, stalls go to OpenAI's own filler and the
+  // page's rescue never runs, so a quiet fallback here hid a broken fix for days.
   if (res.status === 400) {
     const why = await res.clone().text();
-    if (/delegation|acknowledgement/i.test(why)) { console.error("gpt-live refused delegation config", why.slice(0, 300)); res = await open(false); }
+    if (/delegation|acknowledgement/i.test(why)) {
+      console.error("gpt-live refused delegation config", why.slice(0, 300));
+      degraded = "voice opened WITHOUT the no-stall setting (OpenAI refused it)";
+      res = await open(false);
+    }
   }
   if (!res.ok) {
     const body = (await res.text()).slice(0, 300);
@@ -92,5 +102,5 @@ export async function gptLiveSession(env: Env, s: Session, sdp: string): Promise
   }
   const json = (await res.json()) as { transport?: { sdp?: string } };
   if (!json.transport?.sdp) throw new VoiceError("gpt-live: no SDP answer");
-  return { sdp: json.transport.sdp, model, opening: liveOpening(s) };
+  return { sdp: json.transport.sdp, model, opening: liveOpening(s), degraded };
 }

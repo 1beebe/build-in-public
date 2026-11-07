@@ -8,6 +8,7 @@ export interface Shipped {
   commits: { sha: string; message: string; url: string; date: string }[];
   pulls: { number: number; title: string; body: string; url: string; mergedAt: string }[];
   issues: { number: number; title: string; url: string; closedAt: string }[];
+  days?: number; // how far back this looked (7 unless a quiet week made it look further)
 }
 
 // One piece of work, in enough detail to show beside the question.
@@ -50,6 +51,11 @@ async function gh<T>(env: Env, path: string): Promise<T> {
 
 // Everything public that changed in the last `days` days. Merge commits and
 // bot noise are dropped so questions land on work a person actually did.
+// A quiet week still has a story: if nothing changed in the last week, look back further
+// so the interview has real work to ask about instead of a single "nothing changed" question.
+export const QUIET_LOOKBACK_DAYS = 90;
+export const shippedNothing = (s: Shipped) => !s.commits.length && !s.pulls.length && !s.issues.length;
+
 export async function whatShipped(env: Env, repo: string, days = 7): Promise<Shipped> {
   // Cached briefly: setup, a restart and a second person on the same repo
   // shouldn't each spend four GitHub requests.
@@ -82,6 +88,7 @@ async function readShipped(env: Env, repo: string, days: number): Promise<Shippe
   ]);
   return {
     repo,
+    days,
     description: meta.description ?? undefined,
     readme,
     layout,
