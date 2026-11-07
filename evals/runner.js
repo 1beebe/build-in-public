@@ -46,7 +46,7 @@
       for (let i = 0; i < (p.maxAnswers ?? 12); i++) {
         const { data } = await api("/api/eval/answer", { backstory: p.backstory });
         const turn = await say(data.answer, "sim");
-        if (turn.wrapUp || /\b(done for now|that's (it|all)( for now)?|gotta go)\b/i.test(data.answer)) break;
+        if (turn.wrapUp || /\b(done for now|that's (it|all) for now|gotta go|i'm done)\b/i.test(data.answer)) break;
       }
     } else {
       for (const answer of p.answers) {
