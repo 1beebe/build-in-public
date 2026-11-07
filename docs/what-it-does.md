@@ -11,6 +11,7 @@ Checked through: `b43a817`
 3. **Choose what you're making.** The options are posts about my week, a longer piece, or both. Long and both are owner-only unless `LONGFORM=on`. The owner can preview setup as everyone else sees it at `/app?as=guest`.
 4. **Talk.**
    - Voice runs on GPT-Live, which speaks first and never hands its turn off to "think". Typed answers go to Claude Sonnet (`TALK_MODEL=deepseek` switches back to DeepSeek Flash).
+   - An interview runs up to 10-15 minutes.
    - Every turn ends on one question.
    - The voice model has no tools and never says "let me take a look".
    - Short mode goes deep on one thread, then one more, in three beats: the moment (a specific thing from their week), what it meant in that moment, then the lesson (zoom out, or what they'd tell someone else facing it, anchored with one concrete example). Every question builds on the last answer in their words, with a few warm words that pick up their point or exact word (no generic praise). It asks one honest evidence question, leaves room after short or negative answers, and ends on something concrete. Asked why it's asking, it says what the question is for in the post.
@@ -21,7 +22,7 @@ Checked through: `b43a817`
 5. **Hand back.** You choose what comes back: story drafts, an outline, or the transcript. The transcript is built in the browser with no model call. Drafts and outlines come from Claude Sonnet.
    - Draft mode works as a light editor: it adds transitions, tightens and fixes grammar, but adds no new claims.
    - Outlines use only your sentences.
-   - An own-words check requires 65% of the words to be yours for drafts and 80% for outlines. A post that fails is retried once, then falls back to your cleaned-up words.
+   - An own-words check requires 65% of the words to be yours for drafts and 80% for outlines. A post that fails is retried once (on DeepSeek Flash), then falls back to your cleaned-up words.
    - Swear words are masked and flagged.
    - The top three stories show first, and the rest sit behind "Show more".
    - While it works, a waiting screen shows a shimmering thread of code characters and one line at a time: what it's doing, and now and then a clean sentence you said (no fillers, fragments or swearing). When the stories are ready, a yellow sweep runs along the thread and the cards rise into place. Reduced motion shows a still thread.
