@@ -379,7 +379,7 @@ ${NAV}
 <main>
 <section class="hero" aria-labelledby="heroH">
   <div class="copy">
-    <h1 id="heroH" class="rise">A 10-15 minute conversation becomes a week’s worth of content.</h1>
+    <h1 id="heroH" class="rise">A conversation of up to 10-15 minutes becomes a week’s worth of content.</h1>
     <p class="lead rise" style="--i:1">For builders who want to post more but stall at the blank page. Talk through what you worked on and get drafts in your own words, ready to edit in Buffer.</p>
     ${error ? `<p class="alert" role="alert">${escapeHtml(error)}</p>` : ""}
     <div class="act rise" style="--i:2"><a class="btn" href="/connect"><span class="dot" aria-hidden="true"></span>Connect with Buffer</a><span class="small">Signs in with Buffer, the social media planner. <a href="https://buffer.com" target="_blank" rel="noopener">The free plan</a> works.</span></div>
