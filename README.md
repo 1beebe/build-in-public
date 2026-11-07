@@ -60,9 +60,9 @@ npm run dev     # local, needs a .dev.vars file with the secrets below
 
 ## Feedback and telemetry
 
-- Every page includes a small feedback/bug form. Messages and optional reply details are encrypted at rest, expire after 180 days, and appear only on the owner's private `/stats` page.
+- Every page includes a small feedback/bug form. Messages and optional reply details are encrypted at rest, expire after 180 days, and appear only on the owner's private `/stats` page, with a rough device label like "iPhone · Safari".
 - A daily, one-way IP hash limits feedback spam without storing the IP itself; it expires within two days.
-- First-party funnel telemetry counts homepage visits, Buffer connection attempts and completions, interviews started, stories saved and feedback sent. It contains no user or content identifiers and expires after 120 days. No third-party analytics script is loaded.
+- First-party funnel telemetry counts homepage visits, Buffer connection attempts and completions, interviews started (split by phone, tablet and desktop), stories saved and feedback sent. It contains no user or content identifiers and expires after 120 days. No third-party analytics script is loaded.
 
 ## Abuse and cost boundaries
 
@@ -71,7 +71,7 @@ npm run dev     # local, needs a .dev.vars file with the secrets below
 - An interview holds at most 60 turns and 24,000 transcript characters. When there's room for about one more answer, the interviewer asks its last question and then points to "I'm done. Find my stories", in typed and voice alike. Live transcript sync is clamped to the same limits server-side.
 - Each session gets at most 20 typed model calls and four voice starts per hour, and six harvests per day.
 - Memory (opt-in): an unticked setup box keeps, under the Buffer account id rather than the browser session, up to 12 short "still working through" phrases and 30 story titles, sealed with `TOKEN_KEY`, for a year after last use. Never transcripts. Setup lists it with per-item Forget, a Markdown download and Forget everything (`/api/memory/forget`).
-- Run log (opt-out): a setup checkbox, ticked by default, keeps that interview's transcript, harvest output, flags, timings and errors, sealed with `TOKEN_KEY`, for 14 days. Only the owner (`OWNER_ORG_ID`) can read them at `/runs`. Unticked, nothing is kept.
+- Run log (opt-out): a setup checkbox, ticked by default, keeps that interview's transcript, harvest output, flags, timings, errors and a rough device label, sealed with `TOKEN_KEY`, for 14 days. Only the owner (`OWNER_ORG_ID`) can read them at `/runs`. Unticked, nothing is kept.
 - Harvest is idempotent: repeating the request returns the existing cards instead of paying for another model call.
 - Model input is capped at 40,000 characters. Typed output is capped at 500 tokens and harvest output at 8,000 tokens.
 - Repository text, recent posts, notes and transcripts are serialized as untrusted JSON and the system prompts explicitly forbid following instructions found inside them.

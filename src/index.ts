@@ -23,6 +23,7 @@ import { channelLabel, harvest, opening, reply, harvestArticle, LONGFORM_OPENING
 import { gptLiveSession, openaiKey, VoiceError } from "./realtime";
 import { MindStudioError } from "./mindstudio";
 import { storeFeedback } from "./feedback";
+import { deviceOf } from "./device";
 import { beginRun, logRun, runsPage } from "./runs";
 import { forget, loadMemory, memoryView, recall, remember, setMemoryOn } from "./memory";
 import { appPage, landingPage, notFoundPage, privacyPage } from "./pages";
@@ -282,7 +283,7 @@ async function feedback(req: Request, env: Env): Promise<Response> {
   }
   if (message.length < 5) return json({ error: "Tell me a little more first." }, 400);
   try {
-    await storeFeedback(req, env, { createdAt: new Date().toISOString(), kind, message, contact: contact || undefined, path: path || undefined });
+    await storeFeedback(req, env, { createdAt: new Date().toISOString(), kind, message, contact: contact || undefined, path: path || undefined, device: deviceOf(req).label });
   } catch (err) {
     if (err instanceof Error && err.message === "rate") return json({ error: "Thanks, that's enough feedback for today." }, 429);
     throw err;
@@ -405,9 +406,11 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
             : opening(s.questions);
         console.log(`start timings: fetch ${fetched}ms, total ${Date.now() - began}ms`);
         Object.assign(s, { turns: [first], drafts: [], saved: [], savedAsIdeas: [], voice: undefined });
+        const device = deviceOf(req);
+        s.device = device.label;
         beginRun(s);
         await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: `started with ${s.questions?.length ?? 0} threads${s.longform ? ", long-form" : ""}` }));
-        await countInterview(env);
+        await countInterview(env, device.kind);
         result = await view(env, client, s);
         break;
       }

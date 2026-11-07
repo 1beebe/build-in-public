@@ -18,6 +18,7 @@ export interface Run {
   events: RunEvent[];
   harvests: { at: string; mode: string; ms: number; drafts: Pick<Draft, "title" | "channel" | "format" | "flags" | "text" | "later">[] }[];
   saved: string[]; // titles they sent to Buffer
+  device?: string; // coarse label like "iPhone · Safari", never the user-agent
 }
 
 // Starts a fresh run for a new interview, or does nothing if they opted out.
@@ -34,7 +35,7 @@ export async function logRun(env: Env, s: Session, change: (r: Run) => void): Pr
     const stored = await env.SESSIONS.get(s.runKey);
     const run: Run = stored
       ? await unseal<Run>(env.TOKEN_KEY, stored)
-      : { startedAt: now, updatedAt: now, source: s.repo ?? s.weekNote ?? "", targets: s.targets ?? [], turns: [], events: [], harvests: [], saved: [] };
+      : { startedAt: now, updatedAt: now, source: s.repo ?? s.weekNote ?? "", targets: s.targets ?? [], turns: [], events: [], harvests: [], saved: [], device: s.device };
     change(run);
     run.turns = (s.turns ?? []).slice(0, 200);
     run.updatedAt = now;
@@ -69,7 +70,7 @@ export async function runsPage(env: Env): Promise<string> {
     const harvests = r.harvests.map((h) => `<h4>Harvest · ${esc(h.mode)} · ${(h.ms / 1000).toFixed(1)}s · ${esc(when(h.at))}</h4>` + h.drafts.map((d) =>
       `<div class="card"><b>${esc(d.title)}</b>${d.later ? " <small>(for later)</small>" : ""}${d.format ? `<small>${esc(d.channel ?? "any")} · ${esc(d.format)}</small>` : ""}${(d.flags ?? []).map((f) => `<small class="flag">${esc(f)}</small>`).join("")}<pre>${esc(d.text)}</pre></div>`).join("")).join("");
     return `<details><summary><b>${esc(when(r.startedAt))}</b> · ${you} answers · ${r.harvests.length} harvests · ${r.saved.length} saved · <span>${esc(r.source.slice(0, 80))}</span></summary>
-<p class="meta">Channels: ${esc(r.targets.join(", ") || "none")} · last activity ${esc(when(r.updatedAt))}</p>
+<p class="meta">${r.device ? `${esc(r.device)} · ` : ""}Channels: ${esc(r.targets.join(", ") || "none")} · last activity ${esc(when(r.updatedAt))}</p>
 <ol class="turns">${turns}</ol>${events ? `<h3>Events</h3><ul>${events}</ul>` : ""}${harvests ? `<h3>Harvests</h3>${harvests}` : ""}${r.saved.length ? `<h3>Saved to Buffer</h3><ul>${r.saved.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>` : ""}</details>`;
   }).join("");
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Interviewer runs</title>
