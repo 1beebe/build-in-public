@@ -22,7 +22,7 @@ function shippedLines(s: Shipped): Item[] {
   ];
 }
 
-const POST_SOURCE = "Your latest Buffer post";
+export const POST_SOURCE = "Your latest Buffer post";
 
 // Shorten at a word boundary so a quote never ends mid-word.
 export function clip(text: string, max: number): string {

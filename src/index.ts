@@ -17,7 +17,7 @@ import {
   type Tag,
 } from "./buffer";
 import { QUIET_LOOKBACK_DAYS, RepoError, getSource, parseRepo, shippedNothing, whatShipped, type Shipped, type Source } from "./github";
-import { complete, hasModel, planQuestions } from "./interview";
+import { complete, hasModel, planQuestions, POST_SOURCE } from "./interview";
 import { clip } from "./interview";
 import { channelLabel, harvest, opening, reply, harvestArticle, LONGFORM_OPENING, steerNote } from "./conversation";
 import { gptLiveSession, openaiKey, VoiceError } from "./realtime";
@@ -367,6 +367,8 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         if (s.repo && shippedNothing(shipped)) shipped = await whatShipped(env, s.repo, QUIET_LOOKBACK_DAYS);
         const fetched = Date.now() - began;
         s.questions = await planQuestions(shipped, recent, s.weekNote ?? "");
+        // v2: their posts are background only, never a topic of their own (Ligaya, Nov 8).
+        if (s.promptV === 2) s.questions = s.questions.filter((q) => q.source !== POST_SOURCE);
         // If they asked to be remembered, open on what they were in the middle of last time.
         if (recalled.question) s.questions = [recalled.question, ...s.questions].slice(0, 5);
         s.posts = recent.posts.map((p) => p.slice(0, 300));
