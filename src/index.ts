@@ -26,7 +26,7 @@ import { storeFeedback } from "./feedback";
 import { deviceOf } from "./device";
 import { beginRun, logRun, runsPage } from "./runs";
 import { angleLine, forget, loadMemory, memoryView, recall, remember, setMemoryOn } from "./memory";
-import { appPage, landingPage, notFoundPage, privacyPage } from "./pages";
+import { appPage, landingPage, notFoundPage, privacyPage, termsPage } from "./pages";
 import { SpendCapError, countFunnel, countInterview, modelAllowedToday, statsPage, tickVoice, voiceAllowedToday } from "./spend";
 import { cookie, createSession, destroySession, loadSession, readCookie, saveSession, type Channel, type HarvestMode, type Session, type Turn } from "./session";
 
@@ -179,6 +179,7 @@ export default {
         );
       }
       if (req.method === "GET" && url.pathname === "/privacy") return html(privacyPage());
+      if (req.method === "GET" && url.pathname === "/terms") return html(termsPage());
       if (req.method === "GET" && (url.pathname === "/stats" || url.pathname === "/runs")) {
         if (!(await isOwner(req, env))) return html(notFoundPage(), { status: 404 });
         const page = url.pathname === "/stats" ? await statsPage(env) : await runsPage(env);
@@ -353,7 +354,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         // Prompt v2 is the default for everyone (Nov 8, after the evals). The owner can still ask
         // for v1 ("promptV": 1 in setup) to compare in the evals.
         const promptV = body.promptV === 1 && env.OWNER_ORG_ID && s.organizationId === env.OWNER_ORG_ID ? 1 as const : 2 as const;
-        Object.assign(s, { promptV, steeredAt: undefined, repo, noRepo, weekNote: repo ? (aside.length >= 3 ? aside : undefined) : work, targets, keepLog: body.keepLog !== false, keepMemory, longform, alsoShort, questions: [], turns: [], drafts: [], saved: [], savedAsIdeas: [], harvestMode: undefined });
+        Object.assign(s, { promptV, steeredAt: undefined, repo, noRepo, weekNote: repo ? (aside.length >= 3 ? aside : undefined) : work, targets, keepLog: body.keepLog === true, keepMemory, longform, alsoShort, questions: [], turns: [], drafts: [], saved: [], savedAsIdeas: [], harvestMode: undefined });
         result = await view(env, client, s, true);
         break;
       }
@@ -736,7 +737,7 @@ async function view(env: Env, client: BufferClient, s: Session, refresh = false)
     noRepo: Boolean(s.noRepo),
     tags,
     weekNote: s.weekNote ?? "",
-    keepLog: s.keepLog !== false,
+    keepLog: s.keepLog === true,
     memory: memoryView(s.accountId ? await loadMemory(env, s.accountId) : null),
     channels: channels.map((c) => ({ service: c.service, name: c.name, label: channelLabel(c.service) })),
     targets: s.targets ?? mainServices(channels),
