@@ -1014,7 +1014,7 @@ export function appPage(): string {
   <div class="panel">
     <label class="fieldset" id="orgWrap" hidden><span class="lbl">Buffer organization</span><select id="org"></select></label>
     <label class="fieldset"><span class="lbl">A sentence, a repo or a link</span><span class="hint">A repo link plus a few words works too. Up to 500 characters.</span><textarea id="work" maxlength="500" placeholder="I rebuilt the onboarding for… or github.com/you/project or a link to your demo"></textarea></label>
-    <div class="fieldset" id="kindWrap" hidden><span class="lbl">What are you making?</span><span class="hint" id="kindHint"></span><div class="chips" role="radiogroup" aria-label="What are you making?"><label class="chip"><input type="radio" name="kind" value="posts" checked><span>Posts about my week</span></label><label class="chip"><input type="radio" name="kind" value="long"><span>A longer piece, like a newsletter or article</span></label><label class="chip"><input type="radio" name="kind" value="both"><span>Both: a longer piece plus a few short posts</span></label></div></div>
+    <div class="fieldset" id="kindWrap" hidden><span class="lbl">What are you making?</span><div class="chips" role="radiogroup" aria-label="What are you making?"><label class="chip"><input type="radio" name="kind" value="posts" checked><span>Posts about my week</span></label><label class="chip"><input type="radio" name="kind" value="long"><span>A longer piece, like a newsletter or article</span></label><label class="chip"><input type="radio" name="kind" value="both"><span>Both: a longer piece plus a few short posts</span></label></div></div>
     <div class="fieldset" id="chanWrap" hidden><span class="lbl" id="chanLbl">Write drafts for</span><span class="hint" id="chanHint"></span><div class="chips" id="chans" aria-label="Channels to shape stories for"></div></div>
     <label class="keep"><input type="checkbox" id="keepLog"><span>Keep this transcript 14 days to help Ligaya improve the app. Only she sees it. <a href="/privacy#kept" target="_blank" rel="noopener">What's kept</a></span></label>
     <label class="keep"><input type="checkbox" id="keepMemory"><span>Remember open threads so next time picks up where this one stopped. <a href="/privacy#memory" target="_blank" rel="noopener">What's remembered</a></span></label>
@@ -1062,7 +1062,7 @@ export function appPage(): string {
   <div class="shimmer" id="shimmer"><canvas aria-hidden="true"></canvas><p class="shimmer-line" id="shimmerLine" aria-live="polite"></p></div>
 </section>
 <section id="review" class="screen wide" hidden>
-  <header><h1 id="reviewHead">Stories from your interview</h1><p class="lede" id="reviewLede"></p><p class="muted small ai-note">The Interviewer is AI and may make mistakes. Check each draft before you post.</p><p class="muted" id="reviewTx">Not what you hoped for? <button class="btn text" type="button" data-transcript>Get the transcript</button> and write from your own words.</p></header>
+  <header><h1 id="reviewHead">Stories from your interview</h1><p class="lede" id="reviewLede"></p><p class="muted small ai-note">The Interviewer is AI and may make mistakes. Check each draft before you post.</p><p class="muted" id="reviewTx"><button class="btn text" type="button" data-transcript>Get the transcript</button></p></header>
   <div class="panel few" id="fewNote" hidden><p id="fewText"></p><div class="row"><button id="moreBtn" class="btn quiet" type="button">Keep talking to find more</button></div></div>
   <div id="drafts" class="drafts"></div>
   <div class="savebar"><button id="showMore" class="btn quiet small" type="button" hidden></button><span class="count" id="saveCount"></span><div class="row"><button id="backTalk" class="btn quiet small" type="button">Keep talking</button><button id="getTranscript" class="btn quiet small" type="button">Get the transcript</button><button id="saveAll" class="btn" type="button">Save to Buffer</button></div></div>
@@ -1218,7 +1218,6 @@ function renderSetup(){
   drawMemory();
   $("kindWrap").hidden = !state.longformOffered || AS_GUEST;
   document.querySelector('input[name=kind][value=' + (state.longform ? (state.alsoShort ? "both" : "long") : "posts") + ']').checked = true;
-  $("kindHint").textContent = seen.has("substack") ? "You post on Substack, so a longer piece might fit." : "";
   kindChanged();
   // One channel: nothing to choose, so just say where the drafts go. Several: plain instruction, most-used ones pre-ticked.
   const only = seen.size === 1 ? chans.find(c => seen.has(c.service)) : null;
