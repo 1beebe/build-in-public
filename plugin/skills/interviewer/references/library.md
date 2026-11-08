@@ -23,6 +23,7 @@ voice-library/
 # Interview, 2026-11-02
 
 Source: 1beebe/build-in-public, 14 commits and 3 merged pull requests this week
+Closing angle: what they'd do differently if they started again today
 
 **Interviewer:** Last time you were in the middle of deciding whether to charge for voice. Where did that land?
 
