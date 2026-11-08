@@ -1062,7 +1062,7 @@ export function appPage(): string {
   <div class="shimmer" id="shimmer"><canvas aria-hidden="true"></canvas><p class="shimmer-line" id="shimmerLine" aria-live="polite"></p></div>
 </section>
 <section id="review" class="screen wide" hidden>
-  <header><h1 id="reviewHead">Stories from your interview</h1><p class="lede" id="reviewLede"></p><p class="muted small ai-note">The Interviewer is AI and may make mistakes. Check each draft before you post.</p><p class="muted" id="reviewTx">Not what you hoped for? <button class="btn text" type="button" data-transcript>Get the transcript</button> and write from your own words.</p></header>
+  <header><h1 id="reviewHead">Stories from your interview</h1><p class="lede" id="reviewLede"></p><p class="muted small ai-note">The Interviewer is AI and may make mistakes. Check each draft before you post.</p><p class="muted" id="reviewTx"><button class="btn text" type="button" data-transcript>Get the transcript</button></p></header>
   <div class="panel few" id="fewNote" hidden><p id="fewText"></p><div class="row"><button id="moreBtn" class="btn quiet" type="button">Keep talking to find more</button></div></div>
   <div id="drafts" class="drafts"></div>
   <div class="savebar"><button id="showMore" class="btn quiet small" type="button" hidden></button><span class="count" id="saveCount"></span><div class="row"><button id="backTalk" class="btn quiet small" type="button">Keep talking</button><button id="getTranscript" class="btn quiet small" type="button">Get the transcript</button><button id="saveAll" class="btn" type="button">Save to Buffer</button></div></div>
