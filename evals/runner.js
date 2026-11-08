@@ -26,7 +26,7 @@
   let promptV; // set per run: 1 tries the older v1 interviewer (owner-only); v2 is the default
   async function setup(s) {
     await api("/api/reset", {});
-    await api("/api/setup", { work: s.work, targets: s.targets, keepLog: false, keepMemory: false, longform: Boolean(s.longform), promptV });
+    await api("/api/setup", { work: s.work, targets: s.targets, keepLog: false, keepMemory: false, agreeTerms: true, longform: Boolean(s.longform), promptV });
     return (await api("/api/start", {})).data;
   }
 
@@ -84,6 +84,7 @@
       work: before.repo || before.weekNote,
       targets: before.targets,
       keepLog: before.keepLog,
+      agreeTerms: true,
       keepMemory: Boolean(before.memory?.on),
       longform: before.longform,
     };

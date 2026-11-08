@@ -27,8 +27,12 @@ import { deviceOf } from "./device";
 import { beginRun, logRun, runsPage } from "./runs";
 import { angleLine, forget, loadMemory, memoryView, recall, remember, setMemoryOn } from "./memory";
 import { appPage, landingPage, notFoundPage, privacyPage, termsPage } from "./pages";
+
 import { SpendCapError, countFunnel, countInterview, modelAllowedToday, statsPage, tickVoice, voiceAllowedToday } from "./spend";
 import { cookie, createSession, destroySession, loadSession, readCookie, saveSession, type Channel, type HarvestMode, type Session, type Turn } from "./session";
+
+// Bump when the Terms change materially, so everyone ticks the box again.
+const TERMS_VERSION = "2026-11-08";
 
 const SECURITY_HEADERS: Record<string, string> = {
   "Content-Security-Policy": [
@@ -326,6 +330,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         result = await view(env, client, s, true);
         break;
       case "/api/setup": {
+        if (body.agreeTerms !== true) throw new UserError("Tick the box to agree to the Terms and Privacy note, then start.");
         // One input accepts either a public repo or a plain-language note.
         const work = textInput(body.work, 500, "Keep that to 500 characters or fewer.");
         // A repo link can come with a few words about the week ("github.com/a/b Working on X"):
@@ -354,7 +359,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         // Prompt v2 is the default for everyone (Nov 8, after the evals). The owner can still ask
         // for v1 ("promptV": 1 in setup) to compare in the evals.
         const promptV = body.promptV === 1 && env.OWNER_ORG_ID && s.organizationId === env.OWNER_ORG_ID ? 1 as const : 2 as const;
-        Object.assign(s, { promptV, steeredAt: undefined, repo, noRepo, weekNote: repo ? (aside.length >= 3 ? aside : undefined) : work, targets, keepLog: body.keepLog === true, keepMemory, longform, alsoShort, questions: [], turns: [], drafts: [], saved: [], savedAsIdeas: [], harvestMode: undefined });
+        Object.assign(s, { promptV, steeredAt: undefined, repo, noRepo, weekNote: repo ? (aside.length >= 3 ? aside : undefined) : work, targets, keepLog: body.keepLog === true, agreedTerms: TERMS_VERSION, agreedAt: s.agreedTerms === TERMS_VERSION ? s.agreedAt : new Date().toISOString(), keepMemory, longform, alsoShort, questions: [], turns: [], drafts: [], saved: [], savedAsIdeas: [], harvestMode: undefined });
         result = await view(env, client, s, true);
         break;
       }
@@ -738,6 +743,7 @@ async function view(env: Env, client: BufferClient, s: Session, refresh = false)
     tags,
     weekNote: s.weekNote ?? "",
     keepLog: s.keepLog === true,
+    agreedTerms: s.agreedTerms === TERMS_VERSION,
     memory: memoryView(s.accountId ? await loadMemory(env, s.accountId) : null),
     channels: channels.map((c) => ({ service: c.service, name: c.name, label: channelLabel(c.service) })),
     targets: s.targets ?? mainServices(channels),

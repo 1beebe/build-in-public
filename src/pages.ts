@@ -382,7 +382,7 @@ ${NAV}
     <h1 id="heroH" class="rise">A conversation of up to 10-15 minutes becomes a week’s worth of content.</h1>
     <p class="lead rise" style="--i:1">For builders who want to post more but stall at the blank page. Talk through what you worked on and get drafts in your own words, ready to edit in Buffer.</p>
     ${error ? `<p class="alert" role="alert">${escapeHtml(error)}</p>` : ""}
-    <div class="act rise" style="--i:2"><a class="btn" href="/connect"><span class="dot" aria-hidden="true"></span>Connect with Buffer</a><span class="small">Signs in with Buffer, the social media planner. <a href="https://buffer.com" target="_blank" rel="noopener">The free plan</a> works. By connecting, you agree to the <a href="/terms">Terms</a> and <a href="/privacy">Privacy note</a>.</span></div>
+    <div class="act rise" style="--i:2"><a class="btn" href="/connect"><span class="dot" aria-hidden="true"></span>Connect with Buffer</a><span class="small">Signs in with Buffer, the social media planner. <a href="https://buffer.com" target="_blank" rel="noopener">The free plan</a> works.</span></div>
   </div>
   <div class="hero-phone">
     <div class="stage" aria-hidden="true"></div>
@@ -453,7 +453,7 @@ ${NAV}
   <div class="wrap">
     <div class="mark-big"><svg viewBox="3 3 26 26.2" aria-hidden="true"><path d="M16 3C8.8 3 3 8.4 3 15.1c0 3.6 1.7 6.8 4.4 9L6.2 29l5.6-2.8c1.3.4 2.7.6 4.2.6 7.2 0 13-5.4 13-12.1S23.2 3 16 3Z" fill="#f6e016"/><circle cx="16" cy="15" r="4.2" fill="#d7361f"/></svg><p class="nm" aria-hidden="true">The Interviewer</p></div>
     <div class="links"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/build-flow">Where AI is used</a><a href="https://github.com/1beebe/build-in-public/tree/main/plugin">The plugin</a><a href="https://github.com/1beebe/build-in-public">Star it on GitHub</a><button type="button" data-feedback-open>Feedback</button></div>
-    <div class="last"><p>Built in public for Buffer Commit by Ligaya Beebe. Not made by or affiliated with Buffer. By connecting, you agree to the <a href="/terms">Terms</a> and <a href="/privacy">Privacy note</a>.</p><a class="btn" href="/connect">Connect with Buffer</a></div>
+    <div class="last"><p>Built in public for Buffer Commit by Ligaya Beebe. Not made by or affiliated with Buffer.</p><a class="btn" href="/connect">Connect with Buffer</a></div>
   </div>
 </footer>`,
     { style: LANDING_STYLE, script: LANDING_SCRIPT },
@@ -521,7 +521,7 @@ ${NAV}
 <h1>Terms of use</h1>
 <p>Last updated November 8, 2026. The Interviewer is run by Ligaya Beebe through L. Beebe, LLC, in Florida. It's built on the Buffer API, but it isn't made by, affiliated with or endorsed by Buffer.</p>
 <h2>Agreeing to these terms</h2>
-<p>By connecting your Buffer account, you agree to these terms and to the <a href="/privacy">Privacy note</a>, which says exactly what the app keeps and for how long. If you don't agree, don't connect. You need to be 18 or older, or the age of majority where you live.</p>
+<p>Before your first interview, you tick a box on the setup screen to agree to these terms and to the <a href="/privacy">Privacy note</a>, which says exactly what the app keeps and for how long. If you don't agree, don't use the app. You need to be 18 or older, or the age of majority where you live.</p>
 <h2>Your words stay yours</h2>
 <p>You own what you say in an interview and the drafts made from it. You let the app process your words only to run the service: to send them to the AI services named on the Privacy note, and to save the drafts you choose to your own Buffer account.</p>
 <h2>What the app keeps, and your choices</h2>
@@ -1018,6 +1018,7 @@ export function appPage(): string {
     <label class="keep"><input type="checkbox" id="keepLog"><span>Keep this transcript 14 days to help Ligaya improve the app. Only she sees it. <a href="/privacy#kept" target="_blank" rel="noopener">What's kept</a></span></label>
     <label class="keep"><input type="checkbox" id="keepMemory"><span>Remember open threads so next time picks up where this one stopped. <a href="/privacy#memory" target="_blank" rel="noopener">What's remembered</a></span></label>
     <details class="memory" id="memWrap" hidden><summary>What I remember about your work (<span id="memCount"></span>)</summary><ul id="memList"></ul><div class="row"><button class="btn text" type="button" id="memExport">Download as Markdown</button><button class="btn text" type="button" id="memForgetAll">Forget everything</button></div></details>
+    <label class="keep"><input type="checkbox" id="agreeTerms"><span>I agree to the <a href="/terms" target="_blank" rel="noopener">Terms</a> and <a href="/privacy" target="_blank" rel="noopener">Privacy note</a>.</span></label>
     <div class="row"><button id="saveSetup" class="btn" type="button"><span class="rec"></span>Start the interview</button></div>
     <p class="busyline" id="setupBusy" aria-live="polite"></p>
   </div>
@@ -1210,6 +1211,7 @@ function renderSetup(){
   }
   $("chanWrap").hidden = !seen.size;
   $("keepLog").checked = state.keepLog === true;
+  $("agreeTerms").checked = state.agreedTerms === true;
   const back = (state.memory || {}).welcome || "";
   $("welcomeBack").textContent = back; $("welcomeBack").hidden = !back;
   drawMemory();
@@ -1928,11 +1930,12 @@ async function load(){
 }
 window.__interviewRetry = () => { $("boot").hidden = true; err(""); load(); };
 $("saveSetup").onclick = async () => {
+  if (!$("agreeTerms").checked) { err("Tick the box to agree to the Terms and Privacy note, then start."); $("agreeTerms").focus(); return; }
   err(""); $("saveSetup").disabled = true; orbState("thinking");
   busyLines("setupBusy", ["Reading this week's public work", "Looking at what you've posted lately", "Choosing a few threads to pull on", "Getting your first question ready"]);
   try {
     const targets = [...document.querySelectorAll("#chans input:checked")].map(i => i.value);
-    state = await api("/api/setup", {organizationId:$("org").value, work:$("work").value, targets: $("chanWrap").hidden ? undefined : targets, keepLog: $("keepLog").checked, keepMemory: $("keepMemory").checked, format: kindChosen()});
+    state = await api("/api/setup", {organizationId:$("org").value, work:$("work").value, targets: $("chanWrap").hidden ? undefined : targets, keepLog: $("keepLog").checked, keepMemory: $("keepMemory").checked, agreeTerms: $("agreeTerms").checked, format: kindChosen()});
     busyDone("setupBusy"); shown = null; drawn = 0; busy = true; $("sendBtn").disabled = true; $("liveBtn").disabled = true; renderTalk(); window.scrollTo({top:0});
     try { state = await api("/api/start", {}); } finally { busy = false; $("sendBtn").disabled = false; $("liveBtn").disabled = false; }
     renderTalk(); $("say").focus({preventScroll:true});
