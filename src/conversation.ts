@@ -142,7 +142,10 @@ export async function reply(env: Env, agenda: Question[], turns: Turn[], context
       const out = parseTurn(text);
       if (out.say?.trim()) {
         const about = out.about && out.about > 0 && out.about <= agenda.length ? out.about - 1 : lastAbout(turns);
-        return { who: "interviewer", text: wholeSentences(out.say.trim(), 600), about, wrapUp: Boolean(out.wrapUp) };
+        const text = wholeSentences(out.say.trim(), 600);
+        // The model sometimes says goodbye and points to the button but forgets the flag.
+        const saidBye = /I'm done\. Find my stories/i.test(text) && !/\?\s*$/.test(text);
+        return { who: "interviewer", text, about, wrapUp: Boolean(out.wrapUp) || saidBye };
       }
     } catch (err) {
       console.error(`interviewer reply failed, using the agenda: ${err instanceof Error ? err.message : String(err)}`);
