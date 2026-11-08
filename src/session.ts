@@ -85,7 +85,7 @@ export interface Session {
   accountId?: string; // their Buffer account: where memory between interviews is filed
   keepMemory?: boolean; // they ticked "remember my interviews" at setup
   memRun?: string; // this interview, as memory knows it
-  promptV?: 2; // the slimmer interviewer prompt with app-side steering (owner-only while it's evaluated)
+  promptV?: 1 | 2; // 1 = the older, longer interviewer prompt (owner-only, for evals); anything else is v2
   steeredAt?: number; // turn count when the app last told the interviewer to switch threads
 }
 

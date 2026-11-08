@@ -22,7 +22,7 @@ function liveInstructions(s: Session, rules: string): string {
   // Before they've said anything, the opening question on screen is replaced by the live hello.
   const answered = (s.turns ?? []).some((t) => t.who === "you");
   const sofar = !answered ? "" : (s.turns ?? []).map((t) => `${t.who === "you" ? "THEM" : "YOU"}: ${t.text}`).join("\n");
-  const v2 = s.promptV === 2;
+  const v2 = s.promptV !== 1;
   return [
     converseFor(s.longform, v2),
     v2 ? LIVE_RULES_V2 : rules,

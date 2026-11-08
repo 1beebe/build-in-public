@@ -23,7 +23,7 @@
   const log = (msg) => window.__eval.log.push(`${new Date().toISOString().slice(11, 19)} ${msg}`);
   const live = (drafts) => drafts.filter((d) => !d.later);
 
-  let promptV; // set per run: 2 tries the slimmer v2 interviewer (owner-only)
+  let promptV; // set per run: 1 tries the older v1 interviewer (owner-only); v2 is the default
   async function setup(s) {
     await api("/api/reset", {});
     await api("/api/setup", { work: s.work, targets: s.targets, keepLog: false, keepMemory: false, longform: Boolean(s.longform), promptV });
@@ -77,8 +77,8 @@
   }
 
   window.__evalStart = async ({ personas = [], fixtures = [], only, prompt } = {}) => {
-    promptV = prompt === 2 ? 2 : undefined;
-    window.__eval = { status: "running", prompt: promptV ?? 1, log: [], personas: [], replays: [], errors: [] };
+    promptV = prompt === 1 ? 1 : 2;
+    window.__eval = { status: "running", prompt: promptV, log: [], personas: [], replays: [], errors: [] };
     const before = (await api("/api/state")).data;
     const restore = {
       work: before.repo || before.weekNote,
