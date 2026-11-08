@@ -464,7 +464,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         // textInput trims, and an SDP must end with CRLF or OpenAI rejects it ("unmarshal SDP: EOF").
         const offer = sdp.endsWith("\r\n") ? sdp : sdp + "\r\n";
         const now = Date.now();
-        s.voiceStarts = reserveWindow(s.voiceStarts, 3600_000, VOICE_STARTS_PER_HOUR, "That's a lot of voice sessions in one hour. Type for now, or come back in a bit.");
+        s.voiceStarts = reserveWindow(s.voiceStarts, 3600_000, VOICE_STARTS_PER_HOUR * capFactor(env, s), "That's a lot of voice sessions in one hour. Type for now, or come back in a bit.");
         if (!(await voiceAllowedToday(env))) throw new UserError(VOICE_RESTING);
         await saveSession(env, id, s); // reserve before the paid session
         try {
