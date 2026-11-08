@@ -350,8 +350,9 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const keepMemory = body.keepMemory === true;
         if (!s.accountId) s.accountId = (await getStart(client)).accountId;
         if (s.accountId) await setMemoryOn(env, s.accountId, keepMemory);
-        // The v2 prompt is owner-only until the evals say it's better ("promptV": 2 in setup).
-        const promptV = body.promptV === 2 && env.OWNER_ORG_ID && s.organizationId === env.OWNER_ORG_ID ? 2 as const : undefined;
+        // Prompt v2 is the default for everyone (Nov 8, after the evals). The owner can still ask
+        // for v1 ("promptV": 1 in setup) to compare in the evals.
+        const promptV = body.promptV === 1 && env.OWNER_ORG_ID && s.organizationId === env.OWNER_ORG_ID ? 1 as const : 2 as const;
         Object.assign(s, { promptV, steeredAt: undefined, repo, noRepo, weekNote: repo ? (aside.length >= 3 ? aside : undefined) : work, targets, keepLog: body.keepLog !== false, keepMemory, longform, alsoShort, questions: [], turns: [], drafts: [], saved: [], savedAsIdeas: [], harvestMode: undefined });
         result = await view(env, client, s, true);
         break;
@@ -368,7 +369,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const fetched = Date.now() - began;
         s.questions = await planQuestions(shipped, recent, s.weekNote ?? "");
         // v2: their posts are background only, never a topic of their own (Ligaya, Nov 8).
-        if (s.promptV === 2) s.questions = s.questions.filter((q) => q.source !== POST_SOURCE);
+        if (s.promptV !== 1) s.questions = s.questions.filter((q) => q.source !== POST_SOURCE);
         // If they asked to be remembered, open on what they were in the middle of last time.
         if (recalled.question) s.questions = [recalled.question, ...s.questions].slice(0, 5);
         s.posts = recent.posts.map((p) => p.slice(0, 300));
@@ -403,8 +404,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           ...recent.posts.slice(0, 8).map((p) => `- ${p.slice(0, 200)}`),
         ].join("\n");
         if (recalled.brief) s.brief += `\n${recalled.brief}`;
-        // Owner-only with prompt v2 until the evals say it goes to everyone.
-        if (!s.longform && s.promptV === 2) s.brief += `\n${angleLine(recalled.angle)}`;
+        if (!s.longform && s.promptV !== 1) s.brief += `\n${angleLine(recalled.angle)}`;
         if (s.longform) s.brief += "\nThey chose to work on one longer piece today, like a newsletter issue or an article. The piece is the topic; their repo, threads and posts are what you know about them, to draw on whenever it connects.";
         if (s.alsoShort) s.brief += "\nThey also want a few standalone short posts from this conversation. Go deep on the piece, but when a side story comes up (a decision, a surprise, a moment with a user) that could stand on its own, take one easy follow-up on it before coming back to the piece.";
         // Long-form opens on something they've said lately, so it's clear the interviewer knows them.
@@ -446,7 +446,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         s.turns.push({ who: "you", text });
         const asked = Date.now();
         const left = answersLeft(s.turns);
-        const v2 = s.promptV === 2;
+        const v2 = s.promptV !== 1;
         const steer = v2 && left > 1 ? steerNote(s.questions, s.turns, s.steeredAt) : undefined;
         if (steer) s.steeredAt = s.turns.length;
         const { fallback, ...next } = await reply(env, s.questions, s.turns, (s.brief ?? "") + (left <= 0 ? OUT_OF_ROOM : left === 1 ? LAST_QUESTION : ""), s.longform, undefined, v2, steer);
@@ -491,7 +491,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           await logRun(env, s, () => {});
         }
         // v2: the app, not the model, decides when a thread has run dry; the page passes this to the voice.
-        const steer = s.promptV === 2 && answersLeft(s.turns) > 2 ? steerNote(s.questions ?? [], s.turns, s.steeredAt) : undefined;
+        const steer = s.promptV !== 1 && answersLeft(s.turns) > 2 ? steerNote(s.questions ?? [], s.turns, s.steeredAt) : undefined;
         if (steer) {
           s.steeredAt = s.turns.length;
           await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: "app steered the voice to a new thread" }));
@@ -556,7 +556,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const note = s.longform
           ? `\n\nThey just read the draft of their piece and came back to keep talking. Welcome them back in a few words, without recapping, and ask one easy, open question about a part of the piece that's still thin.`
           : `\n\nThey just looked for stories and found ${found === 1 ? "only one" : found === 0 ? "none yet" : `only ${found}`}, so they came back to keep talking. Welcome them back in a few words, without recapping, and ask one easy, open question from a fresh angle you haven't covered yet.`;
-        const { fallback, wrapUp: _ended, ...next } = await reply(env, s.questions ?? [], s.turns, (s.brief ?? "").slice(0, 12000) + note, s.longform, undefined, s.promptV === 2);
+        const { fallback, wrapUp: _ended, ...next } = await reply(env, s.questions ?? [], s.turns, (s.brief ?? "").slice(0, 12000) + note, s.longform, undefined, s.promptV !== 1);
         s.turns.push(next);
         s.drafts = []; // back to talking: a reload lands on the conversation, and the next harvest reads it all
         await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: fallback ? "keep talking, reply FAILED" : "keep talking" }));
@@ -767,7 +767,7 @@ async function modelOpener(env: Env, s: Session): Promise<Turn> {
   // The opener only needs the overview, not the build notes: a shorter prompt answers faster,
   // and if the model is slow the rule-based question (in plain words) starts things instead.
   const overview = (s.brief ?? "").replace(/\nBuild notes \(background[\s\S]*?(?=\nTechnical depth is their choice)/, "");
-  const { fallback, wrapUp: _w, ...first } = await reply(env, s.questions ?? [], [], overview + note, false, 10_000, s.promptV === 2);
+  const { fallback, wrapUp: _w, ...first } = await reply(env, s.questions ?? [], [], overview + note, false, 10_000, s.promptV !== 1);
   if (fallback && s.repo) return opening(s.questions ?? []);
   return { ...first, about: first.about ?? 0 };
 }
