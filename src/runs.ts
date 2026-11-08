@@ -23,13 +23,13 @@ export interface Run {
 
 // Starts a fresh run for a new interview, or does nothing if they opted out.
 export function beginRun(s: Session): void {
-  s.runKey = s.keepLog === false ? undefined : `run:${(9_999_999_999_999 - Date.now()).toString().padStart(13, "0")}:${randomToken(6)}`;
+  s.runKey = s.keepLog !== true ? undefined : `run:${(9_999_999_999_999 - Date.now()).toString().padStart(13, "0")}:${randomToken(6)}`;
 }
 
 // Read, change and write back this session's run. Logging must never break
 // the interview, so failures are only reported to the console.
 export async function logRun(env: Env, s: Session, change: (r: Run) => void): Promise<void> {
-  if (!s.runKey || s.keepLog === false) return;
+  if (!s.runKey || s.keepLog !== true) return;
   try {
     const now = new Date().toISOString();
     const stored = await env.SESSIONS.get(s.runKey);

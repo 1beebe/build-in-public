@@ -382,7 +382,7 @@ ${NAV}
     <h1 id="heroH" class="rise">A conversation of up to 10-15 minutes becomes a week’s worth of content.</h1>
     <p class="lead rise" style="--i:1">For builders who want to post more but stall at the blank page. Talk through what you worked on and get drafts in your own words, ready to edit in Buffer.</p>
     ${error ? `<p class="alert" role="alert">${escapeHtml(error)}</p>` : ""}
-    <div class="act rise" style="--i:2"><a class="btn" href="/connect"><span class="dot" aria-hidden="true"></span>Connect with Buffer</a><span class="small">Signs in with Buffer, the social media planner. <a href="https://buffer.com" target="_blank" rel="noopener">The free plan</a> works.</span></div>
+    <div class="act rise" style="--i:2"><a class="btn" href="/connect"><span class="dot" aria-hidden="true"></span>Connect with Buffer</a><span class="small">Signs in with Buffer, the social media planner. <a href="https://buffer.com" target="_blank" rel="noopener">The free plan</a> works. By connecting, you agree to the <a href="/terms">Terms</a> and <a href="/privacy">Privacy note</a>.</span></div>
   </div>
   <div class="hero-phone">
     <div class="stage" aria-hidden="true"></div>
@@ -432,7 +432,7 @@ ${NAV}
   <div class="tiles">
     <details name="faq" open><summary>What does it read in Buffer?</summary><p class="ans">Your tags and recent posts, so its questions fit. It only saves the drafts you approve, and never publishes or schedules anything.</p></details>
     <details name="faq"><summary>Do I need GitHub?</summary><p class="ans">No. A sentence about your week is enough. With a public repo, it reads the README and one week of public work. There's no GitHub sign-in.</p></details>
-    <details name="faq"><summary>What happens to my interview?</summary><p class="ans">It's encrypted and deleted when you disconnect. If you leave the box ticked at setup, Ligaya can read the transcript for 14 days to improve the interviewer.</p></details>
+    <details name="faq"><summary>What happens to my interview?</summary><p class="ans">It's encrypted and deleted when you disconnect. If you tick the box at setup, Ligaya can read the transcript for 14 days to improve the interviewer.</p></details>
     <details name="faq"><summary>Does it remember me?</summary><p class="ans">Only if you tick the box at setup. It remembers what you're still working through, never the transcript.</p></details>
     <details name="faq"><summary>Does it cost anything?</summary><p class="ans">No. It signs in with Buffer, and Buffer's free plan works.</p></details>
     <details name="faq"><summary>Can I run it in my own agent?</summary><p class="ans">Yes. It's a free plugin that keeps a library of your own words on your computer and picks up where you left off. <a href="https://github.com/1beebe/build-in-public/tree/main/plugin">Get the plugin</a>. If it helped you, a <a href="https://github.com/1beebe/build-in-public">star on GitHub</a> helps other builders find it.</p></details>
@@ -452,8 +452,8 @@ ${NAV}
 <footer class="foot">
   <div class="wrap">
     <div class="mark-big"><svg viewBox="3 3 26 26.2" aria-hidden="true"><path d="M16 3C8.8 3 3 8.4 3 15.1c0 3.6 1.7 6.8 4.4 9L6.2 29l5.6-2.8c1.3.4 2.7.6 4.2.6 7.2 0 13-5.4 13-12.1S23.2 3 16 3Z" fill="#f6e016"/><circle cx="16" cy="15" r="4.2" fill="#d7361f"/></svg><p class="nm" aria-hidden="true">The Interviewer</p></div>
-    <div class="links"><a href="/privacy">Privacy</a><a href="/build-flow">Where AI is used</a><a href="https://github.com/1beebe/build-in-public/tree/main/plugin">The plugin</a><a href="https://github.com/1beebe/build-in-public">Star it on GitHub</a><button type="button" data-feedback-open>Feedback</button></div>
-    <div class="last"><p>Built in public for Buffer Commit by Ligaya Beebe. Not made by or affiliated with Buffer.</p><a class="btn" href="/connect">Connect with Buffer</a></div>
+    <div class="links"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/build-flow">Where AI is used</a><a href="https://github.com/1beebe/build-in-public/tree/main/plugin">The plugin</a><a href="https://github.com/1beebe/build-in-public">Star it on GitHub</a><button type="button" data-feedback-open>Feedback</button></div>
+    <div class="last"><p>Built in public for Buffer Commit by Ligaya Beebe. Not made by or affiliated with Buffer. By connecting, you agree to the <a href="/terms">Terms</a> and <a href="/privacy">Privacy note</a>.</p><a class="btn" href="/connect">Connect with Buffer</a></div>
   </div>
 </footer>`,
     { style: LANDING_STYLE, script: LANDING_SCRIPT },
@@ -484,11 +484,11 @@ ${NAV}
 <h2>What's stored</h2>
 <p>Your Buffer sign-in tokens, encrypted with AES-GCM, plus the public GitHub repo link or week note and the current interview: its topics and the conversation, encrypted the same way. Starting a new interview clears the last one. All of it expires 30 days after your last visit. Disconnecting deletes it straight away.</p>
 <h2>What isn't</h2>
-<p>Anything after you're done with it, unless you leave the transcript box ticked or ask it to remember your work (both below). The drafts you choose go to your own Buffer account. Nothing is sold, shared or used for ads.</p>
+<p>Anything after you're done with it, unless you tick the transcript box or ask it to remember your work (both below). The drafts you choose go to your own Buffer account. Nothing is sold, shared or used for ads.</p>
 <h2 id="memory">What it remembers between interviews</h2>
 <p>The setup screen has a second box, unticked by default: "Remember what I'm still working through." Tick it and, after each interview, the app keeps two short lists: up to twelve things you said you were still in the middle of (a decision, a problem, a bet), each as a short phrase, and the titles of up to thirty stories it found. It never keeps the transcript for this. The next interview can open on one of those open threads and steers away from stories you've already found. This is filed under your Buffer account rather than your browser, so it survives Disconnect and is there when you sign in again. It's encrypted at rest. Only you can see it, on the setup screen, where you can forget any item, download it all as Markdown, or forget everything at once. Untick the box and nothing new is added or read. If you don't use it for a year, it deletes itself.</p>
 <h2 id="kept">Transcripts you let us keep</h2>
-<p>The setup screen has a box, ticked by default, that says "Keep this transcript for 14 days so Ligaya can improve the interviewer." While it's ticked, the app keeps a copy of that interview: your repo link or note, the channels you picked, the conversation, the stories it found, the titles you saved, timings and errors, and a rough device label like "iPhone · Safari" (never the full browser string). It's encrypted at rest, only Ligaya can read it, and it deletes itself 14 days after your last activity in that interview. It never includes your Buffer sign-in or your Buffer posts. Untick the box before you start and nothing is kept. To have a kept transcript deleted sooner, send a note through the feedback button.</p>
+<p>The setup screen has a box, unticked by default, that says "Keep this transcript 14 days to help Ligaya improve the app." Only if you tick it, the app keeps a copy of that interview: your repo link or note, the channels you picked, the conversation, the stories it found, the titles you saved, timings and errors, and a rough device label like "iPhone · Safari" (never the full browser string). It's encrypted at rest, only Ligaya can read it, and it deletes itself 14 days after your last activity in that interview. It never includes your Buffer sign-in or your Buffer posts. Leave it unticked and nothing is kept. To have a kept transcript deleted sooner, send a note through the feedback button.</p>
 <h2>Lightweight telemetry</h2>
 <p>The app keeps anonymous daily counts of homepage visits, Buffer connection attempts and completions, interviews started, stories saved, and feedback sent. These counts contain no name, account, IP address, repo, interview text, or cross-site identifier, and expire after 120 days. There are no third-party analytics scripts.</p>
 <h2>Feedback</h2>
@@ -504,7 +504,42 @@ ${NAV}
 <h2>Voice</h2>
 <p>A live voice conversation streams between your browser and OpenAI's voice model. This app passes your browser's connection request to OpenAI and keeps the written transcript for the harvest. The live audio isn't stored here.</p>
 <h2>Contact</h2>
-<p>Ligaya Beebe, L. Beebe, LLC. Not made by or affiliated with Buffer.</p>
+<p>Ligaya Beebe, L. Beebe, LLC. Not made by or affiliated with Buffer. See also the <a href="/terms">Terms</a>.</p>
+<p><a href="/">Back to the start</a></p>
+<p>${FEEDBACK_LINK}</p>
+</article></main>`,
+    { style: PAGE_STYLE },
+  );
+}
+
+export function termsPage(): string {
+  return shell(
+    "Terms · The Interviewer",
+    `
+${NAV}
+<main class="wrap"><article class="doc">
+<h1>Terms of use</h1>
+<p>Last updated November 8, 2026. The Interviewer is run by Ligaya Beebe through L. Beebe, LLC, in Florida. It's built on the Buffer API, but it isn't made by, affiliated with or endorsed by Buffer.</p>
+<h2>Agreeing to these terms</h2>
+<p>By connecting your Buffer account, you agree to these terms and to the <a href="/privacy">Privacy note</a>, which says exactly what the app keeps and for how long. If you don't agree, don't connect. You need to be 18 or older, or the age of majority where you live.</p>
+<h2>Your words stay yours</h2>
+<p>You own what you say in an interview and the drafts made from it. You let the app process your words only to run the service: to send them to the AI services named on the Privacy note, and to save the drafts you choose to your own Buffer account.</p>
+<h2>What the app keeps, and your choices</h2>
+<p>It keeps your current interview and your Buffer sign-in, encrypted, until you disconnect or 30 days pass. It keeps anonymous daily counts of things like visits and interviews started, which carry no name, account or IP address. Everything else is your choice: a transcript is kept for 14 days only if you tick that box at setup, the app remembers your open threads only if you tick that box, and feedback is kept only when you send it. The <a href="/privacy">Privacy note</a> has the details.</p>
+<h2>AI drafts are yours to check</h2>
+<p>Drafts are AI-assisted, built from your own words, and they can still get things wrong. Read every draft before you post it. You're responsible for what you publish. The app saves drafts and Ideas to Buffer and never publishes or schedules anything for you.</p>
+<h2>Using it fairly</h2>
+<p>Don't use the app to break the law, harass anyone, infringe someone else's rights, send spam, or attack or overload the service. Don't try to get around its usage limits. Only point it at public GitHub repos and work you're free to talk about. Your use of Buffer, GitHub and each social network also follows their own terms.</p>
+<h2>Other services</h2>
+<p>The app relies on Buffer, GitHub, OpenAI, MindStudio and Anthropic, and on Cloudflare to host it. Each has its own terms, and the app can only be as available as they are.</p>
+<h2>No guarantees</h2>
+<p>The Interviewer is free and provided as is, without warranties of any kind. It has usage limits, and it may change, pause or end at any time. Access may be suspended for anyone who misuses it.</p>
+<h2>Limits on liability</h2>
+<p>As far as the law allows, L. Beebe, LLC isn't liable for indirect or consequential losses, lost data or lost profits, or for anything you publish. Its total liability for any claim is limited to fifty US dollars.</p>
+<h2>Changes</h2>
+<p>If these terms change, the date at the top changes too. Using the app after a change means you accept the new terms.</p>
+<h2>Law and contact</h2>
+<p>These terms are governed by the laws of Florida, USA. For questions, or to ask for anything of yours to be deleted, use the feedback button.</p>
 <p><a href="/">Back to the start</a></p>
 <p>${FEEDBACK_LINK}</p>
 </article></main>`,
@@ -980,7 +1015,7 @@ export function appPage(): string {
     <label class="fieldset"><span class="lbl">A sentence, a repo or a link</span><span class="hint">A repo link plus a few words works too. Up to 500 characters.</span><textarea id="work" maxlength="500" placeholder="I rebuilt the onboarding for… or github.com/you/project or a link to your demo"></textarea></label>
     <div class="fieldset" id="kindWrap" hidden><span class="lbl">What are you making?</span><span class="hint" id="kindHint"></span><div class="chips" role="radiogroup" aria-label="What are you making?"><label class="chip"><input type="radio" name="kind" value="posts" checked><span>Posts about my week</span></label><label class="chip"><input type="radio" name="kind" value="long"><span>A longer piece, like a newsletter or article</span></label><label class="chip"><input type="radio" name="kind" value="both"><span>Both: a longer piece plus a few short posts</span></label></div></div>
     <div class="fieldset" id="chanWrap" hidden><span class="lbl" id="chanLbl">Write drafts for</span><span class="hint" id="chanHint"></span><div class="chips" id="chans" aria-label="Channels to shape stories for"></div></div>
-    <label class="keep"><input type="checkbox" id="keepLog" checked><span>Keep this transcript 14 days to help Ligaya improve the app. Only she sees it. <a href="/privacy#kept" target="_blank" rel="noopener">What's kept</a></span></label>
+    <label class="keep"><input type="checkbox" id="keepLog"><span>Keep this transcript 14 days to help Ligaya improve the app. Only she sees it. <a href="/privacy#kept" target="_blank" rel="noopener">What's kept</a></span></label>
     <label class="keep"><input type="checkbox" id="keepMemory"><span>Remember open threads so next time picks up where this one stopped. <a href="/privacy#memory" target="_blank" rel="noopener">What's remembered</a></span></label>
     <details class="memory" id="memWrap" hidden><summary>What I remember about your work (<span id="memCount"></span>)</summary><ul id="memList"></ul><div class="row"><button class="btn text" type="button" id="memExport">Download as Markdown</button><button class="btn text" type="button" id="memForgetAll">Forget everything</button></div></details>
     <div class="row"><button id="saveSetup" class="btn" type="button"><span class="rec"></span>Start the interview</button></div>
@@ -998,6 +1033,7 @@ export function appPage(): string {
   <div id="topics" class="topics" aria-label="Topics from your week"></div>
   <p class="steer" id="steerHint">You can steer. Say “ask me about…” or tap Next topic.</p>
   <ol id="log" class="log" aria-live="polite"></ol>
+  <p class="muted small ai-note">The Interviewer is AI and may make mistakes.</p>
 </div>
 <div class="dock"><div class="dock-in">
   <div class="done-row" id="handPop" hidden>
@@ -1024,7 +1060,7 @@ export function appPage(): string {
   <div class="shimmer" id="shimmer"><canvas aria-hidden="true"></canvas><p class="shimmer-line" id="shimmerLine" aria-live="polite"></p></div>
 </section>
 <section id="review" class="screen wide" hidden>
-  <header><h1 id="reviewHead">Stories from your interview</h1><p class="lede" id="reviewLede"></p><p class="muted" id="reviewTx">Not what you hoped for? <button class="btn text" type="button" data-transcript>Get the transcript</button> and write from your own words.</p></header>
+  <header><h1 id="reviewHead">Stories from your interview</h1><p class="lede" id="reviewLede"></p><p class="muted small ai-note">The Interviewer is AI and may make mistakes. Check each draft before you post.</p><p class="muted" id="reviewTx">Not what you hoped for? <button class="btn text" type="button" data-transcript>Get the transcript</button> and write from your own words.</p></header>
   <div class="panel few" id="fewNote" hidden><p id="fewText"></p><div class="row"><button id="moreBtn" class="btn quiet" type="button">Keep talking to find more</button></div></div>
   <div id="drafts" class="drafts"></div>
   <div class="savebar"><button id="showMore" class="btn quiet small" type="button" hidden></button><span class="count" id="saveCount"></span><div class="row"><button id="backTalk" class="btn quiet small" type="button">Keep talking</button><button id="getTranscript" class="btn quiet small" type="button">Get the transcript</button><button id="saveAll" class="btn" type="button">Save to Buffer</button></div></div>
@@ -1173,7 +1209,7 @@ function renderSetup(){
     l.append(i, el("span", "", c.label)); l.title = c.name; $("chans").append(l);
   }
   $("chanWrap").hidden = !seen.size;
-  $("keepLog").checked = state.keepLog !== false;
+  $("keepLog").checked = state.keepLog === true;
   const back = (state.memory || {}).welcome || "";
   $("welcomeBack").textContent = back; $("welcomeBack").hidden = !back;
   drawMemory();

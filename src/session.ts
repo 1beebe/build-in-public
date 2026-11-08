@@ -76,7 +76,7 @@ export interface Session {
   targets?: string[]; // services they want stories shaped for
   harvestMode?: HarvestMode; // what the current drafts were made as
   harvestedTurns?: number; // conversation length when the drafts were made; more talk means re-harvest
-  keepLog?: boolean; // false if they unticked "keep this transcript" at setup
+  keepLog?: boolean; // true only if they ticked "keep this transcript" at setup (opt-in)
   device?: string; // coarse device label for the run log, never the user-agent
   runKey?: string; // where this interview's run log lives, when kept
   runLoggedAt?: number; // last voice transcript copy to the run log
