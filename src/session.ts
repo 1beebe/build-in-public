@@ -77,6 +77,8 @@ export interface Session {
   harvestMode?: HarvestMode; // what the current drafts were made as
   harvestedTurns?: number; // conversation length when the drafts were made; more talk means re-harvest
   keepLog?: boolean; // true only if they ticked "keep this transcript" at setup (opt-in)
+  agreedTerms?: string; // Terms version they agreed to at setup
+  agreedAt?: string; // when they first agreed to that version
   device?: string; // coarse device label for the run log, never the user-agent
   runKey?: string; // where this interview's run log lives, when kept
   runLoggedAt?: number; // last voice transcript copy to the run log

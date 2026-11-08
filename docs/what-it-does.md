@@ -38,7 +38,7 @@ Checked through: `0edfea5`
 
 ## Privacy and memory
 
-- Consent: the landing page says connecting means agreeing to the Terms (`/terms`) and the Privacy note (`/privacy`). The talk and review screens say "The Interviewer is AI and may make mistakes."
+- Consent: setup has a required "I agree to the Terms and Privacy note" box (`/terms`, `/privacy`); the server refuses to start without it and records the Terms version and time. The talk and review screens say "The Interviewer is AI and may make mistakes."
 - Run log: opt-in. Unticked by default; when ticked, it keeps the transcript, harvest output, timings and a rough device label ("iPhone · Safari", never the user-agent string), sealed, for 14 days. Feedback entries carry the same label, and `/stats` splits interviews by phone, tablet and desktop. Only the owner can read it, at `/runs`.
 - Memory: opt-in. It keeps up to 12 open threads and 30 story titles, never transcripts, for one year after last use. Each item can be forgotten individually.
   - Setup greets a returning person with one line ("Welcome back. Last time, you were in the middle of …"). The next interview opens on the newest open thread it hasn't asked about yet, and steers away from stories already found.
