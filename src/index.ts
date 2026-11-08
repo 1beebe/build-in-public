@@ -819,4 +819,4 @@ function mainServices(channels: Channel[]): string[] {
   return (used.length ? used : [...counts.keys()]).slice(0, 4);
 }
 
-const VOICE_RESTING = "Voice is resting for today. Type your answers instead; it works the same.";
+const VOICE_RESTING = "Voice is resting for today. Type your answers instead, or come back tomorrow to use voice again.";
