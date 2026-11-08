@@ -494,13 +494,14 @@ ${NAV}
 <h2>Feedback</h2>
 <p>If you send feedback or a bug report, the message, optional contact detail, page path, time, and a rough device label like "iPhone · Safari" are encrypted at rest and kept for up to 180 days. A one-way daily hash of your IP address is used only to limit spam and expires within two days; the IP itself is never stored.</p>
 <h2>What's read</h2>
-<p>From Buffer: your organization, tags, connected channels, recent Ideas and up to 20 posts from the last 30 days, only to understand who you write for, where you publish, and to avoid repeats. From GitHub: public commits, pull requests and issues in the repo you name. The example on the home page asks GitHub directly from your browser and sends nothing here.</p>
-<h2>Which AI does what</h2>
-<p>Each service gets only what its step needs: your week on GitHub, a summary of your recent posts, the questions and your answers. None of them ever sees your Buffer sign-in.</p>
+<p>From Buffer: your organization, tags, connected channels, recent Ideas and up to 20 posts from the last 30 days, to understand who you write for, where you publish, and to avoid repeats. From GitHub, only if you name a public repo: its description, README, top-level file names, and recent commits, pull requests and issues.</p>
+<h2>What the AI sees</h2>
+<p>To interview you well, the AI services see more than your answers. Before your interview, the app gives them a short brief: your note or link, the repo details above, the channels you publish on, short excerpts from up to 12 of your recent Buffer posts, and, if you ticked memory, what it remembers from last time. Then they see the conversation itself, typed or spoken. None of them ever sees your Buffer sign-in. Don't share anything in an interview you wouldn't want these services to process.</p>
 <ul>
-<li><b>Claude Sonnet 5.5</b>, by Anthropic, through MindStudio: asks the next question when you type your answers. At the end, it finds the stories in the conversation and shapes each one for your channels from your words. Drafts get a light edit for flow and grammar, never a new claim; outlines use only your sentences. If you ask for the transcript instead, no model is called.</li>
-<li><b>OpenAI GPT-Live</b>: holds the live spoken conversation.</li>
+<li><b>Claude Sonnet 5.5</b>, by Anthropic, through MindStudio: asks the next question when you type your answers. At the end, it finds the stories in the conversation and shapes each one for your channels from your words. Drafts get a light edit for flow and grammar, never a new claim; outlines use only your sentences. If memory is on, it also picks out what you're still in the middle of. If you ask for the transcript instead, no model is called.</li>
+<li><b>OpenAI GPT-Live</b>: holds the live spoken conversation. It gets the same brief, plus your voice.</li>
 </ul>
+<p>Under their API terms, <a href="https://developers.openai.com/api/docs/guides/your-data" target="_blank" rel="noopener">OpenAI</a> and Anthropic don't use this data to train their models by default. OpenAI keeps API logs for up to 30 days to monitor abuse. <a href="https://mindstudio.ai/privacy" target="_blank" rel="noopener">MindStudio</a> says it never shares user data with model providers for training.</p>
 <h2>Voice</h2>
 <p>A live voice conversation streams between your browser and OpenAI's voice model. This app passes your browser's connection request to OpenAI and keeps the written transcript for the harvest. The live audio isn't stored here.</p>
 <h2>Contact</h2>
