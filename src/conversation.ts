@@ -278,7 +278,7 @@ function parseArray(text: string): unknown[] {
 export const SERVICE_LABEL: Record<string, string> = {
   linkedin: "LinkedIn", twitter: "X", threads: "Threads", bluesky: "Bluesky", mastodon: "Mastodon",
   instagram: "Instagram", facebook: "Facebook", tiktok: "TikTok", youtube: "YouTube", pinterest: "Pinterest",
-  googlebusiness: "Google Business", substack: "Substack", startPage: "Start Page",
+  googlebusiness: "Google Business", substack: "Substack Notes", startPage: "Start Page",
 };
 const SHORT = ["Text post", "Thread"];
 const FORMATS: Record<string, string[]> = {
