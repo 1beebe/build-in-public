@@ -21,3 +21,8 @@ enabled = true
 type = "Text"
 globs = ["**/*.css", "**/*.svg", "**/app.js"]
 fallthrough = false
+
+[[rules]]
+type = "Data"
+globs = ["**/*.png"]
+fallthrough = false

@@ -27,8 +27,21 @@ export function appPage(flavors: Record<string, string>): string {
 ${HEAD}
 <title>Slop Cannon</title>
 <meta name="description" content="Turn a mundane observation into B2B thought leadership. No AI inside. Then fire it into every open slot in your Buffer queue.">
+<link rel="canonical" href="https://slopcannon.lbeebe.com/">
+<link rel="image_src" href="https://slopcannon.lbeebe.com/og-image.png">
 <meta property="og:title" content="Slop Cannon">
 <meta property="og:description" content="AI-flavored thought leadership with zero AI. Fires into your Buffer queue.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://slopcannon.lbeebe.com/">
+<meta property="og:image" content="https://slopcannon.lbeebe.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Slop Cannon firing social posts, with the words AI-powered thought leadership. No AI inside.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Slop Cannon">
+<meta name="twitter:description" content="AI-flavored thought leadership with zero AI. Fires into your Buffer queue.">
+<meta name="twitter:image" content="https://slopcannon.lbeebe.com/og-image.png">
+<meta name="twitter:image:alt" content="Slop Cannon firing social posts, with the words AI-powered thought leadership. No AI inside.">
 </head>
 <body data-flavor="chatgpt" data-mode="drafts">
 <div class="aurora" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
