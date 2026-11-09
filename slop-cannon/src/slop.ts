@@ -210,6 +210,13 @@ const RESIDUE: Record<Flavor, string[]> = {
   grok: ["[web:1]", "[grok_card]"],
 };
 
+const RESIDUE_TELL: Record<Flavor, string> = {
+  chatgpt: "Leaked ChatGPT citation code",
+  claude: "Unfilled placeholder left in",
+  gemini: "Leaked source tag",
+  grok: "Leaked Grok citation code",
+};
+
 // ---- What each flavor brings ----
 
 interface FlavorKit {
@@ -527,7 +534,7 @@ export function generate(raw: string, flavor: Flavor, seed: number): Slop {
   if (d.chance(0.4)) {
     const i = d.int(1, Math.max(1, parts.length - 3));
     parts[i] = `${parts[i]} ${d.pick(RESIDUE[flavor] ?? RESIDUE.chatgpt)}`;
-    tells.push("Citation residue");
+    tells.push(RESIDUE_TELL[flavor] ?? RESIDUE_TELL.chatgpt);
   }
   if (d.chance(0.12)) {
     parts.push("<|endoftext|>");
