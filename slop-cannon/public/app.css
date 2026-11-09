@@ -1,9 +1,9 @@
 /* Slop Cannon: a generic chatbot that reskins itself per flavor (concept "Chameleon"),
    with Aurora's Slop Score ring and glowing Fire button. */
-body{--bg:#ffffff;--side:#f7f7f8;--ink:#0d0d0d;--soft:#5d5d66;--acc:#10a37f;--acc2:#0b7a5f;--onacc:#ffffff;--bub:#f4f4f4;--line:#e5e5e5;--fireA:#10a37f;--fireB:#34d399;--head:"DM Sans";--glow:rgba(16,163,127,.35)}
-body[data-flavor=claude]{--bg:#faf9f5;--side:#f0eee6;--ink:#2b2a27;--soft:#6b675d;--acc:#d97757;--acc2:#b85c3e;--onacc:#ffffff;--bub:#efebe1;--line:#e3ded2;--fireA:#d97757;--fireB:#f2a07b;--head:"Fraunces";--glow:rgba(217,119,87,.35)}
-body[data-flavor=gemini]{--bg:#f6f4ff;--side:#e9eeff;--ink:#1f1f1f;--soft:#5f6368;--acc:#4f6ef7;--acc2:#a855f7;--onacc:#ffffff;--bub:#eef2fb;--line:#dfe5f2;--fireA:#4285f4;--fireB:#d96570;--head:"DM Sans";--glow:rgba(120,90,255,.35)}
-body[data-flavor=grok]{--bg:#0a0a0a;--side:#141414;--ink:#f5f5f5;--soft:#a3a3a3;--acc:#e8ff3a;--acc2:#ff3df2;--onacc:#000000;--bub:#1c1c1c;--line:#2a2a2a;--fireA:#ff3df2;--fireB:#e8ff3a;--head:"DM Sans";--glow:rgba(255,61,242,.4)}
+body{--bg:#ffffff;--side:#f7f7f8;--ink:#0d0d0d;--soft:#5d5d66;--acc:#10a37f;--acc2:#0b7a5f;--onacc:#ffffff;--bub:#f4f4f4;--line:#e5e5e5;--fireA:#10a37f;--fireB:#34d399;--head:"DM Sans";--glow:rgba(16,163,127,.35);--crimeA:rgba(16,163,127,.16);--crimeB:rgba(52,211,153,.12)}
+body[data-flavor=claude]{--bg:#faf9f5;--side:#f0eee6;--ink:#2b2a27;--soft:#6b675d;--acc:#d97757;--acc2:#b85c3e;--onacc:#ffffff;--bub:#efebe1;--line:#e3ded2;--fireA:#d97757;--fireB:#f2a07b;--head:"Fraunces";--glow:rgba(217,119,87,.35);--crimeA:rgba(217,119,87,.2);--crimeB:rgba(242,160,123,.14)}
+body[data-flavor=gemini]{--bg:#f6f4ff;--side:#e9eeff;--ink:#1f1f1f;--soft:#5f6368;--acc:#4f6ef7;--acc2:#a855f7;--onacc:#ffffff;--bub:#eef2fb;--line:#dfe5f2;--fireA:#4285f4;--fireB:#d96570;--head:"DM Sans";--glow:rgba(120,90,255,.35);--crimeA:rgba(66,133,244,.22);--crimeB:rgba(217,101,112,.18)}
+body[data-flavor=grok]{--bg:#0a0a0a;--side:#141414;--ink:#f5f5f5;--soft:#a3a3a3;--acc:#e8ff3a;--acc2:#ff3df2;--onacc:#000000;--bub:#1c1c1c;--line:#2a2a2a;--fireA:#ff3df2;--fireB:#e8ff3a;--head:"DM Sans";--glow:rgba(255,61,242,.4);--crimeA:rgba(232,255,58,.14);--crimeB:rgba(255,61,242,.2)}
 *{box-sizing:border-box;margin:0}
 html{color-scheme:light}
 body[data-flavor=grok]{color-scheme:dark}
@@ -19,13 +19,15 @@ button{font:inherit;color:inherit}
 .brand{display:flex;gap:8px;align-items:center;padding:10px 12px;font-weight:800;font-size:15px;margin-bottom:6px}
 .brand b{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--acc);color:var(--onacc);font-size:14px}
 body[data-flavor=gemini] .brand b,body[data-flavor=gemini] .spark{background:linear-gradient(135deg,#4285f4,#a855f7,#d96570);color:#fff}
-.sidebtn{border:0;background:none;text-align:left;padding:8px 12px;border-radius:8px;font-size:14px;cursor:pointer}
+.sidebtn{border:0;background:linear-gradient(110deg,var(--fireA),var(--fireB));color:var(--onacc);text-align:center;padding:11px 12px;border-radius:999px;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 8px 24px var(--glow)}
+body[data-flavor=grok] .sidebtn{color:#000}
 .sidebtn:hover,.side a:hover{background:var(--bub)}
 .side h6{font-size:11px;color:var(--soft);font-weight:700;padding:14px 12px 6px}
 .side a{padding:8px 12px;border-radius:8px;font-size:13.5px;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .side a.on{background:var(--bub)}
-.upgrade{margin-top:auto;padding:12px;border-radius:12px;border:1px solid var(--line);font-size:13px;text-align:left;background:none;cursor:pointer;color:var(--soft)}
-.upgrade b{display:block;color:var(--ink)}
+.upgrade{margin-top:auto;padding:12px;border-radius:999px;border:0;font-size:13px;text-align:center;background:linear-gradient(110deg,var(--fireA),var(--fireB));cursor:pointer;color:var(--onacc);box-shadow:0 8px 24px var(--glow)}
+.upgrade b{display:block;color:inherit}
+body[data-flavor=grok] .upgrade{color:#000}
 
 .mainc{display:flex;flex-direction:column;min-height:100vh;min-width:0}
 .top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 22px;position:sticky;top:0;background:var(--bg);z-index:3;transition:background .4s}
@@ -41,9 +43,11 @@ body[data-flavor=grok] .flavor.on{background:var(--acc);color:#000}
 .link{border:0;background:none;color:var(--soft);text-decoration:underline;cursor:pointer;padding:0;font-size:13px}
 .who select{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:var(--bg);color:var(--ink);font:inherit;font-size:13px}
 
-.thread{flex:1;max-width:780px;width:100%;margin:0 auto;padding:10px 22px 30px}
+.thread{flex:1;max-width:780px;width:100%;margin:0 auto;padding:10px 22px 30px;position:relative}
+.thread::before{content:"";position:absolute;z-index:-1;inset:2% -15% 18%;background:radial-gradient(circle at 35% 30%,var(--crimeA),transparent 45%),radial-gradient(circle at 70% 70%,var(--crimeB),transparent 48%);filter:blur(12px);pointer-events:none}
 #chat{display:grid;gap:22px;align-content:start}
 .hello{text-align:center;padding:9vh 0 28px}
+.no-ai-badge{display:inline-block;margin-bottom:16px;padding:6px 13px;border:1px solid var(--line);border-radius:999px;background:color-mix(in srgb,var(--bg) 75%,transparent);box-shadow:0 8px 28px var(--glow);font-size:11px;font-weight:900;letter-spacing:.08em}
 .hello h1{font-family:var(--head);font-weight:500;font-size:clamp(30px,4.6vw,46px);letter-spacing:-.03em;line-height:1.1}
 .hello h1 span{color:var(--ink)}
 body[data-flavor=claude] .hello h1 span,body[data-flavor=grok] .hello h1 span{color:var(--acc)}
@@ -57,6 +61,12 @@ body[data-flavor=gemini] .hello h1 span{background:linear-gradient(90deg,#4285f4
 .loadout select{width:100%;border:0;background:var(--bg);color:var(--ink);border-radius:10px;padding:9px;font:inherit;font-size:13px}
 .loadout input{width:100%;accent-color:var(--acc)}
 .loadout strong{color:var(--ink)}
+.crime-metrics{display:flex;justify-content:center;gap:34px;margin:20px auto 0}
+.crime-metrics div{display:grid;min-width:72px}
+.crime-metrics strong{font-size:30px;line-height:1;font-weight:900;letter-spacing:-.06em;background:linear-gradient(100deg,var(--fireA),var(--fireB));-webkit-background-clip:text;background-clip:text;color:transparent}
+.crime-metrics span{margin-top:3px;font-size:10px;color:var(--soft)}
+body[data-flavor=claude] .crime-metrics strong{font-family:"Fraunces",serif}
+body[data-flavor=grok] .top,body[data-flavor=grok] .loadout,body[data-flavor=grok] .crime-metrics{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;text-transform:uppercase}
 
 .me{justify-self:end;background:var(--bub);padding:12px 16px;border-radius:20px;max-width:75%;font-size:15.5px;overflow-wrap:anywhere;animation:rise .3s ease-out}
 .ai{display:grid;grid-template-columns:34px minmax(0,1fr);gap:12px;animation:rise .3s ease-out}
@@ -145,7 +155,7 @@ body[data-flavor=gemini] .result{background:linear-gradient(120deg,#4285f4,#9b72
 .result a,.result button{border:0;background:var(--bg);color:var(--ink);border-radius:999px;padding:10px 16px;font-weight:800;font-size:13px;cursor:pointer;text-decoration:none}
 @keyframes pop{from{transform:scale(.9);opacity:0}}
 
-.composer{position:sticky;bottom:0;background:linear-gradient(transparent,var(--bg) 30%);padding:20px 22px 16px;z-index:2}
+.composer{position:sticky;bottom:0;background:linear-gradient(transparent,var(--bg) 30%);padding:20px 22px 34px;z-index:2}
 .box{max-width:780px;margin:0 auto;border:1px solid var(--line);border-radius:28px;padding:8px 8px 8px 20px;display:flex;align-items:flex-end;gap:10px;background:var(--bg);box-shadow:0 8px 30px rgba(0,0,0,.06)}
 .box textarea{flex:1;border:0;background:none;resize:none;font:inherit;font-size:16px;color:var(--ink);padding:10px 0;max-height:140px;outline:none}
 .box textarea::placeholder{color:var(--soft)}
@@ -167,8 +177,10 @@ body[data-flavor=gemini] .send{background:linear-gradient(135deg,#4285f4,#a855f7
 .crime-head button{width:34px;height:34px;border:1px solid #fda4af;border-radius:50%;background:rgba(255,255,255,.65);font-size:22px;line-height:1;cursor:pointer;color:#881337}
 .crime-sheet>p{margin:16px 20px 10px;font-size:13px;line-height:1.45;color:#6b415f}
 .crime-sheet ol{display:grid;gap:7px;padding:0 20px 4px;list-style:none;counter-reset:charges}
-.crime-sheet li{counter-increment:charges;padding:9px 11px;border:1px solid #fbcfe8;border-radius:12px;background:#fff;font-size:13px;font-weight:700}
+.crime-sheet li{counter-increment:charges;padding:9px 11px;border:1px solid #fbcfe8;border-radius:12px;background:#fff;font-size:13px}
 .crime-sheet li::before{content:counter(charges,decimal-leading-zero);display:inline-block;width:25px;color:#e11d48;font-size:10px;letter-spacing:.05em}
+.crime-sheet li strong{font-weight:800}
+.crime-sheet li span{display:block;margin:4px 0 0 25px;color:#765269;font-size:11px;line-height:1.35}
 .crime-sheet .crime-note{margin-bottom:20px;font-size:11px;font-style:italic}
 
 /* The shot */
@@ -191,7 +203,7 @@ body.shake .barrel{animation:recoil .4s}
   .app{grid-template-columns:1fr}.side{display:none}
   .top{padding:10px 16px;flex-wrap:wrap;gap:10px}.who{order:-1;margin-left:auto}.picker{width:100%;justify-content:space-between}
   .flavor{padding:8px 6px;font-size:11.5px}
-  .thread{padding:6px 16px 20px}.composer{padding:14px 16px 12px}
+  .thread{padding:6px 16px 20px}.composer{padding:14px 16px 32px}
   .hello{padding:5vh 0 20px}
   .battery{grid-template-columns:1fr}.cannon{width:100px}
   .shells li{grid-template-columns:1fr;gap:2px}

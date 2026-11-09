@@ -54,6 +54,7 @@ ${HEAD}
     </header>
     <main class="thread" id="thread">
       <section class="hello" id="hello">
+        <div class="no-ai-badge">✨ AI-POWERED · NO AI INSIDE</div>
         <h1><span>How can I help you today?</span></h1>
         <p>Tell me one mundane thing. I'll turn it into thought leadership and fire it into every open slot in your Buffer queue.</p>
         <div class="chips">
@@ -75,6 +76,11 @@ ${HEAD}
           <label>Slop intensity: <strong id="intensityName">Peak LinkedIn</strong>
             <input id="intensity" type="range" min="1" max="5" value="3">
           </label>
+        </div>
+        <div class="crime-metrics" aria-label="Extremely legitimate product metrics">
+          <div><strong>10x</strong><span>more slop</span></div>
+          <div><strong>0</strong><span>AI models used</span></div>
+          <div><strong>∞</strong><span>em-dashes</span></div>
         </div>
       </section>
       <div id="chat" aria-live="polite"></div>

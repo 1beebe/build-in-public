@@ -16,14 +16,19 @@
   muted = store.get("muted") === "1";
   const INTENSITY_NAMES = ["", "Barely Employable", "Polished Nonsense", "Peak LinkedIn", "Thought-Leader Overdrive", "LinkedIn Event Horizon"];
   const SHARED_CRIMES = [
-    "Felony border-radius", "Pill proliferation", "Emoji impersonating iconography", "Gratuitous glow",
-    "Fake product metrics", "Sticky-sidebar misconduct", "Glass-adjacent borders",
+    ["Felony border-radius", "Every card, composer and button has been rounded beyond necessity."],
+    ["Pill proliferation", "Flavor tabs, actions, tags and controls are all trapped in capsules."],
+    ["Emoji impersonating iconography", "The speaker, examples, cannon and upgrade controls have no icon license."],
+    ["Gratuitous glow", "The send button, cannon fire and score ring emit unrequested light."],
+    ["Fake product metrics", "The Slop Score confidently measures a thing that does not exist."],
+    ["Sticky-sidebar misconduct", "A fake chat history follows you despite remembering absolutely nothing."],
+    ["Glass-adjacent borders", "One-pixel borders imply premium materials without providing any."],
   ];
   const DESIGN_CRIMES = {
-    chatgpt: { name: "ChatGPT-ish", crimes: ["Corporate green monoculture", "Chatbot impersonation", "Sterile gray bubble district", "Faux-authoritative score ring", "Spark-avatar identity theft"] },
-    claude: { name: "Claude-ish", crimes: ["Aggressive beige", "Editorial serif cosplay", "Tasteful-restraint theater", "Terracotta conflict of interest", "Precious whitespace"] },
-    gemini: { name: "Gemini-ish", crimes: ["Unauthorized gradient", "Rainbow-branding recidivism", "Sparkle-based credentials", "Optimism in excess of code", "Gradient text without a permit"] },
-    grok: { name: "Grok-ish", crimes: ["Edgelord darkness", "Radioactive lime possession", "Magenta accomplice", "Black-market neon glow", "Terminal cosplay without a terminal"] },
+    chatgpt: { name: "ChatGPT-ish", crimes: [["Corporate green monoculture", "Green occupies the avatar, controls, score and firing system."], ["Chatbot impersonation", "A familiar sidebar and composer are operating without authorization."], ["Sterile gray bubble district", "Neutral message bubbles suppress all signs of human life."], ["Faux-authoritative score ring", "A conic chart launders nonsense into evidence."], ["Spark-avatar identity theft", "A geometric glyph is posing as intelligence."]] },
+    claude: { name: "Claude-ish", crimes: [["Aggressive beige", "Background, sidebar and bubbles form an unbroken oatmeal corridor."], ["Editorial serif cosplay", "The headline wears Fraunces to appear contemplative."], ["Tasteful-restraint theater", "Muted controls perform humility while loading a cannon."], ["Terracotta conflict of interest", "Every important action has been compromised by tasteful orange."], ["Precious whitespace", "The interface pauses thoughtfully between ordinary controls."]] },
+    gemini: { name: "Gemini-ish", crimes: [["Unauthorized gradient", "The brand mark, headline, send button and results all contain multiple colors."], ["Rainbow-branding recidivism", "Blue, purple and coral repeatedly appear together at the scene."], ["Sparkle-based credentials", "The brand glyph claims expertise through ✦ alone."], ["Optimism in excess of code", "Lavender surfaces remain upbeat despite the payload."], ["Gradient text without a permit", "The headline refuses to choose one color."]] },
+    grok: { name: "Grok-ish", crimes: [["Edgelord darkness", "The entire interface has entered an unsolicited dark mode."], ["Radioactive lime possession", "Selected controls contain unsafe levels of chartreuse."], ["Magenta accomplice", "Hot pink assists the lime in multiple glowing incidents."], ["Black-market neon glow", "Controls emit nightclub lighting during business hours."], ["Terminal cosplay without a terminal", "Monochrome severity suggests command-line access that does not exist."]] },
   };
   ammunition.value = store.get("ammunition") || "founder";
   intensity.value = store.get("intensity") || "3";
@@ -130,7 +135,11 @@
     $("crimeIntro").textContent = `${record.name} is wanted for ${crimes.length} counts of interface misconduct:`;
     const list = $("crimeList");
     list.textContent = "";
-    crimes.forEach((crime) => list.append(el("li", null, crime)));
+    crimes.forEach(([crime, evidence]) => {
+      const item = el("li");
+      item.append(el("strong", null, crime), el("span", null, evidence));
+      list.append(item);
+    });
   }
 
   function setFlavor(f) {
