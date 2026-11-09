@@ -4,6 +4,8 @@
   const chat = $("chat"), hello = $("hello"), say = $("say");
   let me = { signedIn: false };
   let last = null; // { observation, flavor }
+  let ammo = []; // up to five mundane things; the cannon rotates through them
+  const MAX_AMMO = 5;
   let flavor = "chatgpt";
   let muted = false;
   const store = {
@@ -153,7 +155,8 @@
   // ---- making slop ----
   async function makeSlop(text) {
     const fl = flavor;
-    last = { observation: text, flavor: fl };
+    if (!ammo.includes(text)) { ammo.push(text); if (ammo.length > MAX_AMMO) ammo.shift(); }
+    last = { observation: text, flavor: fl, ammo: [...ammo] };
     hello.hidden = true;
     chat.append(el("div", "me", text));
     const ai = el("div", "ai");
@@ -254,6 +257,29 @@
     return art;
   }
 
+  // The ammo belt: what's loaded, and room to stack more before firing.
+  function ammoBelt() {
+    const belt = el("div", "ammo");
+    belt.append(el("span", "ammo-n", `Ammo ${ammo.length}/${MAX_AMMO}`));
+    ammo.forEach((t, i) => {
+      const chip = el("span", "shell", t.length > 34 ? t.slice(0, 34).replace(/\s+\S*$/, "") + "…" : t);
+      chip.title = t;
+      if (ammo.length > 1) {
+        const x = button("x", "×", () => { ammo.splice(i, 1); aim(); }, "Unload this one");
+        chip.append(x);
+      }
+      belt.append(chip);
+    });
+    if (ammo.length < MAX_AMMO) {
+      belt.append(button("load", "＋ Load another", () => {
+        say.placeholder = "Another mundane thing for the cannon…";
+        say.focus();
+        toast(`Type another mundane thing. Room for ${MAX_AMMO - ammo.length} more.`);
+      }));
+    }
+    return belt;
+  }
+
   async function aim() {
     chat.querySelectorAll(".battery").forEach((n) => n.remove());
     const card = el("section", "battery");
@@ -264,11 +290,12 @@
     chat.append(card);
     if (!me.signedIn) {
       info.append(el("h3", null, "More rounds loaded"));
-      info.append(el("p", null, "One for every open slot in your Buffer queue this week, each a different take on the same mundane thing. Sign in to fire them. Drafts by default, so nothing publishes."));
+      info.append(el("p", null, `One for every open slot in your Buffer queue this week, each a different take on ${ammo.length > 1 ? "your mundane things" : "the same mundane thing"}. Sign in to fire them. Drafts by default, so nothing publishes.`));
+      info.append(ammoBelt());
       const stack = el("div", "stack");
       info.append(stack);
       const kinds = [["LinkedIn", "long"], ["X", "short"], ["Threads", "short"]];
-      Promise.all(kinds.map(() => call("/api/slop", { observation: last.observation, flavor: last.flavor }).catch(() => null))).then((outs) => {
+      Promise.all(kinds.map((_, i) => call("/api/slop", { observation: ammo[i % ammo.length], flavor: last.flavor }).catch(() => null))).then((outs) => {
         outs.forEach((o, i) => {
           if (!o) return;
           const c = el("article", "round");
@@ -293,7 +320,7 @@
     info.append(el("p", "live-think", "Scanning your queue for open slots…"));
     let plan;
     try {
-      plan = await call("/api/aim", { observation: last.observation, flavor: last.flavor, tag: store.get("tag") !== "0" });
+      plan = await call("/api/aim", { observations: ammo, flavor: last.flavor, tag: store.get("tag") !== "0" });
     } catch (e) {
       info.textContent = "";
       info.append(el("h3", null, "The cannon jammed"), el("p", null, e.message));
@@ -302,6 +329,7 @@
     }
     info.textContent = "";
     renderPlan(card, info, plan);
+    info.insertBefore(ammoBelt(), info.children[2] || null);
     scrollDown();
   }
 
@@ -483,7 +511,7 @@
   });
   say.addEventListener("input", () => { say.style.height = "auto"; say.style.height = Math.min(say.scrollHeight, 140) + "px"; });
   document.querySelectorAll("[data-say]").forEach((b) => (b.onclick = (e) => { e.preventDefault(); makeSlop(b.dataset.say); }));
-  $("newChat").onclick = () => { chat.textContent = ""; hello.hidden = false; last = null; say.focus(); };
+  $("newChat").onclick = () => { chat.textContent = ""; hello.hidden = false; last = null; ammo = []; say.placeholder = "What mundane thing happened?"; say.focus(); };
   $("pro").onclick = () => toast("There is no Max. There is only more.");
   const mute = $("mute");
   const paintMute = () => { mute.textContent = muted ? "🔇" : "🔊"; mute.setAttribute("aria-pressed", String(muted)); mute.setAttribute("aria-label", muted ? "Sound is off" : "Sound is on"); };
@@ -500,6 +528,7 @@
     if (params.get("loaded") && me.signedIn) toast("Cannon loaded. 🎯");
     if (pending && me.signedIn && pending.observation) {
       setFlavor(pending.flavor || flavor);
+      ammo = Array.isArray(pending.ammo) ? pending.ammo.filter((t) => t !== pending.observation).slice(0, MAX_AMMO - 1) : [];
       makeSlop(pending.observation);
     }
     if (params.toString()) history.replaceState(null, "", "/");

@@ -171,3 +171,10 @@ body.shake .barrel{animation:recoil .4s}
   .ai{grid-template-columns:1fr}.spark{display:none}
   .verdict{grid-template-columns:1fr}
 }
+/* ammo belt: up to five mundane things, the cannon rotates through them */
+.ammo{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px}
+.ammo-n{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--acc)}
+.ammo .shell{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;padding:4px 10px;border-radius:999px;background:var(--bub);border:1px solid var(--line);max-width:100%}
+.ammo .x{border:0;background:none;color:var(--soft);font-size:14px;line-height:1;cursor:pointer;padding:0 0 0 2px}
+.ammo .load{font:inherit;font-size:12.5px;font-weight:700;padding:4px 12px;border-radius:999px;border:1.5px dashed var(--acc);background:none;color:var(--acc);cursor:pointer}
+.ammo .load:hover{background:var(--bub)}

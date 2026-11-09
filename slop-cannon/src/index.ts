@@ -112,6 +112,12 @@ function observationOf(v: unknown): string {
   if (s.length > 200) throw new UserError("Keep it under 200 characters. Mundane is short.");
   return s;
 }
+// Up to five mundane things; rounds rotate across them.
+function observationsOf(b: Record<string, unknown>): string[] {
+  const raw = Array.isArray(b.observations) ? b.observations : [b.observation];
+  const list = [...new Set(raw.slice(0, 5).map(observationOf))];
+  return list.length ? list : [observationOf(undefined)];
+}
 function seedOf(v: unknown): number {
   return typeof v === "number" && Number.isFinite(v) ? Math.floor(v) >>> 0 : (Math.random() * 2 ** 32) >>> 0;
 }
@@ -171,7 +177,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const b = await body(req);
         if (!s.organizationId) throw new UserError("This Buffer account has no organization to fire at.");
         const flavor = flavorOf(b.flavor);
-        const observation = observationOf(b.observation);
+        const observations = observationsOf(b);
         const tagIt = b.tag !== false;
         const channels = await getChannels(client, s.organizationId);
         const usable = channels.filter((c) => TEXT_SERVICES.has(c.service));
@@ -182,6 +188,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         let seed = seedOf(b.seed);
         // Each plan caps how many posts a channel's queue can hold; only fill what's left.
         const queueLimit = s.queueLimit ?? DEFAULT_QUEUE;
+        let shot = 0;
         for (const ch of usable) {
           const mine = taken.filter((t) => t.channelId === ch.id);
           const room = Math.max(0, queueLimit - mine.length);
@@ -190,7 +197,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
             skipped.push({ name: ch.name, service: ch.service, why: ch.queuePaused ? "its queue is paused" : !room ? `its queue is full (${queueLimit} on your plan)` : "no open slots this week" });
           }
           for (const slot of slots) {
-            const slop = generate(observation, flavor, seed++);
+            const slop = generate(observations[shot++ % observations.length], flavor, seed++);
             let text = SHORT_SERVICES.has(ch.service) ? slop.short : slop.long;
             if (tagIt && !text.includes(TAG)) text = SHORT_SERVICES.has(ch.service) && text.length + TAG.length + 1 > 280 ? text : `${text} ${TAG}`;
             shells.push({ channelId: ch.id, service: ch.service, channelName: ch.name, dueAt: new Date(slot.at).toISOString(), text });
@@ -198,7 +205,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         }
         shells.sort((a, b2) => a.dueAt.localeCompare(b2.dueAt));
         shells = shells.slice(0, PER_SHOT);
-        s.loaded = { observation, flavor, shells, at: now };
+        s.loaded = { observation: observations.join(" | "), flavor, shells, at: now };
         await save();
         return json({ shells, skipped, horizonDays: HORIZON_DAYS, queueLimit });
       }
