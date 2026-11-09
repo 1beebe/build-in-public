@@ -27,15 +27,26 @@
     gemini: { name: "Gemini-ish · 2022", crimes: [["Purple gradients everywhere", "Buttons, text, numbers and backgrounds all refuse a single color."], ["Glassmorphism everywhere", "Translucent panels blur layers that never needed separating."], ["Neon-edge accumulation", "Soft glowing borders make ordinary controls feel radioactive."], ["Extreme border-radius", "Small cards have been inflated into friendly blobs."], ["Card inside card", "Nested translucent surfaces consume space without adding structure."], ["Radial-gradient halo", "A colorful aura appears behind content for spiritual reasons."], ["Sparkle-based credentials", "The brand glyph claims expertise through ✦ alone."], ["Gradient text without a permit", "The headline refuses to choose one color."]] },
     grok: { name: "Grok-ish · ???", crimes: [["Cyberpunk by default", "A decorative grid and neon accents imply a dystopia nobody requested."], ["Edgelord darkness", "The entire interface has entered an unsolicited dark mode."], ["Radioactive lime possession", "Selected controls contain unsafe levels of chartreuse."], ["Magenta accomplice", "Hot pink assists the lime in multiple glowing incidents."], ["Terminal cosplay", "Monospace capitals imply command-line access that does not exist."], ["Decorative blinking cursor", "The static headline pretends it is still being typed."], ["Pulsing status dot", "A motion signal reports that nothing in particular is happening."], ["Sharp-corner overcorrection", "Every surface rejects softness with suspicious intensity."]] },
   };
-  ammunition.value = store.get("ammunition") || "founder";
+  const ammunitionInputs = [...ammunition.querySelectorAll('input[type="checkbox"]')];
+  let savedAmmunition = [store.get("ammunition") || "founder"];
+  try { savedAmmunition = JSON.parse(store.get("ammunitions") || "null") || savedAmmunition; } catch {}
+  ammunitionInputs.forEach((input) => { input.checked = savedAmmunition.includes(input.value); });
+  if (!ammunitionInputs.some((input) => input.checked)) ammunitionInputs[0].checked = true;
   intensity.value = store.get("intensity") || "3";
-  const loadout = () => ({ ammunition: ammunition.value, intensity: Number(intensity.value) });
+  const selectedAmmunition = () => ammunitionInputs.filter((input) => input.checked).map((input) => input.value);
+  const loadout = () => ({ ammunitions: selectedAmmunition(), intensity: Number(intensity.value) });
   const paintIntensity = () => {
     const level = Math.max(1, Math.min(5, Number(intensity.value) || 3));
     intensityName.textContent = INTENSITY_NAMES[level];
   };
   const changeIntensity = () => { store.set("intensity", intensity.value); paintIntensity(); };
-  ammunition.onchange = () => store.set("ammunition", ammunition.value);
+  ammunition.onchange = (e) => {
+    if (!selectedAmmunition().length) {
+      e.target.checked = true;
+      toast("The cannon needs at least one kind of ammunition.");
+    }
+    store.set("ammunitions", JSON.stringify(selectedAmmunition()));
+  };
   intensity.addEventListener("input", changeIntensity);
   intensity.addEventListener("change", changeIntensity);
   paintIntensity();
@@ -344,7 +355,7 @@
       const stack = el("div", "stack");
       info.append(stack);
       const kinds = [["LinkedIn", "long"], ["X", "short"], ["Threads", "short"]];
-      Promise.all(kinds.map((_, i) => call("/api/slop", { observation: ammo[i % ammo.length], flavor: last.flavor, ammunition: last.ammunition, intensity: last.intensity }).catch(() => null))).then((outs) => {
+      Promise.all(kinds.map((_, i) => call("/api/slop", { observation: ammo[i % ammo.length], flavor: last.flavor, ammunition: last.ammunitions[i % last.ammunitions.length], intensity: last.intensity }).catch(() => null))).then((outs) => {
         outs.forEach((o, i) => {
           if (!o) return;
           const c = el("article", "round");
@@ -369,7 +380,7 @@
     info.append(el("p", "live-think", "Scanning your queue for open slots…"));
     let plan;
     try {
-      plan = await call("/api/aim", { observations: ammo, flavor: last.flavor, ammunition: last.ammunition, intensity: last.intensity, tag: store.get("tag") !== "0" });
+      plan = await call("/api/aim", { observations: ammo, flavor: last.flavor, ammunitions: last.ammunitions, intensity: last.intensity, tag: store.get("tag") !== "0" });
     } catch (e) {
       info.textContent = "";
       info.append(el("h3", null, "The cannon jammed"), el("p", null, e.message));
@@ -510,7 +521,8 @@
         stat.append(el("strong", null, String(value)), el("span", null, labelText));
         stats.append(stat);
       }
-      report.append(stats, el("p", null, `Payload: ${ammunition.selectedOptions[0].textContent} · ${INTENSITY_NAMES[level]}`));
+      const payload = ammunitionInputs.filter((input) => input.checked).map((input) => input.parentElement.textContent.trim()).join(" + ");
+      report.append(stats, el("p", null, `Payload: ${payload} · ${INTENSITY_NAMES[level]}`));
       chat.append(report);
     }
     scrollDown();
@@ -658,7 +670,8 @@
     if (params.get("loaded") && me.signedIn) toast("Cannon loaded. 🎯");
     if (pending && me.signedIn && pending.observation) {
       setFlavor(pending.flavor || flavor);
-      if (pending.ammunition) ammunition.value = pending.ammunition;
+      const pendingAmmunition = pending.ammunitions || (pending.ammunition ? [pending.ammunition] : null);
+      if (pendingAmmunition) ammunitionInputs.forEach((input) => { input.checked = pendingAmmunition.includes(input.value); });
       if (pending.intensity) intensity.value = String(pending.intensity);
       paintIntensity();
       ammo = Array.isArray(pending.ammo) ? pending.ammo.filter((t) => t !== pending.observation).slice(0, MAX_AMMO - 1) : [];

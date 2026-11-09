@@ -63,16 +63,15 @@ ${HEAD}
           <button type="button" data-say="I parallel parked on the first try">🚗 Parallel parking</button>
         </div>
         <div class="loadout" aria-label="Slop cannon loadout">
-          <label>Ammunition type
-            <select id="ammunition">
-              <option value="founder">Founder Mode</option>
-              <option value="vulnerable">Vulnerable Leadership</option>
-              <option value="framework">Unnecessary Framework</option>
-              <option value="contrarian">Contrarian Take</option>
-              <option value="epiphany">Airport Epiphany</option>
-              <option value="notes">Screenshot This™</option>
-            </select>
-          </label>
+          <fieldset class="ammunition" id="ammunition">
+            <legend>Ammunition types <span>pick several</span></legend>
+            <label><input type="checkbox" value="founder" checked>Founder Mode</label>
+            <label><input type="checkbox" value="vulnerable">Vulnerable Leadership</label>
+            <label><input type="checkbox" value="framework">Unnecessary Framework</label>
+            <label><input type="checkbox" value="contrarian">Contrarian Take</label>
+            <label><input type="checkbox" value="epiphany">Airport Epiphany</label>
+            <label><input type="checkbox" value="notes">Screenshot This™</label>
+          </fieldset>
           <label>Slop intensity: <strong id="intensityName">Peak LinkedIn</strong>
             <input id="intensity" type="range" min="1" max="5" value="3">
           </label>
