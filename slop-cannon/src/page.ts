@@ -69,7 +69,7 @@ ${HEAD}
               <option value="framework">Unnecessary Framework</option>
               <option value="contrarian">Contrarian Take</option>
               <option value="epiphany">Airport Epiphany</option>
-              <option value="notes">Notes App Screenshot</option>
+              <option value="notes">Screenshot This™</option>
             </select>
           </label>
           <label>Slop intensity: <strong id="intensityName">Peak LinkedIn</strong>
