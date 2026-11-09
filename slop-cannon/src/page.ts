@@ -1,20 +1,25 @@
 // The page shell. The look lives in public/app.css and the behavior in
-// public/app.js, so a new UI concept can replace those two files whole.
+// public/app.js, so a new UI concept can replace those files whole.
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
 const HEAD = `<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light dark">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700;9..40,800&family=Fraunces:opsz,wght@9..144,500&display=swap">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/app.css">`;
 
+const CANNON = `<svg class="cannon" viewBox="0 0 160 100" aria-hidden="true">
+  <g class="barrel"><rect x="40" y="22" width="108" height="30" rx="14" transform="rotate(-18 60 50)" fill="var(--ink)"/><rect x="132" y="2" width="16" height="38" rx="6" transform="rotate(-18 60 50)" fill="var(--acc)"/></g>
+  <circle cx="56" cy="70" r="26" fill="none" stroke="var(--ink)" stroke-width="8"/><circle cx="56" cy="70" r="6" fill="var(--acc)"/>
+  <path d="M56 44v52M30 70h52M38 52l36 36M74 52L38 88" stroke="var(--ink)" stroke-width="4"/>
+</svg>`;
+
 export function appPage(flavors: Record<string, string>): string {
-  const options = Object.entries(flavors)
-    .map(([k, v]) => `<option value="${esc(k)}">${esc(v)}</option>`)
+  const tabs = Object.entries(flavors)
+    .map(([k, v], i) => `<button class="flavor${i === 0 ? " on" : ""}" type="button" role="tab" aria-selected="${i === 0}" data-flavor="${esc(k)}">${esc(v)}</button>`)
     .join("");
   return `<!doctype html>
 <html lang="en">
@@ -25,80 +30,50 @@ ${HEAD}
 <meta property="og:title" content="Slop Cannon">
 <meta property="og:description" content="AI-flavored thought leadership with zero AI. Fires into your Buffer queue.">
 </head>
-<body>
-<div class="blobs" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-<div class="shell">
-  <aside class="side glass" aria-label="Chats">
-    <button class="new" id="newChat" type="button">＋ New slop</button>
-    <p class="side-h">Today</p>
-    <ul class="history">
-      <li>Q3 synergy roadmap ✨</li>
-      <li>Rewrite my bio but more visionary</li>
-      <li>Is churn a feeling?</li>
-      <li>10 ways my dog is a CRO</li>
-      <li>Make this email sound like a TED talk</li>
-    </ul>
-    <p class="side-h">Previous 7 days</p>
-    <ul class="history">
-      <li>Leadership lessons from a parking ticket</li>
-      <li>Thought leadership but for toddlers</li>
-    </ul>
-    <button class="pro" id="pro" type="button">✨ Upgrade to Slop Pro</button>
+<body data-flavor="chatgpt" data-mode="drafts">
+<div class="flash" aria-hidden="true"></div>
+<div class="app">
+  <aside class="side" aria-label="Chats">
+    <div class="brand"><b>✦</b>Slop Cannon</div>
+    <button class="sidebtn" id="newChat" type="button">＋ New slop</button>
+    <h6>Today</h6>
+    <a class="on" href="#" data-say="My coffee went cold during a meeting">Cold coffee → pipeline insight</a>
+    <a href="#" data-say="I couldn't find a parking spot">Parking lot as a metaphor for churn</a>
+    <h6>Previous 7 days</h6>
+    <a href="#" data-say="My dog ignored me when I called him">What my dog taught me about PLG</a>
+    <a href="#" data-say="The microwave beeped three times">Microwave beeps and founder mode</a>
+    <a href="#" data-say="The elevator stopped on every floor">The elevator is a sales funnel</a>
+    <a href="#" data-say="I tripped on the stairs">I tripped. Here's my GTM strategy.</a>
+    <button class="upgrade" id="pro" type="button"><b>✨ Upgrade to Slop Max</b>Unlimited em dashes</button>
   </aside>
-
-  <main class="main">
+  <div class="mainc">
     <header class="top">
-      <label class="model">
-        <span class="sr">Slop flavor</span>
-        <select id="flavor">${options}</select>
-      </label>
-      <div class="who"><button class="mute" id="mute" type="button" aria-pressed="false" aria-label="Sound is on">🔊</button><span id="who"></span></div>
+      <div class="picker" role="tablist" aria-label="Slop flavor">${tabs}</div>
+      <div class="who"><button class="iconbtn" id="mute" type="button" aria-pressed="false" aria-label="Sound is on">🔊</button><span id="who"></span></div>
     </header>
-
-    <section class="empty" id="empty">
-      <p class="eyebrow">✨ AI-powered · No AI inside</p>
-      <h1 class="grad">How can I help you synergize today?</h1>
-      <p class="sub">Tell me something mundane that happened. I'll turn it into a B2B SaaS insight, then fire it into every open slot in your Buffer queue.</p>
-      <div class="cards">
-        <button class="card glass" type="button" data-say="My coffee went cold during standup"><span>☕</span><b>Coffee</b><em>My coffee went cold during standup</em></button>
-        <button class="card glass" type="button" data-say="The dishwasher finished while I was on a call"><span>🍽️</span><b>Dishes</b><em>The dishwasher finished while I was on a call</em></button>
-        <button class="card glass" type="button" data-say="I parallel parked on the first try"><span>🚗</span><b>Parking</b><em>I parallel parked on the first try</em></button>
-      </div>
-      <div class="metrics">
-        <div><strong class="grad">10x</strong><span>more slop</span></div>
-        <div><strong class="grad">0</strong><span>AI models used</span></div>
-        <div><strong class="grad">∞</strong><span>em-dashes</span></div>
-      </div>
-    </section>
-
-    <section class="chat" id="chat" aria-live="polite"></section>
-
-    <form class="composer glass" id="composer">
-      <label class="sr" for="say">Something mundane</label>
-      <textarea id="say" rows="1" maxlength="200" placeholder="Tell me something mundane…"></textarea>
-      <button class="send" id="send" type="submit" aria-label="Make slop">↑</button>
-    </form>
-    <p class="fine">Slop Cannon can make mistakes. It is, in fact, made of them. No AI was used. Not affiliated with OpenAI, Anthropic, Google or xAI. <a href="/privacy">Privacy</a> · <button class="crimes" id="crimes" type="button" aria-expanded="false">🚨 Design crimes: <b>12</b></button></p>
-  </main>
+    <main class="thread" id="thread">
+      <section class="hello" id="hello">
+        <h1><span>How can I help you today?</span></h1>
+        <p>Tell me one mundane thing. I'll turn it into thought leadership and fire it into every open slot in your Buffer queue.</p>
+        <div class="chips">
+          <button type="button" data-say="My coffee went cold during a meeting">☕ Cold coffee</button>
+          <button type="button" data-say="The dishwasher finished while I was on a call">🍽️ Dishwasher</button>
+          <button type="button" data-say="I parallel parked on the first try">🚗 Parallel parking</button>
+        </div>
+      </section>
+      <div id="chat" aria-live="polite"></div>
+    </main>
+    <div class="composer">
+      <form class="box" id="composer">
+        <label class="sr" for="say">Something mundane</label>
+        <textarea id="say" rows="1" maxlength="200" placeholder="What mundane thing happened?"></textarea>
+        <button class="send" type="submit" aria-label="Make slop">↑</button>
+      </form>
+      <p class="disc">Slop Cannon can make mistakes. That's the point. No AI inside. Not affiliated with OpenAI, Anthropic, Google, xAI or Buffer. <a href="/privacy">Privacy</a></p>
+    </div>
+  </div>
 </div>
-
-<div class="crime-list glass" id="crimeList" hidden>
-  <p><b>This page breaks every rule on purpose.</b> Impeccable's AI-slop list, as a checklist:</p>
-  <ul>
-    <li>Eyebrow kicker above the heading</li>
-    <li>Gradient text</li>
-    <li>Glassmorphism everywhere</li>
-    <li>Three same-size icon cards</li>
-    <li>Hero metrics: big number, small label</li>
-    <li>Emoji standing in for icons</li>
-    <li>Glowing halo shadows</li>
-    <li>Floating gradient blobs</li>
-    <li>Purple-to-pink, obviously</li>
-    <li>Inter, the font of the singularity</li>
-    <li>Sparkles ✨ on things that aren't magic</li>
-    <li>A modal you didn't need (the Pro one)</li>
-  </ul>
-</div>
+<template id="cannonArt">${CANNON}</template>
 <div class="toast" id="toast" role="status" hidden></div>
 <script src="/app.js"></script>
 </body>
@@ -108,7 +83,7 @@ ${HEAD}
 export function privacyPage(): string {
   return `<!doctype html>
 <html lang="en"><head>${HEAD}<title>Slop Cannon privacy</title></head>
-<body class="doc"><main class="prose glass">
+<body data-flavor="claude" class="doc"><main class="prose">
 <h1>Privacy</h1>
 <p>Slop Cannon is a joke with a real Buffer connection, made by L. Beebe, LLC for Buffer Commit.</p>
 <p><b>No AI.</b> Every post comes from hand-written templates and a random number. Nothing you type is sent to any AI service, or anywhere but this app.</p>

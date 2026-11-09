@@ -10,10 +10,14 @@ BUFFER_CLIENT_ID = "H3kKwv_riHF3jA7XwVD-RAl-8IE9KvdC2gqNrEcclde"
 
 [[kv_namespaces]]
 binding = "SESSIONS"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "f4ef060fff394d9f8955fee9045e21bb"
 
 [observability]
 enabled = true
 
-[assets]
-directory = "./public"
+# The page's CSS, JS and icon are bundled into the Worker as text, so a plain
+# script upload deploys the whole app.
+[[rules]]
+type = "Text"
+globs = ["**/*.css", "**/*.svg", "**/app.js"]
+fallthrough = false

@@ -7,6 +7,7 @@ import { FLAVORS, SHORT_SERVICES, generate, type Flavor } from "./slop";
 import { openSlots } from "./slots";
 import { cookie, createSession, destroySession, loadSession, readCookie, saveSession, type Session, type Shell } from "./session";
 import { appPage, privacyPage } from "./page";
+import { STATIC } from "./static";
 
 // How hard the cannon may hit. Buffer's quota is shared by everyone signed in,
 // so one person can't empty it, and nobody's queue gets more than a week of slop.
@@ -44,6 +45,8 @@ export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url);
     try {
+      const file = STATIC[url.pathname];
+      if (req.method === "GET" && file) return new Response(file.body, { headers: headers({ "Content-Type": file.type, "Cache-Control": "public, max-age=300" }) });
       if (req.method === "GET" && (url.pathname === "/" || url.pathname === "/app")) return html(appPage(Object.fromEntries(Object.entries(FLAVORS).map(([k, v]) => [k, v.label]))));
       if (req.method === "GET" && url.pathname === "/privacy") return html(privacyPage());
       if (req.method === "GET" && url.pathname === "/connect") return connect(env);

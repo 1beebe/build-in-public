@@ -128,8 +128,8 @@ const ROLES = [
   "Series A CEOs", "solopreneurs", "RevOps leaders", "first-time managers",
 ];
 const ABSTRACT = [
-  "alignment", "intentionality", "trust", "the system", "the mindset", "showing up", "compounding",
-  "ownership", "clarity", "the process", "the reps", "consistency", "positioning", "the long game", "focus",
+  "alignment", "intentionality", "trust", "systems thinking", "mindset", "showing up", "compounding",
+  "ownership", "clarity", "process", "reps", "consistency", "positioning", "long-game thinking", "focus",
 ];
 const TRIADS = [
   "Clarity. Consistency. Compounding.", "Listen. Learn. Lead.", "Build. Measure. Repeat.",
