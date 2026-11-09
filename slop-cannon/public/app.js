@@ -246,8 +246,24 @@
     card.append(info);
     chat.append(card);
     if (!me.signedIn) {
-      info.append(el("h3", null, "Load the cannon"));
-      info.append(el("p", null, "Sign in with Buffer and the cannon finds every open slot in your queue for the next week, then writes a different post for each one. Drafts by default, so nothing publishes."));
+      info.append(el("h3", null, "More rounds loaded"));
+      info.append(el("p", null, "One for every open slot in your Buffer queue this week, each a different take on the same mundane thing. Sign in to fire them. Drafts by default, so nothing publishes."));
+      const stack = el("div", "stack");
+      info.append(stack);
+      const kinds = [["LinkedIn", "long"], ["X", "short"], ["Threads", "short"]];
+      Promise.all(kinds.map(() => call("/api/slop", { observation: last.observation, flavor: last.flavor }).catch(() => null))).then((outs) => {
+        outs.forEach((o, i) => {
+          if (!o) return;
+          const c = el("article", "round");
+          // Skip a leaked chatbot preamble so the peek starts on the post.
+          const raw = o[kinds[i][1]];
+          const text = raw.includes("\n\n---\n\n") && raw.indexOf("\n\n---\n\n") < 220 ? raw.slice(raw.indexOf("\n\n---\n\n") + 7) : raw;
+          c.append(el("b", null, kinds[i][0]), el("p", null, text.length > 220 ? text.slice(0, 220).replace(/\s+\S*$/, "") + "…" : text));
+          stack.append(c);
+        });
+        stack.append(el("p", "more", "+ more loaded"));
+        scrollDown();
+      });
       const a = el("a", "signin", "Sign in with Buffer");
       a.href = "/connect";
       a.style.display = "inline-block";

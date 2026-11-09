@@ -405,7 +405,7 @@ const KITS: Record<Flavor, FlavorKit> = {
     hooks: [
       "not gonna lie, {obs} and it completely rewired how i think about {topic}",
       "Unhinged take: {obs}, and that's the most honest thing that happened in {topic} this year. 🔥",
-      "The {topic} establishment doesn't want you to know this, but {obs}.",
+      "The {topicBare} establishment doesn't want you to know this, but {obs}.",
       "{obs}. ratio'd by a {thing}. humbling.",
     ],
     pivots: ["here's the thing nobody's saying out loud:", "and honestly? based.", "Hot take incoming. 🔥"],
