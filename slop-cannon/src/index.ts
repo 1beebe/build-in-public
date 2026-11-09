@@ -78,7 +78,13 @@ async function callback(req: Request, env: Env, url: URL): Promise<Response> {
   const code = url.searchParams.get("code");
   if (!code || !verifier) return redirect("/?error=expired", { "Set-Cookie": clear });
 
-  const tokens = await exchangeCode(env, code, verifier);
+  let tokens;
+  try {
+    tokens = await exchangeCode(env, code, verifier);
+  } catch (err) {
+    console.error(err);
+    return redirect("/?error=signin", { "Set-Cookie": clear });
+  }
   const existing = await loadSession(req, env);
   const session: Session = existing ? { ...existing.data, tokens } : { tokens };
   const { orgs } = await getOrgs(new BufferClient(env, session));

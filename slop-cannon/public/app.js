@@ -475,7 +475,7 @@
 
   const params = new URLSearchParams(location.search);
   const err = params.get("error");
-  if (err) toast(err === "denied" ? "Buffer sign-in cancelled. The cannon stays unloaded." : "That sign-in didn't finish. Try again.", true);
+  if (err) toast(err === "denied" ? "Buffer sign-in cancelled. The cannon stays unloaded." : err === "signin" ? "Buffer didn't accept the sign-in. Try again in a minute." : "That sign-in didn't finish. Try again.", true);
   loadMe().then(() => {
     // Back from Buffer: pick up the slop they were about to fire.
     let pending = null;
