@@ -234,7 +234,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const live = b.live === true;
         if (live && b.confirm !== "FIRE") throw new UserError("Live rounds need the confirm.");
         const plan = s.loaded;
-        if (!plan?.shells.length) throw new UserError("Aim first: the cannon is empty.");
+        if (!plan?.shells.length) throw new UserError("The cannon is empty or the aim went stale. Aim again so the slots are fresh.");
         if (Date.now() - plan.at > 30 * 60_000) throw new UserError("That aim is stale. Aim again so the slots are fresh.");
         const recent = (s.shots ?? []).filter((t) => Date.now() - t < 3_600_000);
         if (recent.length >= SHOTS_PER_HOUR) throw new UserError("The cannon is overheating. Six shots an hour, tops.", 429);
