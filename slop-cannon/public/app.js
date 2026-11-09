@@ -233,8 +233,25 @@
   }
 
   // ---- the cannon ----
+  // Click the cannon for a dry fire: the sound and recoil, no posts.
   function cannonArt() {
-    return $("cannonArt").content.firstElementChild.cloneNode(true);
+    const art = $("cannonArt").content.firstElementChild.cloneNode(true);
+    art.setAttribute("role", "button");
+    art.setAttribute("tabindex", "0");
+    art.setAttribute("aria-label", "Dry fire (sound only)");
+    const dry = () => {
+      const wasMuted = muted;
+      muted = false;
+      boom(1);
+      muted = wasMuted;
+      document.body.classList.remove("shake");
+      void document.body.offsetWidth;
+      document.body.classList.add("shake");
+      setTimeout(() => document.body.classList.remove("shake"), 650);
+    };
+    art.addEventListener("click", dry);
+    art.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); dry(); } });
+    return art;
   }
 
   async function aim() {
@@ -470,7 +487,7 @@
   $("pro").onclick = () => toast("There is no Max. There is only more.");
   const mute = $("mute");
   const paintMute = () => { mute.textContent = muted ? "🔇" : "🔊"; mute.setAttribute("aria-pressed", String(muted)); mute.setAttribute("aria-label", muted ? "Sound is off" : "Sound is on"); };
-  mute.onclick = () => { muted = !muted; store.set("muted", muted ? "1" : "0"); paintMute(); };
+  mute.onclick = () => { muted = !muted; store.set("muted", muted ? "1" : "0"); paintMute(); if (!muted) boom(1); };
   paintMute();
 
   const params = new URLSearchParams(location.search);

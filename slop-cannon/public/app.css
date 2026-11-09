@@ -85,7 +85,7 @@ body[data-flavor=grok] .post u{text-decoration-color:var(--acc2)}
 .battery h3{font-size:17px;letter-spacing:-.01em}
 .battery p{font-size:13.5px;color:var(--soft);margin-top:3px;line-height:1.45}
 .battery .full{grid-column:1/-1}
-.cannon{width:140px}
+.cannon{width:140px;cursor:pointer}
 .dots{display:flex;gap:4px;flex-wrap:wrap;margin-top:10px}
 .dots i{width:12px;height:12px;border-radius:4px;background:var(--acc)}
 .dots i.c1{background:var(--acc2)}
