@@ -18,9 +18,14 @@
   ammunition.value = store.get("ammunition") || "founder";
   intensity.value = store.get("intensity") || "3";
   const loadout = () => ({ ammunition: ammunition.value, intensity: Number(intensity.value) });
-  const paintIntensity = () => { intensityName.textContent = INTENSITY_NAMES[Number(intensity.value)]; };
+  const paintIntensity = () => {
+    const level = Math.max(1, Math.min(5, Number(intensity.value) || 3));
+    intensityName.textContent = INTENSITY_NAMES[level];
+  };
+  const changeIntensity = () => { store.set("intensity", intensity.value); paintIntensity(); };
   ammunition.onchange = () => store.set("ammunition", ammunition.value);
-  intensity.oninput = () => { store.set("intensity", intensity.value); paintIntensity(); };
+  intensity.addEventListener("input", changeIntensity);
+  intensity.addEventListener("change", changeIntensity);
   paintIntensity();
 
   // The "thinking" spinner: gerunds that are a little too much, then one

@@ -46,7 +46,9 @@ export default {
     const url = new URL(req.url);
     try {
       const file = STATIC[url.pathname];
-      if (req.method === "GET" && file) return new Response(file.body, { headers: headers({ "Content-Type": file.type, "Cache-Control": "public, max-age=300" }) });
+      // These assets are embedded in the Worker without content-hashed filenames.
+      // Revalidate them so a fresh page never runs an older app.js after a deploy.
+      if (req.method === "GET" && file) return new Response(file.body, { headers: headers({ "Content-Type": file.type, "Cache-Control": "no-cache, must-revalidate" }) });
       if (req.method === "GET" && (url.pathname === "/" || url.pathname === "/app")) return html(appPage(Object.fromEntries(Object.entries(FLAVORS).map(([k, v]) => [k, v.label]))));
       if (req.method === "GET" && url.pathname === "/privacy") return html(privacyPage());
       if (req.method === "GET" && url.pathname === "/connect") return connect(env);
