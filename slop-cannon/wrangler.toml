@@ -1,0 +1,28 @@
+name = "slop-cannon"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+
+# Public settings. Secrets (BUFFER_CLIENT_SECRET, TOKEN_KEY) are set in the
+# Cloudflare dashboard or with `wrangler secret put`, never committed.
+[vars]
+APP_URL = "https://slopcannon.lbeebe.com"
+BUFFER_CLIENT_ID = "H3kKwv_riHF3jA7XwVD-RAl-8IE9KvdC2gqNrEcclde"
+
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "f4ef060fff394d9f8955fee9045e21bb"
+
+[observability]
+enabled = true
+
+# The page's CSS, JS and icon are bundled into the Worker as text, so a plain
+# script upload deploys the whole app.
+[[rules]]
+type = "Text"
+globs = ["**/*.css", "**/*.svg", "**/app.js"]
+fallthrough = false
+
+[[rules]]
+type = "Data"
+globs = ["**/*.png"]
+fallthrough = false
