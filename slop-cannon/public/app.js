@@ -15,6 +15,16 @@
   };
   muted = store.get("muted") === "1";
   const INTENSITY_NAMES = ["", "Barely Employable", "Polished Nonsense", "Peak LinkedIn", "Thought-Leader Overdrive", "LinkedIn Event Horizon"];
+  const SHARED_CRIMES = [
+    "Felony border-radius", "Pill proliferation", "Emoji impersonating iconography", "Gratuitous glow",
+    "Fake product metrics", "Sticky-sidebar misconduct", "Glass-adjacent borders",
+  ];
+  const DESIGN_CRIMES = {
+    chatgpt: { name: "ChatGPT-ish", crimes: ["Corporate green monoculture", "Chatbot impersonation", "Sterile gray bubble district", "Faux-authoritative score ring", "Spark-avatar identity theft"] },
+    claude: { name: "Claude-ish", crimes: ["Aggressive beige", "Editorial serif cosplay", "Tasteful-restraint theater", "Terracotta conflict of interest", "Precious whitespace"] },
+    gemini: { name: "Gemini-ish", crimes: ["Unauthorized gradient", "Rainbow-branding recidivism", "Sparkle-based credentials", "Optimism in excess of code", "Gradient text without a permit"] },
+    grok: { name: "Grok-ish", crimes: ["Edgelord darkness", "Radioactive lime possession", "Magenta accomplice", "Black-market neon glow", "Terminal cosplay without a terminal"] },
+  };
   ammunition.value = store.get("ammunition") || "founder";
   intensity.value = store.get("intensity") || "3";
   const loadout = () => ({ ammunition: ammunition.value, intensity: Number(intensity.value) });
@@ -113,6 +123,16 @@
   }
 
   // ---- flavor: the whole app reskins ----
+  function paintCrimes(f) {
+    const record = DESIGN_CRIMES[f] || DESIGN_CRIMES.chatgpt;
+    const crimes = [...SHARED_CRIMES, ...record.crimes];
+    $("crimeCount").textContent = String(crimes.length);
+    $("crimeIntro").textContent = `${record.name} is wanted for ${crimes.length} counts of interface misconduct:`;
+    const list = $("crimeList");
+    list.textContent = "";
+    crimes.forEach((crime) => list.append(el("li", null, crime)));
+  }
+
   function setFlavor(f) {
     flavor = f;
     document.body.dataset.flavor = f;
@@ -121,10 +141,18 @@
       b.classList.toggle("on", on);
       b.setAttribute("aria-selected", String(on));
     });
+    paintCrimes(f);
     store.set("flavor", f);
   }
   document.querySelectorAll(".flavor").forEach((b) => (b.onclick = () => setFlavor(b.dataset.flavor)));
   setFlavor(store.get("flavor") || "chatgpt");
+  const crimeSheet = $("crimeSheet");
+  $("crimesBadge").onclick = () => crimeSheet.showModal();
+  $("closeCrimes").onclick = () => crimeSheet.close();
+  crimeSheet.addEventListener("click", (e) => {
+    const box = crimeSheet.getBoundingClientRect();
+    if (e.clientX < box.left || e.clientX > box.right || e.clientY < box.top || e.clientY > box.bottom) crimeSheet.close();
+  });
 
   // ---- the header: who's connected ----
   function renderWho() {

@@ -89,6 +89,16 @@ ${HEAD}
     </div>
   </div>
 </div>
+<button class="crimes-badge" id="crimesBadge" type="button" aria-haspopup="dialog" aria-controls="crimeSheet">🚨 Design crimes: <strong id="crimeCount">12</strong></button>
+<dialog class="crime-sheet" id="crimeSheet" aria-labelledby="crimeTitle">
+  <div class="crime-head">
+    <div><span>INTERNAL AFFAIRS</span><h2 id="crimeTitle">UI rap sheet</h2></div>
+    <button id="closeCrimes" type="button" aria-label="Close design crimes">×</button>
+  </div>
+  <p id="crimeIntro"></p>
+  <ol id="crimeList"></ol>
+  <p class="crime-note">Aesthetic offenses only. Accessibility remains annoyingly lawful.</p>
+</dialog>
 <template id="cannonArt">${CANNON}</template>
 <div class="toast" id="toast" role="status" hidden></div>
 <script src="/app.js"></script>

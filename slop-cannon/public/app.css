@@ -156,6 +156,21 @@ body[data-flavor=gemini] .send{background:linear-gradient(135deg,#4285f4,#a855f7
 .toast{position:fixed;left:50%;top:18px;transform:translateX(-50%);z-index:9;padding:11px 18px;border-radius:999px;background:var(--ink);color:var(--bg);font-weight:700;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.2);max-width:calc(100vw - 32px)}
 .toast.err{background:#b91c1c;color:#fff}
 
+/* An independent regulator audits every skin's intentional aesthetic offenses. */
+.crimes-badge{position:fixed;z-index:12;left:50%;bottom:3px;transform:translateX(-50%);border:1px solid rgba(255,255,255,.65);border-radius:999px;padding:4px 12px;background:linear-gradient(100deg,#ef4444,#ec4899,#f97316);color:#fff;font-size:11px;font-weight:800;line-height:1;box-shadow:0 4px 18px rgba(236,72,153,.4);cursor:pointer;white-space:nowrap}
+.crimes-badge:hover{transform:translateX(-50%) translateY(-2px)}
+.crime-sheet{width:min(440px,calc(100vw - 28px));max-height:min(620px,calc(100vh - 40px));padding:0;border:1px solid #fda4af;border-radius:24px;background:#fff7fb;color:#28152d;box-shadow:0 28px 90px rgba(65,20,54,.35);overflow:auto}
+.crime-sheet::backdrop{background:rgba(28,12,31,.5);backdrop-filter:blur(4px)}
+.crime-head{display:flex;justify-content:space-between;align-items:flex-start;padding:20px 20px 14px;background:linear-gradient(120deg,#fce7f3,#ffe4e6,#ffedd5)}
+.crime-head span{font-size:10px;letter-spacing:.14em;font-weight:900;color:#be123c}
+.crime-head h2{font:800 26px/1 var(--head);letter-spacing:-.03em;margin-top:4px}
+.crime-head button{width:34px;height:34px;border:1px solid #fda4af;border-radius:50%;background:rgba(255,255,255,.65);font-size:22px;line-height:1;cursor:pointer;color:#881337}
+.crime-sheet>p{margin:16px 20px 10px;font-size:13px;line-height:1.45;color:#6b415f}
+.crime-sheet ol{display:grid;gap:7px;padding:0 20px 4px;list-style:none;counter-reset:charges}
+.crime-sheet li{counter-increment:charges;padding:9px 11px;border:1px solid #fbcfe8;border-radius:12px;background:#fff;font-size:13px;font-weight:700}
+.crime-sheet li::before{content:counter(charges,decimal-leading-zero);display:inline-block;width:25px;color:#e11d48;font-size:10px;letter-spacing:.05em}
+.crime-sheet .crime-note{margin-bottom:20px;font-size:11px;font-style:italic}
+
 /* The shot */
 .flash{position:fixed;inset:0;pointer-events:none;opacity:0;z-index:8;background:radial-gradient(circle at 50% 90%,var(--fireB),transparent 60%)}
 body.shake .flash{animation:fl .6s}
