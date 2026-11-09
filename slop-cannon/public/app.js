@@ -382,11 +382,18 @@
     controls.append(mode, tagLbl);
     info.append(controls);
 
+    const liveWarning = el("p", "live-warning");
+    liveWarning.setAttribute("role", "alert");
+    liveWarning.hidden = true;
+    liveWarning.textContent = "Live Rounds creates scheduled posts in your Buffer queue. They will publish at their slot times unless you undo them first.";
+    info.append(liveWarning);
+
     const fire = button("fire full", "");
     const paint = () => {
       const isLive = document.body.dataset.mode === "live";
       drafts.classList.toggle("on", !isLive);
       live.classList.toggle("on", isLive);
+      liveWarning.hidden = !isLive;
       fire.textContent = isLive ? `💥 FIRE ${n} LIVE ROUND${n === 1 ? "" : "S"}` : `💥 FIRE ${n} DRAFT${n === 1 ? "" : "S"}`;
     };
     document.body.dataset.mode = "drafts";
