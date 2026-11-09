@@ -155,7 +155,7 @@
   // ---- making slop ----
   async function makeSlop(text) {
     const fl = flavor;
-    if (!ammo.includes(text)) { ammo.push(text); if (ammo.length > MAX_AMMO) ammo.shift(); }
+    if (!ammo.includes(text)) { ammo.push(text); if (ammo.length > MAX_AMMO) ammo.shift(); if (ammo.length > 1) reload(); }
     last = { observation: text, flavor: fl, ammo: [...ammo] };
     hello.hidden = true;
     chat.append(el("div", "me", text));
@@ -468,6 +468,28 @@
       const shots = Math.min(n, 8);
       const t0 = ctx.currentTime + 0.03;
       for (let i = 0; i < shots; i++) one(t0 + i * 0.16, i === 0 ? 1 : 0.6);
+    } catch {}
+  }
+  // Chk-chk: two short metallic clicks, like racking a shell.
+  function reload() {
+    if (muted) return;
+    try {
+      audio();
+      const t0 = ctx.currentTime + 0.02;
+      [[t0, 2600, 1], [t0 + 0.13, 1900, 0.9]].forEach(([t, f, k]) => {
+        const c = noise(0.06), bp = ctx.createBiquadFilter(), g = ctx.createGain();
+        bp.type = "bandpass"; bp.frequency.value = f; bp.Q.value = 6;
+        g.gain.setValueAtTime(1.6 * k, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+        c.connect(bp).connect(g).connect(ctx.master);
+        c.start(t);
+        const o = ctx.createOscillator(), og = ctx.createGain();
+        o.type = "square"; o.frequency.setValueAtTime(f / 4, t);
+        og.gain.setValueAtTime(0.12 * k, t);
+        og.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+        o.connect(og).connect(ctx.master);
+        o.start(t); o.stop(t + 0.05);
+      });
     } catch {}
   }
   function noise(len) {
