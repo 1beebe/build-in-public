@@ -6,7 +6,7 @@ compatibility_date = "2026-10-01"
 # Cloudflare dashboard or with `wrangler secret put`, never committed.
 [vars]
 APP_URL = "https://slopcannon.lbeebe.com"
-BUFFER_CLIENT_ID = "REPLACE_WITH_SLOP_CANNON_CLIENT_ID"
+BUFFER_CLIENT_ID = "H3kKwv_riHF3jA7XwVD-RAl-8IE9KvdC2gqNrEcclde"
 
 [[kv_namespaces]]
 binding = "SESSIONS"
