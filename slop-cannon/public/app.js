@@ -443,37 +443,70 @@
 
   // ---- sound: a cannon synthesized on the spot, no audio files ----
   let ctx;
+  // Browsers only let audio start from a click, so the context is made and
+  // resumed on the first press anywhere, then reused after awaits.
+  function audio() {
+    ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === "suspended") ctx.resume();
+    if (!ctx.master) {
+      const comp = ctx.createDynamicsCompressor();
+      comp.threshold.value = -18; comp.ratio.value = 6;
+      const g = ctx.createGain();
+      g.gain.value = 1.6;
+      g.connect(comp).connect(ctx.destination);
+      ctx.master = g;
+    }
+    return ctx;
+  }
+  document.addEventListener("pointerdown", () => { try { audio(); } catch {} }, { once: true });
+  document.addEventListener("keydown", () => { try { audio(); } catch {} }, { once: true });
+
   function boom(n) {
     if (muted) return;
     try {
-      ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
+      audio();
       const shots = Math.min(n, 8);
-      for (let i = 0; i < shots; i++) one(ctx.currentTime + i * 0.14, i === 0 ? 1 : 0.55);
+      const t0 = ctx.currentTime + 0.03;
+      for (let i = 0; i < shots; i++) one(t0 + i * 0.16, i === 0 ? 1 : 0.6);
     } catch {}
   }
-  function one(t, gainScale) {
-    const o = ctx.createOscillator(), og = ctx.createGain();
-    o.type = "sine";
-    o.frequency.setValueAtTime(150, t);
-    o.frequency.exponentialRampToValueAtTime(32, t + 0.5);
-    og.gain.setValueAtTime(0.9 * gainScale, t);
-    og.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
-    o.connect(og).connect(ctx.destination);
-    o.start(t);
-    o.stop(t + 0.75);
-    const len = Math.floor(ctx.sampleRate * 0.9);
-    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+  function noise(len) {
+    const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * len), ctx.sampleRate);
     const d = buf.getChannelData(0);
-    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
-    const src = ctx.createBufferSource(), lp = ctx.createBiquadFilter(), ng = ctx.createGain();
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2.5);
+    const src = ctx.createBufferSource();
     src.buffer = buf;
+    return src;
+  }
+  // One shot = a sharp crack (audible on laptop and phone speakers), a mid
+  // thump, and a low rumble for anyone with real speakers.
+  function one(t, k) {
+    const out = ctx.master;
+    // crack
+    const c = noise(0.18), bp = ctx.createBiquadFilter(), cg = ctx.createGain();
+    bp.type = "bandpass"; bp.frequency.value = 1800; bp.Q.value = 0.7;
+    cg.gain.setValueAtTime(1.4 * k, t);
+    cg.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+    c.connect(bp).connect(cg).connect(out);
+    c.start(t);
+    // thump
+    const o = ctx.createOscillator(), og = ctx.createGain();
+    o.type = "triangle";
+    o.frequency.setValueAtTime(260, t);
+    o.frequency.exponentialRampToValueAtTime(55, t + 0.35);
+    og.gain.setValueAtTime(1.2 * k, t);
+    og.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+    o.connect(og).connect(out);
+    o.start(t); o.stop(t + 0.55);
+    // rumble
+    const r = noise(1.1), lp = ctx.createBiquadFilter(), rg = ctx.createGain();
     lp.type = "lowpass";
-    lp.frequency.setValueAtTime(2400, t);
-    lp.frequency.exponentialRampToValueAtTime(180, t + 0.6);
-    ng.gain.setValueAtTime(0.8 * gainScale, t);
-    ng.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
-    src.connect(lp).connect(ng).connect(ctx.destination);
-    src.start(t);
+    lp.frequency.setValueAtTime(3000, t);
+    lp.frequency.exponentialRampToValueAtTime(200, t + 0.8);
+    rg.gain.setValueAtTime(1.0 * k, t);
+    rg.gain.exponentialRampToValueAtTime(0.001, t + 1.1);
+    r.connect(lp).connect(rg).connect(out);
+    r.start(t);
   }
 
   // ---- the visuals: flash, shake, posts flying out of the button ----
