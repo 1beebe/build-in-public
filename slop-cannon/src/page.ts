@@ -134,7 +134,7 @@ export function privacyPage(): string {
 <p>Slop Cannon is a joke with a real Buffer connection, made by L. Beebe, LLC for Buffer Commit.</p>
 <p><b>No AI.</b> Every post comes from hand-written templates and a random number. Nothing you type is sent to any AI service, or anywhere but this app.</p>
 <p><b>Buffer.</b> When you connect, Buffer gives this app a token to read your organization, channels, posting schedule and scheduled posts, and to create and delete posts. The token is encrypted and kept for 30 days in Cloudflare's storage so you stay connected. Log out to delete it, or revoke the app in Buffer at any time.</p>
-<p><b>What it stores.</b> Your session: the token, your organization's name and id, the posts you aimed but haven't fired (for 30 minutes), and the ids of the last posts you fired so Undo works. No analytics, no tracking cookies, no logs of what you typed.</p>
+<p><b>What it stores.</b> Your session: the token, your organization's name and id, the posts you aimed but haven't fired (until you fire, aim again or log out; anything older than 30 minutes is dropped the next time you use the app), and the ids of the last posts you fired so Undo works. No analytics, no tracking cookies, no logs of what you typed.</p>
 <p><b>What it posts.</b> Only what you fire. By default the cannon fires drafts, which publish nothing. Live rounds go into your real queue and publish at their slot times, unless you undo them first.</p>
 <p>Questions: <a href="mailto:me@lbeebe.com">me@lbeebe.com</a>. <a href="/">Back to the cannon</a></p>
 </main></body></html>`;

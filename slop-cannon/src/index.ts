@@ -175,6 +175,8 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
     const s = loaded.data;
     const client = new BufferClient(env, s);
     const save = () => saveSession(env, loaded.id, s);
+    // Aimed-but-unfired posts only matter for 30 minutes; drop stale ones.
+    if (s.loaded && Date.now() - s.loaded.at > 30 * 60_000) { s.loaded = undefined; await save(); }
 
     try {
       if (req.method === "POST" && path === "/api/org") {
