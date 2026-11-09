@@ -7,12 +7,18 @@
   let muted = false;
   try { muted = localStorage.getItem("muted") === "1"; flavor.value = localStorage.getItem("flavor") || flavor.value; } catch {}
 
-  const THINKING = {
-    chatgpt: ["Delving…", "Adding em-dashes…", "Unlocking value…", "Inserting 🚀…"],
-    claude: ["Considering the nuance…", "Holding this loosely…", "Being genuinely thoughtful…", "Gently pushing back…"],
-    gemini: ["Here's a breakdown…", "Bolding key terms…", "Citing industry reports…", "Generating Key Takeaways…"],
-    grok: ["Going full unhinged…", "Checking if it's based…", "Seeking maximal truth…", "Ratioing the haters…"],
+  // The "thinking" spinner: gerunds that are a little too much, then one
+  // flavor-specific step so you know which slop you ordered.
+  const VERBS = [
+    "Writhing", "Hiccupping", "Staring", "Squinting", "Lurking", "Gurgling", "Molting", "Simmering",
+    "Fermenting", "Spiraling", "Brooding", "Loitering", "Wheezing", "Sulking", "Salivating", "Mumbling",
+    "Twitching", "Perspiring", "Smoldering", "Unclenching", "Dissociating", "Burping", "Pacing", "Marinating",
+    "Clenching", "Oozing", "Sniffing", "Scuttling", "Festering", "Wobbling", "Lingering", "Sighing loudly",
+  ];
+  const FLAVOR_STEP = {
+    chatgpt: "Inserting em-dashes", claude: "Holding this loosely", gemini: "Bolding everything", grok: "Checking if it's based",
   };
+  const pickVerbs = (n) => [...VERBS].sort(() => Math.random() - 0.5).slice(0, n);
 
   // ---- small helpers ----
   function el(tag, cls, text) {
@@ -104,14 +110,15 @@
     last = { observation: text, flavor: fl };
     addYou(text);
     const body = addBot();
-    const think = el("div", "thinking", "Thinking…");
+    const think = el("div", "thinking", "✻ Thinking…");
     body.append(think);
     scrollDown();
     const req = call("/api/slop", { observation: text, flavor: fl }).catch((e) => ({ error: e.message }));
     // The pause is theatre: the script is done in a millisecond. Real models take longer.
-    for (const step of THINKING[fl] || THINKING.chatgpt) {
-      think.textContent = step;
-      await wait(420);
+    const started = Date.now();
+    for (const step of [...pickVerbs(3), FLAVOR_STEP[fl] || FLAVOR_STEP.chatgpt]) {
+      think.textContent = `✻ ${step}… (${Math.max(1, Math.round((Date.now() - started) / 1000))}s)`;
+      await wait(520);
     }
     const out = await req;
     think.remove();
