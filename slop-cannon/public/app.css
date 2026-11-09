@@ -60,10 +60,15 @@ body[data-flavor=gemini] .hello h1 span{background:linear-gradient(90deg,#4285f4
 .loadout>label{display:grid;gap:7px;padding:13px 15px;border:1px solid var(--line);border-radius:16px;background:var(--bub);font-size:12px;font-weight:800;color:var(--soft)}
 .loadout input{width:100%;accent-color:var(--acc)}
 .loadout strong{color:var(--ink)}
-.loadout .ammunition{display:flex;align-content:flex-start;flex-wrap:wrap;gap:7px;margin:0;padding:13px 15px;border:1px solid var(--line);border-radius:16px;background:var(--bub);min-width:0}
-.ammunition legend{width:100%;padding:0 0 7px;font-size:12px;font-weight:800;color:var(--soft)}
-.ammunition legend span{font-weight:500;opacity:.75}
-.loadout .ammunition label{display:flex;align-items:center;gap:5px;padding:5px 8px;border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--ink);font-size:11px;cursor:pointer}
+.loadout .ammunition{position:relative;margin:0;padding:0;border:1px solid var(--line);border-radius:16px;background:var(--bub);min-width:0;font-size:12px;color:var(--soft)}
+.ammunition summary{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:72px;padding:13px 15px;cursor:pointer;list-style:none;font-weight:800}
+.ammunition summary::-webkit-details-marker{display:none}
+.ammunition summary::after{content:"⌄";font-size:16px;color:var(--ink);transition:transform .15s}
+.ammunition[open] summary::after{transform:rotate(180deg)}
+.ammunition summary strong{margin-left:auto;color:var(--ink);font-size:12px}
+.ammo-menu{position:absolute;z-index:7;top:calc(100% + 7px);left:0;right:0;display:grid;gap:5px;padding:8px;border:1px solid var(--line);border-radius:14px;background:var(--bg);box-shadow:0 14px 38px rgba(0,0,0,.16)}
+.loadout .ammo-menu label{display:flex;align-items:center;gap:7px;padding:7px 8px;border:0;border-radius:8px;background:transparent;color:var(--ink);font-size:12px;font-weight:600;cursor:pointer}
+.loadout .ammo-menu label:hover{background:var(--bub)}
 .ammunition input{width:auto}
 .crime-metrics{display:flex;justify-content:center;gap:34px;margin:20px auto 0}
 .crime-metrics div{display:grid;min-width:72px}

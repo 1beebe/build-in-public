@@ -34,6 +34,10 @@
   if (!ammunitionInputs.some((input) => input.checked)) ammunitionInputs[0].checked = true;
   intensity.value = store.get("intensity") || "3";
   const selectedAmmunition = () => ammunitionInputs.filter((input) => input.checked).map((input) => input.value);
+  const paintAmmunition = () => {
+    const n = selectedAmmunition().length;
+    $("ammoSummary").textContent = n === 1 ? "1 selected" : `${n} mixed`;
+  };
   const loadout = () => ({ ammunitions: selectedAmmunition(), intensity: Number(intensity.value) });
   const paintIntensity = () => {
     const level = Math.max(1, Math.min(5, Number(intensity.value) || 3));
@@ -46,9 +50,15 @@
       toast("The cannon needs at least one kind of ammunition.");
     }
     store.set("ammunitions", JSON.stringify(selectedAmmunition()));
+    paintAmmunition();
   };
+  document.addEventListener("click", (e) => { if (ammunition.open && !ammunition.contains(e.target)) ammunition.open = false; });
+  ammunition.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && ammunition.open) { ammunition.open = false; ammunition.querySelector("summary").focus(); }
+  });
   intensity.addEventListener("input", changeIntensity);
   intensity.addEventListener("change", changeIntensity);
+  paintAmmunition();
   paintIntensity();
 
   // The "thinking" spinner: gerunds that are a little too much, then one
@@ -672,6 +682,7 @@
       setFlavor(pending.flavor || flavor);
       const pendingAmmunition = pending.ammunitions || (pending.ammunition ? [pending.ammunition] : null);
       if (pendingAmmunition) ammunitionInputs.forEach((input) => { input.checked = pendingAmmunition.includes(input.value); });
+      paintAmmunition();
       if (pending.intensity) intensity.value = String(pending.intensity);
       paintIntensity();
       ammo = Array.isArray(pending.ammo) ? pending.ammo.filter((t) => t !== pending.observation).slice(0, MAX_AMMO - 1) : [];
