@@ -2,6 +2,7 @@
 (() => {
   const $ = (id) => document.getElementById(id);
   const chat = $("chat"), hello = $("hello"), say = $("say");
+  const ammunition = $("ammunition"), intensity = $("intensity"), intensityName = $("intensityName");
   let me = { signedIn: false };
   let last = null; // { observation, flavor }
   let ammo = []; // up to five mundane things; the cannon rotates through them
@@ -13,6 +14,14 @@
     set: (k, v) => { try { localStorage.setItem(k, v); } catch {} },
   };
   muted = store.get("muted") === "1";
+  const INTENSITY_NAMES = ["", "Barely Employable", "Polished Nonsense", "Peak LinkedIn", "Thought-Leader Overdrive", "LinkedIn Event Horizon"];
+  ammunition.value = store.get("ammunition") || "founder";
+  intensity.value = store.get("intensity") || "3";
+  const loadout = () => ({ ammunition: ammunition.value, intensity: Number(intensity.value) });
+  const paintIntensity = () => { intensityName.textContent = INTENSITY_NAMES[Number(intensity.value)]; };
+  ammunition.onchange = () => store.set("ammunition", ammunition.value);
+  intensity.oninput = () => { store.set("intensity", intensity.value); paintIntensity(); };
+  paintIntensity();
 
   // The "thinking" spinner: gerunds that are a little too much, then one
   // flavor-specific step so you know which slop you ordered.
@@ -156,7 +165,8 @@
   async function makeSlop(text) {
     const fl = flavor;
     if (!ammo.includes(text)) { ammo.push(text); if (ammo.length > MAX_AMMO) ammo.shift(); if (ammo.length > 1) reload(); }
-    last = { observation: text, flavor: fl, ammo: [...ammo] };
+    const settings = loadout();
+    last = { observation: text, flavor: fl, ammo: [...ammo], ...settings };
     hello.hidden = true;
     chat.append(el("div", "me", text));
     const ai = el("div", "ai");
@@ -167,7 +177,7 @@
     const think = el("div", "live-think");
     body.append(think);
     scrollDown();
-    const req = call("/api/slop", { observation: text, flavor: fl }).catch((e) => ({ error: e.message }));
+    const req = call("/api/slop", { observation: text, flavor: fl, ...settings }).catch((e) => ({ error: e.message }));
     // The pause is theatre: the script is done in a millisecond.
     const steps = [...pickVerbs(3), FLAVOR_STEP[fl] || FLAVOR_STEP.chatgpt];
     const started = Date.now();
@@ -295,7 +305,7 @@
       const stack = el("div", "stack");
       info.append(stack);
       const kinds = [["LinkedIn", "long"], ["X", "short"], ["Threads", "short"]];
-      Promise.all(kinds.map((_, i) => call("/api/slop", { observation: ammo[i % ammo.length], flavor: last.flavor }).catch(() => null))).then((outs) => {
+      Promise.all(kinds.map((_, i) => call("/api/slop", { observation: ammo[i % ammo.length], flavor: last.flavor, ammunition: last.ammunition, intensity: last.intensity }).catch(() => null))).then((outs) => {
         outs.forEach((o, i) => {
           if (!o) return;
           const c = el("article", "round");
@@ -320,7 +330,7 @@
     info.append(el("p", "live-think", "Scanning your queue for open slots…"));
     let plan;
     try {
-      plan = await call("/api/aim", { observations: ammo, flavor: last.flavor, tag: store.get("tag") !== "0" });
+      plan = await call("/api/aim", { observations: ammo, flavor: last.flavor, ammunition: last.ammunition, intensity: last.intensity, tag: store.get("tag") !== "0" });
     } catch (e) {
       info.textContent = "";
       info.append(el("h3", null, "The cannon jammed"), el("p", null, e.message));
@@ -445,6 +455,25 @@
     }
     res.append(left, btns);
     chat.append(res);
+    if (r.landed) {
+      const level = Number(last?.intensity || 3);
+      const report = el("section", "damage-report");
+      report.append(el("h3", null, "POST-FIRE DAMAGE REPORT"));
+      const stats = el("div", "damage-stats");
+      const numbers = [
+        [r.landed, "posts deployed"],
+        [r.landed * (level + 2), "em dashes estimated"],
+        [r.landed * Math.max(1, level - 1), "paradigms shifted"],
+        [level === 5 ? "CATASTROPHIC" : level >= 3 ? "SEVERE" : "CONTAINED", "credibility damage"],
+      ];
+      for (const [value, labelText] of numbers) {
+        const stat = el("div");
+        stat.append(el("strong", null, String(value)), el("span", null, labelText));
+        stats.append(stat);
+      }
+      report.append(stats, el("p", null, `Payload: ${ammunition.selectedOptions[0].textContent} · ${INTENSITY_NAMES[level]}`));
+      chat.append(report);
+    }
     scrollDown();
   }
 
@@ -590,6 +619,9 @@
     if (params.get("loaded") && me.signedIn) toast("Cannon loaded. 🎯");
     if (pending && me.signedIn && pending.observation) {
       setFlavor(pending.flavor || flavor);
+      if (pending.ammunition) ammunition.value = pending.ammunition;
+      if (pending.intensity) intensity.value = String(pending.intensity);
+      paintIntensity();
       ammo = Array.isArray(pending.ammo) ? pending.ammo.filter((t) => t !== pending.observation).slice(0, MAX_AMMO - 1) : [];
       makeSlop(pending.observation);
     }

@@ -52,6 +52,11 @@ body[data-flavor=gemini] .hello h1 span{background:linear-gradient(90deg,#4285f4
 .chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 .chips button{border:1px solid var(--line);background:var(--bg);padding:9px 14px;border-radius:999px;font-size:14px;cursor:pointer;transition:border-color .2s,transform .2s}
 .chips button:hover{border-color:var(--acc);transform:translateY(-2px)}
+.loadout{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:22px auto 0;max-width:640px;text-align:left}
+.loadout label{display:grid;gap:7px;padding:13px 15px;border:1px solid var(--line);border-radius:16px;background:var(--bub);font-size:12px;font-weight:800;color:var(--soft)}
+.loadout select{width:100%;border:0;background:var(--bg);color:var(--ink);border-radius:10px;padding:9px;font:inherit;font-size:13px}
+.loadout input{width:100%;accent-color:var(--acc)}
+.loadout strong{color:var(--ink)}
 
 .me{justify-self:end;background:var(--bub);padding:12px 16px;border-radius:20px;max-width:75%;font-size:15.5px;overflow-wrap:anywhere;animation:rise .3s ease-out}
 .ai{display:grid;grid-template-columns:34px minmax(0,1fr);gap:12px;animation:rise .3s ease-out}
@@ -127,6 +132,13 @@ body[data-mode=live] .fire{background:linear-gradient(120deg,#ef4444,#f97316,#fa
 .result{border-radius:24px;padding:18px 20px;background:var(--acc);color:var(--onacc);display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
 body[data-flavor=gemini] .result{background:linear-gradient(120deg,#4285f4,#9b72cb,#d96570);color:#fff}
 .result.live{background:linear-gradient(120deg,#ef4444,#f97316);color:#fff}
+.damage-report{border:2px dashed var(--acc);border-radius:20px;padding:18px;background:var(--bub);animation:rise .35s ease-out}
+.damage-report h3{font-size:14px;letter-spacing:.08em;color:var(--acc);margin-bottom:12px}
+.damage-report>p{margin-top:12px;font-size:12px;color:var(--soft)}
+.damage-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.damage-stats div{display:grid;gap:3px}
+.damage-stats strong{font-size:20px;overflow-wrap:anywhere}
+.damage-stats span{font-size:11px;color:var(--soft)}
 .result strong{font-size:28px;letter-spacing:-.03em;display:block}
 .result .misses{font-size:13px;opacity:.9;margin-top:6px}
 .result .btns{display:flex;gap:8px;flex-wrap:wrap}
@@ -172,6 +184,7 @@ body.shake .barrel{animation:recoil .4s}
   .me{max-width:88%}
   .ai{grid-template-columns:1fr}.spark{display:none}
   .verdict{grid-template-columns:1fr}
+  .loadout,.damage-stats{grid-template-columns:1fr 1fr}
 }
 /* ammo belt: up to five mundane things, the cannon rotates through them */
 .ammo{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px}

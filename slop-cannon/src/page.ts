@@ -61,6 +61,21 @@ ${HEAD}
           <button type="button" data-say="The dishwasher finished while I was on a call">🍽️ Dishwasher</button>
           <button type="button" data-say="I parallel parked on the first try">🚗 Parallel parking</button>
         </div>
+        <div class="loadout" aria-label="Slop cannon loadout">
+          <label>Ammunition type
+            <select id="ammunition">
+              <option value="founder">Founder Mode</option>
+              <option value="vulnerable">Vulnerable Leadership</option>
+              <option value="framework">Unnecessary Framework</option>
+              <option value="contrarian">Contrarian Take</option>
+              <option value="epiphany">Airport Epiphany</option>
+              <option value="notes">Notes App Screenshot</option>
+            </select>
+          </label>
+          <label>Slop intensity: <strong id="intensityName">Peak LinkedIn</strong>
+            <input id="intensity" type="range" min="1" max="5" value="3">
+          </label>
+        </div>
       </section>
       <div id="chat" aria-live="polite"></div>
     </main>

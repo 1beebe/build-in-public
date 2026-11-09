@@ -3,7 +3,7 @@ import { pkcePair, randomToken } from "./crypto";
 import {
   BufferClient, NeedsReconnect, RateLimited, authorizeUrl, createPost, deletePost, exchangeCode, getChannels, getOrgs, getTaken,
 } from "./buffer";
-import { FLAVORS, SHORT_SERVICES, generate, type Flavor } from "./slop";
+import { FLAVORS, SHORT_SERVICES, generate, type Ammunition, type Flavor } from "./slop";
 import { openSlots } from "./slots";
 import { cookie, createSession, destroySession, loadSession, readCookie, saveSession, type Session, type Shell } from "./session";
 import { appPage, privacyPage } from "./page";
@@ -121,6 +121,12 @@ function observationsOf(b: Record<string, unknown>): string[] {
 function seedOf(v: unknown): number {
   return typeof v === "number" && Number.isFinite(v) ? Math.floor(v) >>> 0 : (Math.random() * 2 ** 32) >>> 0;
 }
+function intensityOf(v: unknown): number {
+  return typeof v === "number" && Number.isFinite(v) ? Math.max(1, Math.min(5, Math.round(v))) : 3;
+}
+function ammunitionOf(v: unknown): Ammunition {
+  return (["founder", "vulnerable", "framework", "contrarian", "epiphany", "notes"] as const).includes(v as Ammunition) ? v as Ammunition : "founder";
+}
 
 async function body(req: Request): Promise<Record<string, unknown>> {
   const raw = await req.text();
@@ -141,7 +147,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
     if (req.method === "POST" && path === "/api/slop") {
       const b = await body(req);
       const flavor = flavorOf(b.flavor);
-      return json({ flavor, ...generate(observationOf(b.observation), flavor, seedOf(b.seed)) });
+      return json({ flavor, ...generate(observationOf(b.observation), flavor, seedOf(b.seed), { ammunition: ammunitionOf(b.ammunition), intensity: intensityOf(b.intensity) }) });
     }
 
     const loaded = await loadSession(req, env);
@@ -177,6 +183,8 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         const b = await body(req);
         if (!s.organizationId) throw new UserError("This Buffer account has no organization to fire at.");
         const flavor = flavorOf(b.flavor);
+        const ammunition = ammunitionOf(b.ammunition);
+        const intensity = intensityOf(b.intensity);
         const observations = observationsOf(b);
         const tagIt = b.tag !== false;
         const channels = await getChannels(client, s.organizationId);
@@ -197,7 +205,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
             skipped.push({ name: ch.name, service: ch.service, why: ch.queuePaused ? "its queue is paused" : !room ? `its queue is full (${queueLimit} on your plan)` : "no open slots this week" });
           }
           for (const slot of slots) {
-            const slop = generate(observations[shot++ % observations.length], flavor, seed++);
+            const slop = generate(observations[shot++ % observations.length], flavor, seed++, { ammunition, intensity });
             let text = SHORT_SERVICES.has(ch.service) ? slop.short : slop.long;
             if (tagIt && !text.includes(TAG)) text = SHORT_SERVICES.has(ch.service) && text.length + TAG.length + 1 > 280 ? text : `${text} ${TAG}`;
             shells.push({ channelId: ch.id, service: ch.service, channelName: ch.name, dueAt: new Date(slot.at).toISOString(), text });

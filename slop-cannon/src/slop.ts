@@ -6,6 +6,12 @@
 // tells it used, so the page can show its work.
 
 export type Flavor = "chatgpt" | "claude" | "gemini" | "grok";
+export type Ammunition = "founder" | "vulnerable" | "framework" | "contrarian" | "epiphany" | "notes";
+
+export interface SlopOptions {
+  ammunition?: Ammunition;
+  intensity?: number;
+}
 
 export const FLAVORS: Record<Flavor, { label: string; blurb: string }> = {
   chatgpt: { label: "ChatGPT-ish", blurb: "Em-dashes, delve, and a rocket for every occasion" },
@@ -609,7 +615,7 @@ const hiring: Shape = (o, kit, d, f, tells) => {
 
 const SHAPES: Shape[] = [listicle, announcement, dialogue, framework, unpopular, broetry, vulnerable, beforeAfter, hiring];
 
-export function generate(raw: string, flavor: Flavor, seed: number): Slop {
+export function generate(raw: string, flavor: Flavor, seed: number, options: SlopOptions = {}): Slop {
   const kit = KITS[flavor] ?? KITS.chatgpt;
   const o = readObservation(raw);
   const d = new Dice(rng(seed));
@@ -617,20 +623,37 @@ export function generate(raw: string, flavor: Flavor, seed: number): Slop {
   const tells: string[] = [];
   const parts: string[] = [];
 
-  const preamble = d.chance(0.4);
+  const intensity = Math.max(1, Math.min(5, Math.round(options.intensity ?? 3)));
+  const shapeByAmmunition: Record<Ammunition, number> = {
+    founder: 1,
+    vulnerable: 6,
+    framework: 3,
+    contrarian: 4,
+    epiphany: 5,
+    notes: 7,
+  };
+  const preamble = d.chance(0.2 + intensity * 0.08);
   if (preamble) {
     parts.push(f(d.pick(kit.preambles)), "---");
     tells.push(kit.tellNames.preamble);
   }
   // Consecutive seeds walk through the shapes, so a barrage never repeats one back to back.
-  const shape = SHAPES[seed % SHAPES.length];
+  const shape = SHAPES[options.ammunition ? shapeByAmmunition[options.ammunition] : seed % SHAPES.length];
   parts.push(...shape(o, kit, d, f, tells));
+  if (options.ammunition) tells.push({
+    founder: "Founder-mode proclamation",
+    vulnerable: "Weaponized vulnerability",
+    framework: "Unnecessary proprietary framework",
+    contrarian: "Mandatory contrarian take",
+    epiphany: "Airport-lounge epiphany",
+    notes: "Notes-app transformation arc",
+  }[options.ammunition]);
   tells.push("One-line paragraphs");
   // Wikipedia's tells and the flavor's voice, sprinkled into the middle.
   const middle: string[] = [];
-  for (const [name, lines] of d.some(WIKI, d.int(1, 2))) { middle.push(f(d.pick(lines))); tells.push(name); }
+  for (const [name, lines] of d.some(WIKI, Math.min(5, d.int(1, 2) + intensity - 2))) { middle.push(f(d.pick(lines))); tells.push(name); }
   if (shape !== listicle) for (const b of d.some(kit.beats, 1)) middle.push(f(b));
-  if (d.chance(0.5)) { middle.push(d.pick(TRIADS)); tells.push("Rule of three"); }
+  if (d.chance(0.2 + intensity * 0.14)) { middle.push(d.pick(TRIADS)); tells.push("Rule of three"); }
   const at = Math.max(preamble ? 3 : 1, parts.length - 1);
   parts.splice(at, 0, ...middle);
 
@@ -643,7 +666,7 @@ export function generate(raw: string, flavor: Flavor, seed: number): Slop {
     "Follow me for more insights like this. 🔔",
   ]));
   tells.push("Engagement bait");
-  parts.push(d.some(HASHTAGS, d.int(4, 7)).join(" "));
+  parts.push(d.some(HASHTAGS, Math.min(HASHTAGS.length, d.int(2 + intensity, 4 + intensity))).join(" "));
   tells.push("Hashtag avalanche");
 
   if (d.chance(preamble ? 0.6 : 0.3)) {
@@ -659,8 +682,12 @@ export function generate(raw: string, flavor: Flavor, seed: number): Slop {
     parts.push("<|endoftext|>");
     tells.push("Abrupt <|endoftext|>");
   }
+  if (intensity === 5) {
+    parts.splice(Math.max(1, parts.length - 2), 0, "Let that sink in.", "Read that again.");
+    tells.push("Maximum motivational overpressure");
+  }
   const long = kit.finish(parts.join("\n\n"), d, tells);
-  const short = shortPost(o, kit, d, f, seed);
+  const short = shortPost(o, kit, d, f, seed, options);
   return { long, short, tells: [...new Set(tells)] };
 }
 
@@ -679,12 +706,22 @@ const SHARED_SHORT = [
 
 const SHORT_LIMIT = 270; // under X's 280, Bluesky's 300, Threads' 500
 
-function shortPost(o: Observation, kit: FlavorKit, d: Dice, f: F, seed: number): string {
-  const tpl = seed % 2 ? d.pick(kit.shortHooks) : d.pick(SHARED_SHORT);
+function shortPost(o: Observation, kit: FlavorKit, d: Dice, f: F, seed: number, options: SlopOptions): string {
+  const ammunitionHooks: Partial<Record<Ammunition, string>> = {
+    founder: "Founder mode is not a job title. It's what happens when {obs}.",
+    vulnerable: "I don't usually share this, but {obs}. I cried. Then I rebuilt our GTM motion.",
+    framework: "Introducing the {THING} Framework™: Focus. Leverage. Alignment. Comment ‘SLOP’ for the PDF.",
+    contrarian: "Unpopular opinion: {things} matter more than your entire {topicBare} strategy.",
+    epiphany: "Somewhere between Gate B12 and a $19 sandwich, {obs}. Everything changed.",
+    notes: "Before: chasing metrics. After {qObs}: chasing {abstract}. Screenshot this.",
+  };
+  const tpl = options.ammunition ? ammunitionHooks[options.ammunition]! : seed % 2 ? d.pick(kit.shortHooks) : d.pick(SHARED_SHORT);
   const hook = f(tpl).replace("{THING}", o.thing.toUpperCase());
   const tail = f(d.pick(kit.shortTails));
-  const tags = d.some(HASHTAGS, 2).join(" ");
-  for (const candidate of [`${hook}\n\n${tail}\n\n${tags}`, `${hook}\n\n${tail}`, hook]) {
+  const intensity = Math.max(1, Math.min(5, Math.round(options.intensity ?? 3)));
+  const tags = d.some(HASHTAGS, Math.min(4, Math.max(1, intensity - 1))).join(" ");
+  const pressure = intensity === 5 ? "\n\nLet that sink in. Read it again." : "";
+  for (const candidate of [`${hook}${pressure}\n\n${tail}\n\n${tags}`, `${hook}${pressure}\n\n${tail}`, hook]) {
     if (candidate.length <= SHORT_LIMIT) return kit.finish(candidate, d, []);
   }
   return kit.finish(hook.slice(0, SHORT_LIMIT - 1).replace(/\s+\S*$/, "") + "…", d, []);
