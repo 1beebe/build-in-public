@@ -148,7 +148,7 @@
   // ---- flavor: the whole app reskins ----
   function paintCrimes(f) {
     const record = DESIGN_CRIMES[f] || DESIGN_CRIMES.chatgpt;
-    const crimes = [...SHARED_CRIMES, ...record.crimes];
+    const crimes = [...record.crimes, ...SHARED_CRIMES];
     $("crimeCount").textContent = String(crimes.length);
     $("crimeIntro").textContent = `${record.name} is wanted for ${crimes.length} counts of interface misconduct:`;
     const list = $("crimeList");
