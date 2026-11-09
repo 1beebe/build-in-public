@@ -475,6 +475,140 @@ function filler(o: Observation, d: Dice) {
       .replace(/\{n\}/g, String(n ?? 3));
 }
 
+// ---- Post shapes. Each slot gets a different one, so a barrage reads like
+// a feed of different thought leaders who all went to the same workshop. ----
+
+type F = (t: string, n?: number) => string;
+type Shape = (o: Observation, kit: FlavorKit, d: Dice, f: F, tells: string[]) => string[];
+
+// A business word for each letter, for acronym frameworks.
+const ACRO: Record<string, string[]> = {
+  a: ["Alignment", "Accountability", "Agility", "Ambition"], b: ["Boldness", "Bandwidth", "Buy-in", "Belief"],
+  c: ["Clarity", "Customers", "Culture", "Consistency"], d: ["Discipline", "Data", "Disruption", "Drive"],
+  e: ["Execution", "Empathy", "Excellence", "Energy"], f: ["Focus", "Feedback", "Frameworks", "Flywheels"],
+  g: ["Grit", "Growth", "Gratitude", "Go-to-market"], h: ["Hustle", "Humility", "Hypergrowth", "Honesty"],
+  i: ["Innovation", "Intentionality", "Impact", "Iteration"], j: ["Journey", "Judgment", "Joy", "Just shipping"],
+  k: ["KPIs", "Kindness", "Knowledge", "Keeping score"], l: ["Leadership", "Leverage", "Learning", "Listening"],
+  m: ["Mindset", "Momentum", "Metrics", "Moats"], n: ["North stars", "Networking", "Nimbleness", "No excuses"],
+  o: ["Ownership", "Outcomes", "Optimization", "Obsession"], p: ["Purpose", "Pipeline", "Product-market fit", "Persistence"],
+  q: ["Quality", "Quotas", "Questions", "Quiet confidence"], r: ["Resilience", "Retention", "Revenue", "Relentlessness"],
+  s: ["Synergy", "Scale", "Strategy", "Storytelling"], t: ["Trust", "Traction", "Transparency", "Teamwork"],
+  u: ["Urgency", "Upside", "Unit economics", "Unlearning"], v: ["Vision", "Velocity", "Value", "Vulnerability"],
+  w: ["Wins", "Workflows", "Why", "Willpower"], x: ["eXecution", "eXperience", "eXcellence", "X-factor"],
+  y: ["Yes-and", "Yield", "Your why", "YoY growth"], z: ["Zeal", "Zero-to-one", "Zen", "Zoom calls"],
+};
+
+const listicle: Shape = (o, kit, d, f, tells) => {
+  const parts = [f(d.pick(kit.hooks)), f(d.pick(kit.pivots))];
+  tells.push("Fake epiphany hook");
+  for (const b of d.some(kit.beats, d.int(1, 2))) parts.push(f(b));
+  if (d.chance(0.5)) { parts.push(f(`It's not about the {thing}. It's about {abstract2}.`)); tells.push("“It's not X. It's Y.”"); }
+  const n = d.int(3, 5);
+  parts.push(`${f(d.pick(kit.listIntros), n)}\n\n${d.some(LESSONS, n).map((l, i) => kit.bullet(i, f(l), d)).join("\n")}`);
+  tells.push(kit.tellNames.bullets);
+  parts.push(f(d.pick(kit.closers)));
+  return parts;
+};
+
+const announcement: Shape = (o, kit, d, f, tells) => {
+  tells.push("Humbled and honored", "Mundane life event as career milestone");
+  return [
+    f(d.pick(["I'm humbled and honored to share some personal news:", "Some personal news I've been sitting on:", "After a lot of reflection, I'm thrilled to announce:"])),
+    f("{Obs}. 🎉"),
+    f(d.pick(["This journey wasn't easy. There were doubters. There were late nights. There was so much {abstract}.", "When I started, people said it couldn't be done. They said the {thing} wasn't ready. They said I wasn't ready."])),
+    f(d.pick(["None of this would be possible without my incredible team, my mentors, and of course the {thing} itself.", "I want to thank everyone who believed in me, especially the {thing}."])),
+    f("This is just the beginning. Next stop: {topicBare}. 🚀"),
+    f(d.pick(kit.closers)),
+  ];
+};
+
+const dialogue: Shape = (o, kit, d, f, tells) => {
+  tells.push("Fictional dialogue with a stranger", "Everybody clapped energy");
+  const who = d.pick(["My barista", "A stranger on the train", "My 6-year-old", "My Uber driver", "An intern", "My neighbor's dog walker"]);
+  return [
+    f("{Obs}."),
+    `${who} looked at me and asked: “Why does this matter?”`,
+    f(d.pick(["I paused. Then I said: “Because {abstract} is the only moat left.”", "I smiled and said: “Because that's how {topicBare} works.”"])),
+    "Silence.",
+    f(d.pick(["Then they said something I'll never forget: “That's the best answer I've ever heard about {topicBare}.”", "Then they whispered: “I needed to hear that today.”"])),
+    "Everybody on the call went quiet. Then they started taking notes.",
+    f("The lesson? {Abstract} shows up in the places you least expect. Even in {qObs}."),
+    f(d.pick(kit.closers)),
+  ];
+};
+
+const framework: Shape = (o, kit, d, f, tells) => {
+  tells.push("Made-up acronym framework", "Trademark symbol on a vibe");
+  const letters = o.thing.replace(/[^a-z]/gi, "").slice(0, 7).toLowerCase().split("");
+  const rows = letters.map((c) => `${c.toUpperCase()} — ${d.pick(ACRO[c] ?? ACRO.s)}`);
+  return [
+    f("{Obs}. So naturally, I built a framework."),
+    f("Introducing the {THING} Method™:").replace("{THING}", o.thing.toUpperCase()),
+    rows.join("\n"),
+    f(d.pick(["I've used it with three Fortune 500 companies and one very confused {thing}.", "It took me 12 years and one {thing} to figure this out. You're getting it for free."])),
+    f("Save this. Your future self (and your {topicBare}) will thank you."),
+  ];
+};
+
+const unpopular: Shape = (o, kit, d, f, tells) => {
+  tells.push("“Unpopular opinions” that are extremely popular");
+  const opinions = d.some([
+    "{Things} are underrated.", "Most meetings could be a {thing}.", "Your {topicBare} strategy is just a {thing} with a slide deck.",
+    "{Abstract} beats talent when talent doesn't have {abstract}.", "Hustle culture is dead. Long live {abstract}.",
+    "If your {thing} doesn't scare you, it's not big enough.", "Nobody reads your OKRs. They read your {things}.",
+    "You don't need a mentor. You need a {thing}.", "Work-life balance is a {thing}.",
+  ], 4).map((x, i) => `${i + 1}. ${f(x)}`);
+  return [f(d.pick(["Unpopular opinions after {qObs}:", "Hot takes nobody asked for, inspired by {qObs}:"])), opinions.join("\n"), "Which one did I get wrong? (I didn't.)"];
+};
+
+const broetry: Shape = (o, kit, d, f, tells) => {
+  tells.push("Broetry (one word per line)");
+  const words = f("{Obs}.").split(/\s+/).slice(0, 9);
+  return [
+    words.join("\n"),
+    "And?",
+    f(d.pick(["That's {topicBare}.", "That's leadership.", "That's the job."])),
+    "Most people won't get this.",
+    "The ones who do?",
+    f("They're building the future of {topicBare}."),
+  ];
+};
+
+const vulnerable: Shape = (o, kit, d, f, tells) => {
+  tells.push("Crying-CEO vulnerability post", "Selfie-implied caption");
+  return [
+    "I don't usually post things like this.",
+    f("But today, {obs}, and I cried in my car for twenty minutes."),
+    f("Not because of the {thing}. Because of what it meant."),
+    f(d.pick(["For years I thought {topicBare} was about numbers. It's about people. And {things}.", "I realized I'd been optimizing for revenue when I should have been optimizing for {abstract}."])),
+    "So I'm making a change, starting today.",
+    f("To everyone out there pretending to be fine: I see you. 💛"),
+    "(Photo of me crying attached. Authenticity matters.)",
+  ];
+};
+
+const beforeAfter: Shape = (o, kit, d, f, tells) => {
+  tells.push("Before / after transformation", "Arrow emoji as logic");
+  return [
+    f("Before {qObs}:\n❌ Chasing vanity metrics\n❌ Saying yes to everything\n❌ Ignoring my {thing}"),
+    f("After {qObs}:\n✅ {Abstract}\n✅ Radical focus\n✅ 3x pipeline 📈"),
+    "Same person. Different mindset. ➡️",
+    f(d.pick(["The {thing} didn't change. I did.", "It was never about the {thing}. It was always about {abstract}."])),
+  ];
+};
+
+const hiring: Shape = (o, kit, d, f, tells) => {
+  tells.push("Hiring post nobody can apply to");
+  return [
+    f("{Obs}. So we're hiring. 🚀"),
+    f("Role: Chief {Thing} Officer\nLocation: Remote (but we'll know if you're not grinding)\nComp: Competitive equity in {abstract}"),
+    f("You might be a fit if you:\n• Have 10+ years of experience with {things} (they were invented last year)\n• Thrive in ambiguity, chaos and back-to-back syncs\n• Treat every {thing} like it's your last"),
+    "No recruiters. Unless you're good. DM me “🚀”.",
+  ];
+};
+
+const SHAPES: Shape[] = [listicle, announcement, dialogue, framework, unpopular, broetry, vulnerable, beforeAfter, hiring];
+
 export function generate(raw: string, flavor: Flavor, seed: number): Slop {
   const kit = KITS[flavor] ?? KITS.chatgpt;
   const o = readObservation(raw);
@@ -483,72 +617,71 @@ export function generate(raw: string, flavor: Flavor, seed: number): Slop {
   const tells: string[] = [];
   const parts: string[] = [];
 
-  const preamble = d.chance(0.45);
+  const preamble = d.chance(0.4);
   if (preamble) {
     parts.push(f(d.pick(kit.preambles)), "---");
     tells.push(kit.tellNames.preamble);
   }
-  parts.push(f(d.pick(kit.hooks)));
-  tells.push("Fake epiphany hook");
-  parts.push(f(d.pick(kit.pivots)));
-  for (const b of d.some(kit.beats, d.int(2, 3))) parts.push(f(b));
+  // Consecutive seeds walk through the shapes, so a barrage never repeats one back to back.
+  const shape = SHAPES[seed % SHAPES.length];
+  parts.push(...shape(o, kit, d, f, tells));
   tells.push("One-line paragraphs");
-  for (const [name, lines] of d.some(WIKI, d.int(2, 3))) {
-    parts.push(f(d.pick(lines)));
-    tells.push(name);
-  }
+  // Wikipedia's tells and the flavor's voice, sprinkled into the middle.
+  const middle: string[] = [];
+  for (const [name, lines] of d.some(WIKI, d.int(1, 2))) { middle.push(f(d.pick(lines))); tells.push(name); }
+  if (shape !== listicle) for (const b of d.some(kit.beats, 1)) middle.push(f(b));
+  if (d.chance(0.5)) { middle.push(d.pick(TRIADS)); tells.push("Rule of three"); }
+  const at = Math.max(preamble ? 3 : 1, parts.length - 1);
+  parts.splice(at, 0, ...middle);
 
-  if (d.chance(0.5)) {
-    parts.push(`It's not about the ${o.thing}. It's about ${d.pick(ABSTRACT)}.`);
-    tells.push("“It's not X. It's Y.”");
-  }
-  if (d.chance(0.6)) {
-    parts.push(d.pick(TRIADS));
-    tells.push("Rule of three");
-  }
-
-  const n = d.int(3, 5);
-  const lessons = d.some(LESSONS, n).map((l, i) => kit.bullet(i, f(l), d));
-  parts.push(`${f(d.pick(kit.listIntros), n)}\n\n${lessons.join("\n")}`);
-  tells.push(kit.tellNames.bullets);
-
-  parts.push(f(d.pick(kit.closers)));
-  const engage = d.pick([
+  parts.push(d.pick([
     `What's your ${o.thing} moment? 👇`,
     "Agree or disagree? Let me know in the comments.",
     "♻️ Repost if this resonated with your network.",
     `Tag a ${d.pick(ROLES).replace(/s$/, "")} who needs to hear this.`,
-  ]);
-  parts.push(engage);
+    "Comment “SLOP” and I'll DM you the full playbook.",
+    "Follow me for more insights like this. 🔔",
+  ]));
   tells.push("Engagement bait");
-
-  const tags = d.some(HASHTAGS, d.int(4, 7)).join(" ");
-  parts.push(tags);
+  parts.push(d.some(HASHTAGS, d.int(4, 7)).join(" "));
   tells.push("Hashtag avalanche");
 
-  if (d.chance(preamble ? 0.6 : 0.35)) {
+  if (d.chance(preamble ? 0.6 : 0.3)) {
     parts.push("---", f(d.pick(kit.postscripts)));
     tells.push(kit.tellNames.postscript);
   }
-
-  if (d.chance(0.4)) {
+  if (d.chance(0.35)) {
     const i = d.int(1, Math.max(1, parts.length - 3));
     parts[i] = `${parts[i]} ${d.pick(RESIDUE[flavor] ?? RESIDUE.chatgpt)}`;
     tells.push(RESIDUE_TELL[flavor] ?? RESIDUE_TELL.chatgpt);
   }
-  if (d.chance(0.12)) {
+  if (d.chance(0.1)) {
     parts.push("<|endoftext|>");
     tells.push("Abrupt <|endoftext|>");
   }
   const long = kit.finish(parts.join("\n\n"), d, tells);
-  const short = shortPost(o, kit, d, f);
+  const short = shortPost(o, kit, d, f, seed);
   return { long, short, tells: [...new Set(tells)] };
 }
 
+// Short posts any flavor can wear, on top of each flavor's own hooks.
+const SHARED_SHORT = [
+  "{Obs}. Most people would move on. I wrote a 14-part thread about {topicBare}. 🧵",
+  "Hot take: {things} are just {topicBare} with better branding.",
+  "I'm humbled to announce that {obs}. Grateful for this journey. 🙏",
+  "{Obs}.\n\nThat's it.\n\nThat's the {topicBare} strategy.",
+  "My barista asked why {obs} matters. I said “{abstract}.” She started crying.",
+  "Introducing the {THING} Method™. Comment “SLOP” for the PDF.",
+  "Before: chasing metrics.\nAfter {qObs}: chasing {abstract}. 📈",
+  "We're hiring a Chief {Thing} Officer. 10 years of {thing} experience required.",
+  "If {obs} doesn't teach you about {topicBare}, nothing will.",
+];
+
 const SHORT_LIMIT = 270; // under X's 280, Bluesky's 300, Threads' 500
 
-function shortPost(o: Observation, kit: FlavorKit, d: Dice, f: (t: string) => string): string {
-  const hook = f(d.pick(kit.shortHooks));
+function shortPost(o: Observation, kit: FlavorKit, d: Dice, f: F, seed: number): string {
+  const tpl = seed % 2 ? d.pick(kit.shortHooks) : d.pick(SHARED_SHORT);
+  const hook = f(tpl).replace("{THING}", o.thing.toUpperCase());
   const tail = f(d.pick(kit.shortTails));
   const tags = d.some(HASHTAGS, 2).join(" ");
   for (const candidate of [`${hook}\n\n${tail}\n\n${tags}`, `${hook}\n\n${tail}`, hook]) {

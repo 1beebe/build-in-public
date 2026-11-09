@@ -171,7 +171,7 @@
     for (const step of steps) {
       think.textContent = "";
       think.append(el("i", null, "✻"), document.createTextNode(` ${step}… (${Math.max(1, Math.round((Date.now() - started) / 1000))}s)`));
-      await wait(520);
+      await wait(1050);
     }
     const out = await req;
     think.remove();
