@@ -178,3 +178,32 @@ body.shake .barrel{animation:recoil .4s}
 .ammo .x{border:0;background:none;color:var(--soft);font-size:14px;line-height:1;cursor:pointer;padding:0 0 0 2px}
 .ammo .load{font:inherit;font-size:12.5px;font-weight:700;padding:4px 12px;border-radius:999px;border:1.5px dashed var(--acc);background:none;color:var(--acc);cursor:pointer}
 .ammo .load:hover{background:var(--bub)}
+
+/* ---- Aurora skin: a drifting gradient sky behind frosted glass, tinted per flavor ---- */
+body{--b1:#a7f3d0;--b2:#c4b5fd;--b3:#fde68a;--b4:#67e8f9;--glass:rgba(255,255,255,.55);--gline:rgba(255,255,255,.75)}
+body[data-flavor=claude]{--b1:#fdba9b;--b2:#f9a8d4;--b3:#fde68a;--b4:#d8b4a0;--glass:rgba(255,253,248,.58)}
+body[data-flavor=gemini]{--b1:#c4b5fd;--b2:#f9a8d4;--b3:#93c5fd;--b4:#67e8f9}
+body[data-flavor=grok]{--b1:#ff3df2;--b2:#7c3aed;--b3:#e8ff3a;--b4:#06b6d4;--glass:rgba(20,20,20,.55);--gline:rgba(255,255,255,.12)}
+.aurora{position:fixed;inset:0;z-index:-1;overflow:hidden;background:var(--bg);transition:background .4s}
+.aurora i{position:absolute;border-radius:50%;filter:blur(90px);opacity:.7;animation:drift 18s ease-in-out infinite alternate;transition:background .6s}
+body[data-flavor=grok] .aurora i{opacity:.32}
+.aurora i:nth-child(1){width:55vw;height:55vw;background:var(--b1);left:-10vw;top:-15vw}
+.aurora i:nth-child(2){width:45vw;height:45vw;background:var(--b2);right:-10vw;top:5vw;animation-delay:-6s}
+.aurora i:nth-child(3){width:40vw;height:40vw;background:var(--b3);left:30vw;bottom:-20vw;animation-delay:-12s}
+.aurora i:nth-child(4){width:30vw;height:30vw;background:var(--b4);left:5vw;bottom:0;animation-delay:-3s}
+@keyframes drift{to{transform:translate(6vw,4vw) scale(1.15)}}
+body{background:transparent}
+.side,.top,.box,.battery,.me,.chips button,.picker,.round,.upgrade{background:var(--glass);backdrop-filter:blur(18px) saturate(1.6);-webkit-backdrop-filter:blur(18px) saturate(1.6);border-color:var(--gline)}
+.side{border-right:1px solid var(--gline)}
+.top{background:transparent;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.box{box-shadow:0 0 50px var(--glow)}
+.battery{box-shadow:0 0 60px var(--glow);border-color:var(--gline)}
+.composer{background:none}
+.side a.on,.sidebtn:hover,.side a:hover{background:rgba(255,255,255,.5)}
+body[data-flavor=grok] .side a.on,body[data-flavor=grok] .sidebtn:hover,body[data-flavor=grok] .side a:hover{background:rgba(255,255,255,.08)}
+.hello h1{font-weight:800}
+body[data-flavor=chatgpt] .hello h1 span{background:linear-gradient(100deg,#10a37f,#7c3aed 55%,#ec4899);-webkit-background-clip:text;background-clip:text;color:transparent}
+body[data-flavor=claude] .hello h1{font-weight:500}
+body[data-flavor=claude] .hello h1 span{background:linear-gradient(100deg,#d97757,#ec4899 60%,#f59e0b);-webkit-background-clip:text;background-clip:text;color:transparent}
+body[data-flavor=grok] .hello h1 span{background:linear-gradient(100deg,#e8ff3a,#ff3df2);-webkit-background-clip:text;background-clip:text;color:transparent}
+@media (prefers-reduced-motion:reduce){.aurora i{animation:none}}

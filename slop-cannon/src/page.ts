@@ -31,6 +31,7 @@ ${HEAD}
 <meta property="og:description" content="AI-flavored thought leadership with zero AI. Fires into your Buffer queue.">
 </head>
 <body data-flavor="chatgpt" data-mode="drafts">
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
 <div class="flash" aria-hidden="true"></div>
 <div class="app">
   <aside class="side" aria-label="Chats">
