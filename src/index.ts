@@ -510,6 +510,14 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         // A story draft or an outline they'll write themselves. The transcript
         // option never reaches here: the page builds it.
         const mode: HarvestMode = body.mode === "outline" ? "outline" : "draft";
+        // Edits they made on the cards before going back to talk: kept on the drafts they stay with.
+        const edits = Array.isArray(body.edits) ? (body.edits as Record<string, unknown>[]).slice(0, 20) : [];
+        if ((s.harvestMode ?? "draft") === mode) for (const d of s.drafts ?? []) {
+          const e = edits.find((x) => x.id === d.id);
+          if (!e || d.later || s.saved?.includes(d.id)) continue;
+          if (typeof e.text === "string" && e.text.trim()) d.text = e.text.trim().slice(0, 10_000);
+          if (typeof e.title === "string" && e.title.trim()) d.title = e.title.trim().slice(0, 200);
+        }
         if (s.drafts?.length && (s.harvestMode ?? "draft") === mode && (s.harvestedTurns ?? s.turns.length) === s.turns.length) {
           result = await view(env, client, s); // idempotent: never pay twice for the same transcript
           break;
@@ -530,10 +538,18 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
             harvest(env, s.questions ?? [], s.turns, pillars, s.posts, s.targets ?? [], mode, s.weekNote ?? ""),
           ]);
           s.drafts = [...piece, ...short];
+        } else if (s.longform) {
+          s.drafts = await harvestArticle(env, s.turns, s.posts, s.targets ?? [], mode);
         } else {
-          s.drafts = s.longform
-            ? await harvestArticle(env, s.turns, s.posts, s.targets ?? [], mode)
-            : await harvest(env, s.questions ?? [], s.turns, pillars, s.posts, s.targets ?? [], mode, s.weekNote ?? "");
+          // Keep talking keeps what they already have: same mode, more conversation since the
+          // last harvest. Their drafts stay (with the edits the page sends back) and only new
+          // stories are added, marked fresh. A switch between draft and outline rebuilds them all.
+          const kept = (s.harvestMode ?? "draft") === mode ? (s.drafts ?? []).filter((d) => !d.later && !d.article) : [];
+          for (const d of kept) d.fresh = undefined;
+          const found = await harvest(env, s.questions ?? [], s.turns, pillars, s.posts, s.targets ?? [], mode, s.weekNote ?? "", kept);
+          const added = found.filter((d) => !d.later).map((d) => ({ ...d, fresh: kept.length ? true : undefined }));
+          s.drafts = [...added, ...kept, ...found.filter((d) => d.later)];
+          if (!kept.length) { s.saved = []; s.savedAsIdeas = []; }
         }
         s.harvestMode = mode;
         s.harvestedTurns = s.turns.length;
@@ -544,8 +560,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           ms: Date.now() - began,
           drafts: (s.drafts ?? []).map(({ title, channel, format, flags, text, later }) => ({ title, channel, format, flags, text, later })),
         }));
-        s.saved = [];
-        s.savedAsIdeas = [];
+        if (s.longform) { s.saved = []; s.savedAsIdeas = []; }
         result = await view(env, client, s);
         break;
       }
@@ -564,7 +579,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           : `\n\nThey just looked for stories and found ${found === 1 ? "only one" : found === 0 ? "none yet" : `only ${found}`}, so they came back to keep talking. Welcome them back in a few words, without recapping, and ask one easy, open question from a fresh angle you haven't covered yet.`;
         const { fallback, wrapUp: _ended, ...next } = await reply(env, s.questions ?? [], s.turns, (s.brief ?? "").slice(0, 12000) + note, s.longform, undefined, s.promptV !== 1);
         s.turns.push(next);
-        s.drafts = []; // back to talking: a reload lands on the conversation, and the next harvest reads it all
+        if (s.longform) s.drafts = []; // back to talking: the next harvest reads it all (short posts keep their drafts and add new ones)
         await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: fallback ? "keep talking, reply FAILED" : "keep talking" }));
         result = { ...(await view(env, client, s)), replyFallback: Boolean(fallback) };
         break;
@@ -770,6 +785,7 @@ async function view(env: Env, client: BufferClient, s: Session, refresh = false)
     channels: channels.map((c) => ({ service: c.service, name: c.name, label: channelLabel(c.service) })),
     targets: s.targets ?? mainServices(channels),
     harvestMode: s.harvestMode ?? "draft",
+    harvestedTurns: s.harvestedTurns ?? s.turns?.length ?? 0,
     longform: Boolean(s.longform),
     alsoShort: Boolean(s.alsoShort),
     longformOffered: longformOffered(env, s),

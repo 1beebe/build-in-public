@@ -707,6 +707,7 @@ button.chip.on{background:var(--solid);color:var(--solid-ink);box-shadow:none}
 .draft .ask .row{margin-top:8px}
 .draft .ask-msg{margin:8px 0 0}
 .draft .ask-msg:empty{display:none}
+.draft .fresh{display:inline-block;margin-right:8px;padding:2px 8px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-size:.75rem;font-weight:600}
 .draft textarea{resize:vertical}
 .pick{justify-self:start;display:inline-flex;align-items:center;gap:10px;font-weight:600;cursor:pointer;min-height:44px}
 .pick input{width:22px;height:22px;margin:0;accent-color:var(--ink);cursor:pointer}
@@ -1635,7 +1636,7 @@ $("harvestBtn").onclick = async () => {
     const lines = [steps[0]]; for (let i = 1; i < steps.length; i++) { if (heard[i - 1]) lines.push(heard[i - 1]); lines.push(steps[i]); }
     $("waitH").textContent = state.longform ? "Finding your piece" : "Finding your stories";
     show("waiting"); window.scrollTo({top:0}); shimmer.start(lines);
-    try { state = await api("/api/harvest", {mode}); promoteExtras(state.drafts); }
+    try { state = await api("/api/harvest", {mode, edits: Object.values(cardEdits)}); promoteExtras(state.drafts); cardEdits = {}; }
     catch(e){ shimmer.stop(); renderTalk(); throw e; }
     const n = (state.drafts || []).filter(d => !d.later && !d.extra && !d.article).length, art = (state.drafts || []).some(d => d.article);
     if (art || n) await shimmer.finish(art ? "Your piece is ready" : n === 1 ? "One story, ready for you" : (n === 2 ? "Two" : n === 3 ? "Three" : n) + " stories, ready for you");
@@ -1784,7 +1785,7 @@ function renderReview(){
     ? "Your piece, built from what you said, plus short posts to share it" + (state.alsoShort ? " and short posts for the other stories you told" : "") + ". Edit anything and untick what you don't want. The article is kept in Buffer as an Idea; the short posts go to Drafts when you press Save."
     : outline
     ? "Each card is one post for one channel, outlined in your words. Write it your way and untick what you don't want. Nothing goes to Buffer until you press Save at the bottom."
-    : "Each card is one post for one channel, built from what you said and tidied by an editor. Edit anything, or use Ask for changes on a card, and untick what you don't want. Keep talking is for adding more stories. Nothing goes to Buffer until you press Save at the bottom.";
+    : "Each card is one post for one channel, built from what you said and tidied by an editor. Edit anything, or use Ask for changes on a card, and untick what you don't want. Keep talking finds new stories and adds them here; these drafts and your edits stay. Nothing goes to Buffer until you press Save at the bottom.";
   promoteExtras(state.drafts);
   const extra = (state.drafts || []).filter(d => d.extra && !(state.saved||[]).includes(d.id));
   const real = (state.drafts || []).filter(d => !d.later).length;
@@ -1800,7 +1801,7 @@ function renderReview(){
     if ((state.saved||[]).includes(d.id)) { cb.checked = false; cb.disabled = true; top.lastChild.textContent = "Saved"; }
     cb.onchange = countPicked;
     if (d.format) {
-      const sh = el("div", "shape"); sh.append(el("span", "fmt", d.article ? "Article · for your newsletter or a LinkedIn article" : "For " + channelName(d.channel) + " · " + d.format)); card.append(sh);
+      const sh = el("div", "shape"); if (d.fresh) sh.append(el("span", "fresh", "New")); sh.append(el("span", "fmt", d.article ? "Article · for your newsletter or a LinkedIn article" : "For " + channelName(d.channel) + " · " + d.format)); card.append(sh);
       const key = (d.title || "").trim().toLowerCase(), share = /^sharing: /i.test(d.title || "");
       if (share) card.append(el("p", "same", "A post to share your piece."));
       else if (key && seen[key]) card.append(el("p", "same", "Same story as the " + seen[key] + " card."));
@@ -1863,9 +1864,12 @@ function renderReview(){
 function grow(t){ if (!t.offsetParent) return; t.style.height = "auto"; t.style.height = (t.scrollHeight + 4) + "px"; }
 function channelName(service){ const c = (state.channels||[]).find(c => c.service === service); return c ? c.label : service ? service : "Any channel"; }
 $("showMore").onclick = () => { document.querySelectorAll(".draft.extra").forEach(c => { c.hidden = false; c.querySelectorAll("textarea").forEach(grow); }); $("showMore").hidden = true; };
-$("backTalk").onclick = renderTalk;
+// Edits made on the cards ride along to the next harvest, so Keep talking never loses them.
+let cardEdits = {};
+function keepEdits(){ document.querySelectorAll(".draft").forEach(c => { const t = c.querySelector(".title"), x = c.querySelector(".text"); if (c.dataset.id && x) cardEdits[c.dataset.id] = {id: c.dataset.id, title: t ? t.value : "", text: x.value}; }); }
+$("backTalk").onclick = () => { keepEdits(); renderTalk(); };
 $("moreBtn").onclick = async () => {
-  err(""); const b = $("moreBtn"); b.disabled = true; b.textContent = "Finding a new question…";
+  err(""); keepEdits(); const b = $("moreBtn"); b.disabled = true; b.textContent = "Finding a new question…";
   try { state = await api("/api/more", {}); drawn = Math.max(0, (state.turns||[]).length - 1); renderTalk(); window.scrollTo({top:0}); $("say").focus({preventScroll:true}); }
   catch(e){ err(e.message); }
   finally { b.disabled = false; b.textContent = "Keep talking to find more"; }
@@ -1982,7 +1986,9 @@ function countUp(b, to){
 
 function route(){
   if (!state.repo && !state.noRepo) return renderSetup();
-  if ((state.drafts||[]).length) return (state.saved||[]).length ? renderDone() : renderReview();
+  // Back to talking after a look at the drafts (Keep talking): the conversation, not the cards.
+  const talkingMore = (state.turns||[]).length > (state.harvestedTurns||0) && !state.longform;
+  if ((state.drafts||[]).length && !talkingMore) return (state.saved||[]).length ? renderDone() : renderReview();
   if ((state.turns||[]).length) return renderTalk();
   renderSetup();
 }

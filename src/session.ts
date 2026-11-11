@@ -41,6 +41,7 @@ export interface Draft {
   sentences?: number[]; // which of their numbered sentences it was built from
   article?: boolean; // the long-form piece itself: copied or downloaded, kept in Buffer as an Idea
   titles?: string[]; // candidate titles for an article, lifted from their own lines
+  fresh?: boolean; // found after Keep talking, next to the drafts they already had
 }
 
 export type HarvestMode = "draft" | "outline";
