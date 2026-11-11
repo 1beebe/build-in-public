@@ -1544,7 +1544,15 @@ function glFragment(who, delta){
     if (who === "interviewer") gl.dropped = null;
   }
   t.text += delta;
+  if (who === "interviewer") t.text = laughFix(t.text);
   drawLive(); syncLive();
+}
+// The voice's own laugh comes through the transcript as a word ("laugh?", "[laughs]", "*chuckles*").
+// Show it the way a person would write it.
+function laughFix(text){
+  return text
+    .replace(/[\\[(*]\\s*(laugh(s|ing|ter)?|chuckl(e|es|ing)|giggl(e|es|ing))\\s*[\\])*][.!?]*/gi, "Haha.")
+    .replace(/(^|[.!?]\\s+)(laugh(s|ing|ter)?|chuckl(e|es|ing)|giggl(e|es|ing))[.!?]+(?=\\s|$)/gi, "$1Haha.");
 }
 function onGptLiveEvent(ev){
   switch (ev.type) {
