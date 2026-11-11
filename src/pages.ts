@@ -648,6 +648,9 @@ textarea{resize:vertical;min-height:120px;line-height:1.5}
 .log .them p{font-size:clamp(1.15rem,1.05rem + .4vw,1.4rem);line-height:1.36;letter-spacing:-.015em;font-weight:500}
 .log .you{align-self:flex-end;background:var(--raised);border-radius:20px 20px 6px 20px;padding:12px 16px}
 .log .new{animation:fadein .45s var(--ease)}
+.log .w{animation:wordin .4s var(--ease) both}
+@keyframes wordin{from{opacity:0;filter:blur(2px)}to{opacity:1;filter:none}}
+@media (prefers-reduced-motion:reduce){.log .w{animation:none}}
 .log .typing p{color:var(--muted);font-weight:400}
 /* Thinking: one faint line of code characters in the shimmer's pearl colors, where the question will land. */
 .log .ghost-line{font:400 1rem/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.06em;white-space:nowrap;overflow:hidden;max-width:100%;user-select:none;-webkit-mask-image:linear-gradient(90deg,#000 75%,transparent);mask-image:linear-gradient(90deg,#000 75%,transparent)}
@@ -1288,11 +1291,24 @@ function isFollowing(log){
   if (log.scrollHeight > log.clientHeight + 2) return log.scrollHeight - log.scrollTop - log.clientHeight < 120;
   return log.getBoundingClientRect().bottom < viewH() - dockH() + 160;
 }
+// The view glides after the newest line at an eased pace, so a stream of words reads as one
+// steady drift rather than a scroll per word. Touching the page hands scrolling back to them.
+let glideTo = null, glideRaf = 0;
+function glide(){
+  const y = window.scrollY, d = glideTo - y;
+  if (glideTo == null || Math.abs(d) < 0.5) { if (glideTo != null) window.scrollTo(0, glideTo); glideTo = null; glideRaf = 0; return; }
+  window.scrollTo(0, y + d * 0.14); glideRaf = requestAnimationFrame(glide);
+}
+["wheel", "touchstart", "keydown"].forEach((ev) => window.addEventListener(ev, (e) => { if (ev !== "keydown" || ["ArrowUp","ArrowDown","PageUp","PageDown","Home","End"," "].includes(e.key)) glideTo = null; }, {passive: true}));
 function follow(log){
   if (log.scrollHeight > log.clientHeight + 2) { log.scrollTop = log.scrollHeight; return; }
   const last = log.lastElementChild; if (!last) return;
   const over = last.getBoundingClientRect().bottom - (viewH() - dockH() - 24);
-  if (over > 0) { const now = Date.now(); window.scrollBy({top: over, behavior: now - followAt < 400 ? "auto" : "smooth"}); followAt = now; }
+  if (over <= 0) return;
+  const to = Math.min(window.scrollY + over, document.documentElement.scrollHeight - viewH());
+  if (still) { window.scrollTo(0, to); return; }
+  glideTo = Math.max(glideTo || 0, to); followAt = Date.now();
+  if (!glideRaf) glideRaf = requestAnimationFrame(glide);
 }
 // The typing box grows with what they write, up to about 40% of what's visible, so the top of the answer stays readable.
 function dockH(){ const d = document.querySelector("#talk:not([hidden]) .dock-in"); return d ? d.getBoundingClientRect().height + 16 : 0; }
@@ -1333,6 +1349,18 @@ function decode(p, text){
   };
   requestAnimationFrame(step);
 }
+// New words in a live turn fade in where they land instead of the whole line being rewritten.
+// Only the last few arrivals stay wrapped; older ones fold back into plain text.
+let holdOpening = null;
+function setWords(p, text, live){
+  const old = p.dataset.t || "";
+  if (text === old) return;
+  p.dataset.t = text;
+  if (!live || still || !old || !text.startsWith(old)) { p.textContent = text; return; }
+  p.append(el("span", "w", text.slice(old.length)));
+  const ws = p.querySelectorAll(":scope > .w");
+  if (ws.length > 8) { ws[0].replaceWith(document.createTextNode(ws[0].textContent)); p.normalize(); }
+}
 let ghostShown = false;
 function renderTalk(){
   const about = currentAbout();
@@ -1342,19 +1370,35 @@ function renderTalk(){
     b.type = "button"; b.title = q.source; b.onclick = () => { renderSource(k); markTopics(); };
     $("topics").append(b);
   });
-  const log = $("log"), following = isFollowing(log); log.innerHTML = "";
+  const log = $("log"), following = isFollowing(log);
   const turns = state.turns || [];
+  // Update the transcript in place rather than redrawing it, so a live answer grows smoothly:
+  // finished turns stay put, the turn being spoken gets its new words, and only real changes touch the page.
+  log.querySelectorAll(":scope > .ghost, .wrap-go").forEach(n => n.remove());
+  let items = [...log.children];
+  const kind = (t) => t.who === "you" ? "you" : "them";
+  let k0 = 0;
+  while (k0 < turns.length && k0 < items.length && items[k0].classList.contains(kind(turns[k0]))) k0++;
+  items.slice(k0).forEach(n => n.remove());
   turns.forEach((t, k) => {
-    const li = el("li", (t.who === "you" ? "you" : "them") + (k >= drawn ? " new" : ""));
-    const tp = el("p", "", t.text);
-    li.append(el("span", "who", t.who === "you" ? "You" : "The Interviewer"), tp);
-    if (ghostShown && !busy && t.who !== "you" && k >= drawn && k === turns.length - 1) decode(tp, t.text);
-    // The opening quotes a short piece of their note; let them read it all.
-    if (k === 0 && state.noRepo && state.weekNote && t.text.includes("…")) {
-      const more = el("details", "note-more"), sum = el("summary", "small muted", "See more");
-      more.append(sum, el("p", "small", state.weekNote)); li.append(more);
+    if (k === 0 && holdOpening && t.text.length >= holdOpening.length) holdOpening = null;
+    const text = k === 0 && holdOpening ? holdOpening : t.text;
+    let li = log.children[k], tp;
+    if (!li) {
+      li = el("li", kind(t) + (k >= drawn ? " new" : ""));
+      tp = el("p", "", text); tp.dataset.t = text;
+      li.append(el("span", "who", t.who === "you" ? "You" : "The Interviewer"), tp);
+      if (ghostShown && !busy && t.who !== "you" && k >= drawn && k === turns.length - 1) decode(tp, text);
+      // The opening quotes a short piece of their note; let them read it all.
+      if (k === 0 && state.noRepo && state.weekNote && text.includes("…")) {
+        const more = el("details", "note-more"), sum = el("summary", "small muted", "See more");
+        more.append(sum, el("p", "small", state.weekNote)); li.append(more);
+      }
+      log.append(li);
+    } else {
+      tp = li.querySelector(":scope > p");
+      setWords(tp, text, k === turns.length - 1);
     }
-    log.append(li);
   });
   drawn = turns.length;
   // The interviewer wrapped up (or they asked for a draft): put the next step right there.
@@ -1476,7 +1520,8 @@ let gl = null;
 function glFragment(who, delta){
   if (!delta) return;
   // Its first words are the opening already on screen: write them over that turn, not below it.
-  if (gl.reopen) { if (who === "interviewer" && liveTurns.length === 1) { gl.reopen.text = ""; gl.cur.interviewer = gl.reopen; } gl.reopen = null; }
+  // The question stays as it is on screen until the spoken copy has caught up, so it never blanks.
+  if (gl.reopen) { if (who === "interviewer" && liveTurns.length === 1) { holdOpening = gl.reopen.text; gl.reopen.text = ""; gl.cur.interviewer = gl.reopen; } gl.reopen = null; }
   const last = liveTurns[liveTurns.length - 1];
   // A few words with no question from the interviewer while they were talking
   // is a backchannel ("mm", "yeah"): drop it and keep their turn going.
