@@ -19,7 +19,7 @@ const END_V2 = `Every turn: a few warm words that pick up their point, then one 
 
 function liveInstructions(s: Session, rules: string): string {
   const agenda: Question[] = s.questions ?? [];
-  // Before they've said anything, the opening question on screen is replaced by the live hello.
+  // Before they've said anything, the live hello says the opening question on screen (liveOpening).
   const answered = (s.turns ?? []).some((t) => t.who === "you");
   const sofar = !answered ? "" : (s.turns ?? []).map((t) => `${t.who === "you" ? "THEM" : "YOU"}: ${t.text}`).join("\n");
   const v2 = s.promptV !== 1;
@@ -64,6 +64,10 @@ const LIVE_RULES = `This is a live voice conversation, full duplex: you can hear
 
 export function liveOpening(s: Session): string {
   const answered = (s.turns ?? []).some((t) => t.who === "you");
+  // The opening question is already on their screen (written when the interview started).
+  // Say that same question, so what they read and what they hear match.
+  const shown = !answered && s.turns?.[0]?.who === "interviewer" ? s.turns[0].text.replace(/\s+/g, " ").trim() : "";
+  if (shown) return `Speak first, in English. Their screen already shows your opening, so say it out loud close to word for word, as your own words, with nothing before it and no other question: "${shown.replace(/"/g, "'")}" Then listen.`;
   return answered
     ? "Speak first, in English: welcome them back in a few words and pick up where you left off with one question. Then listen."
     : s.longform

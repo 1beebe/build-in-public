@@ -1475,6 +1475,8 @@ $("liveBtn").onclick = () => liveOn() ? stopLive() : startGptLive();
 let gl = null;
 function glFragment(who, delta){
   if (!delta) return;
+  // Its first words are the opening already on screen: write them over that turn, not below it.
+  if (gl.reopen) { if (who === "interviewer" && liveTurns.length === 1) { gl.reopen.text = ""; gl.cur.interviewer = gl.reopen; } gl.reopen = null; }
   const last = liveTurns[liveTurns.length - 1];
   // A few words with no question from the interviewer while they were talking
   // is a backchannel ("mm", "yeah"): drop it and keep their turn going.
@@ -1526,8 +1528,11 @@ async function startGptLive(){
     mic = await navigator.mediaDevices.getUserMedia({audio:true});
     holdWake();
     meter(mic);
-    liveTurns = (state.turns || []).some(t => t.who === "you") ? state.turns.map(t => ({...t})) : []; liveAbout = currentAbout();
-    gl = {cur:{}, quiet:null};
+    // Before they've answered, the opening question stays on screen; the voice says it aloud
+    // and its spoken words replace the text in place, so nothing disappears or changes.
+    const fresh = !(state.turns || []).some(t => t.who === "you");
+    liveTurns = (state.turns || []).map(t => ({...t})); liveAbout = currentAbout();
+    gl = {cur:{}, quiet:null, reopen: fresh && liveTurns.length === 1 && liveTurns[0].who !== "you" ? liveTurns[0] : null};
     pc = new RTCPeerConnection();
     const out = new Audio(); out.autoplay = true;
     pc.ontrack = (e) => { out.srcObject = e.streams[0]; meter(e.streams[0]); };
