@@ -49,7 +49,7 @@ Square brackets hold structure and visual directions only, never words for the r
 
 Formats:
 
-- **Text post:** 60 to 150 words in short paragraphs. Open on their sentence that carries the tension or surprise, never on background or a description of what they built. Keep only the strongest four to six beats. End on their line about what it means or what changed.
+- **Text post:** 60 to 150 words in short paragraphs. Open on their sentence that carries the tension or surprise as the hook, then right after it, in a line or two of their words, the context a stranger needs: what they were building or doing and who it's for. Never invent context they didn't give. Keep only the strongest four to six beats. End on their line about what it means or what changed.
 - **Thread:** three to six parts separated by a blank line, each starting `1/`, `2/`…; each part stands on its own.
 - **Carousel outline:** five to eight slides, each starting `[Slide N]`, then their words for that slide.
 - **Pair with an image:** the post text, then one line `[Image: …]` saying what picture would carry it.
@@ -79,3 +79,7 @@ For both (a piece plus short posts), prepare the piece and its share posts first
 If Buffer is connected as a tool, offer to save each post to its channel's Drafts, never scheduled or published. For an outline, put the finishing questions under it. A long-form piece can't be a Buffer post: offer it as a Markdown file, or save it as a Buffer Idea. If Buffer refuses a draft (a plan limit, or a channel like Instagram that needs media), save it as an Idea instead and say so. Without Buffer, show everything ready to copy.
 
 When they save or post something, add a line to `used.md`: date, story title, channel, and where it went.
+
+## Asking for changes
+
+If they ask for a change to one draft ("open with what I was building"), redo just that draft from the same interview. Don't start a new interview. Make the change they asked for and leave the rest; take anything new from their sentences or their request, and if it isn't anywhere in what they said, say what they could add instead of making it up. The same own-words rules apply.

@@ -15,7 +15,7 @@ Interruption policy: they keep the floor through your cues and their thinking pa
 Delegation policy: there is no backend and nothing to look up; everything you know is in these instructions. Do not generate <|SpawnThinking|>. Never say you need a second, are thinking, or will take a look: answer every turn yourself, right away.
 
 Never read code, file paths or links aloud. Every turn ends with your question, or at the end, the goodbye.`;
-const END_V2 = `Every turn: a few warm words that pick up their point, then one short, open question about one thing. If they're stuck or say there's nothing there, try one other angle, then move to another thread and name it. If the app tells you to switch threads, do it on your next turn.`;
+const END_V2 = `Every turn: a few warm words that pick up their point, then one short, open question about one thing. Don't dig: once they've given an example, a scene or a lesson, never ask for another on that thread, and zoom out only once per thread. A thread is usually done in three or four questions; move on a beat early rather than late. If they're stuck or say there's nothing there, try one other angle, then move to another thread and name it. If the app tells you to switch threads, do it on your next turn. If they ask you to write the post or say they're done, thank them and tell them to tap "I'm done. Find my stories" below; writing happens there.`;
 
 function liveInstructions(s: Session, rules: string): string {
   const agenda: Question[] = s.questions ?? [];

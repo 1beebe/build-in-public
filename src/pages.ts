@@ -703,6 +703,10 @@ button.chip.on{background:var(--solid);color:var(--solid-ink);box-shadow:none}
 .draft .lbl{font-size:.875rem;font-weight:600;color:var(--muted);display:block;margin-bottom:6px}
 .draft .text{min-height:150px}
 .draft .prompts{min-height:84px;font-size:1rem}
+.draft .ask-note{min-height:64px;font-size:1rem;width:100%}
+.draft .ask .row{margin-top:8px}
+.draft .ask-msg{margin:8px 0 0}
+.draft .ask-msg:empty{display:none}
 .draft textarea{resize:vertical}
 .pick{justify-self:start;display:inline-flex;align-items:center;gap:10px;font-weight:600;cursor:pointer;min-height:44px}
 .pick input{width:22px;height:22px;margin:0;accent-color:var(--ink);cursor:pointer}
@@ -862,7 +866,8 @@ body:has(main.app) .feedback-open{display:none}
 #setup .panel select{border-color:transparent}
 #setup .panel .chip{background:rgba(13,42,28,.08);box-shadow:none;min-height:44px;padding:0 18px;font-size:1rem;font-weight:500}
 #setup .panel .chip:has(input:checked){background:var(--ink);color:var(--accent)}
-#setup .panel .chip:has(input:checked)::before{content:none}
+#setup .panel .chip::before{content:"";width:16px;height:16px;flex:none;border-radius:50%;box-shadow:inset 0 0 0 1.5px currentColor;opacity:.55}
+#setup .panel .chip:has(input:checked)::before{opacity:1;box-shadow:none;background:var(--accent) center/12px 12px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M3.2 8.2 6.3 11.3 12.8 4.7' stroke='%230d2a1c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
 #setup .panel .keep{color:var(--ink);font-size:.95rem}
 #setup .panel .keep input{accent-color:var(--ink)}
 #saveSetup{background:var(--solid);color:var(--accent);min-height:52px;padding-inline:26px}
@@ -1227,7 +1232,7 @@ function renderSetup(){
   if (only) $("chans").querySelector("input").checked = true;
   $("chans").hidden = !!only;
   $("chanLbl").textContent = only ? "Drafts will be written for " + only.label : "Write drafts for";
-  $("chanHint").textContent = only ? "That's the channel you have connected in Buffer." : (state.targets || []).length ? "Tap each channel you want drafts for. The ones you post on most are already picked." : "Tap each channel you want drafts for.";
+  $("chanHint").textContent = only ? "That's the channel you have connected in Buffer." : (state.targets || []).length ? "The ones you post on most are already ticked. Tap a channel to add or remove it." : "Tap each channel you want drafts for.";
   show("setup");
 }
 
@@ -1816,6 +1821,27 @@ function renderReview(){
       acts.append(cp, dl); card.append(acts);
     }
     for (const f of d.flags || []) card.append(el("p", "flag", f));
+    if (!d.later && !(state.saved||[]).includes(d.id)) {
+      // Ask for changes: the editor redoes this one draft from the same interview, no new questions.
+      const fx = el("details", "fold ask"); fx.append(el("summary", "lbl", "Ask for changes"));
+      const nt = el("textarea", "ask-note"); nt.maxLength = 600; nt.rows = 2; nt.placeholder = "Say what to change, like: open with what I was building";
+      nt.setAttribute("aria-label", "What to change in this draft");
+      const go = el("button", "btn quiet small", "Revise this draft"); go.type = "button";
+      const msg = el("p", "hint ask-msg"); msg.setAttribute("aria-live", "polite");
+      go.onclick = async () => {
+        if (!nt.value.trim()) { nt.focus(); return; }
+        go.disabled = true; go.textContent = "Revising…"; msg.textContent = "";
+        try {
+          const r = await api("/api/revise", {id: d.id, text: x.value, note: nt.value});
+          const nd = (r.drafts||[]).find(q => q.id === d.id);
+          if (r.revised && r.revised.ok && nd) { x.value = nd.text; grow(x); d.text = nd.text; nt.value = ""; msg.textContent = r.revised.note || "Revised. Edit anything, or ask again."; }
+          else msg.textContent = (r.revised && r.revised.note) || "I couldn't make that change from your own words. Say what to add in your words, or edit the draft directly.";
+        } catch(e){ msg.textContent = e.message; }
+        finally { go.disabled = false; go.textContent = "Revise this draft"; }
+      };
+      const row = el("div", "row"); row.append(go);
+      fx.append(nt, row, msg); card.append(fx);
+    }
     if ((d.prompts||[]).length) {
       const pw = el("details", "fold"); pw.append(el("summary", "lbl", (outline ? "Questions to help you write it, added under your outline" : "Questions to help you finish it, added under your draft") + " (" + d.prompts.length + ")"));
       pw.addEventListener("toggle", () => pw.querySelectorAll("textarea").forEach(grow));

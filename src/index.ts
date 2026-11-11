@@ -19,7 +19,7 @@ import {
 import { QUIET_LOOKBACK_DAYS, RepoError, getSource, parseRepo, shippedNothing, whatShipped, type Shipped, type Source } from "./github";
 import { complete, hasModel, planQuestions, POST_SOURCE } from "./interview";
 import { clip } from "./interview";
-import { channelLabel, harvest, opening, reply, harvestArticle, LONGFORM_OPENING, steerNote } from "./conversation";
+import { channelLabel, harvest, opening, reply, harvestArticle, LONGFORM_OPENING, revise, steerNote } from "./conversation";
 import { gptLiveSession, openaiKey, VoiceError } from "./realtime";
 import { MindStudioError } from "./mindstudio";
 import { storeFeedback } from "./feedback";
@@ -403,7 +403,7 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           ...(() => {
             const where = s.targets ?? mainServices(s.channels ?? []);
             return where.length
-              ? [`They publish on ${where.map(channelLabel).join(", ")}. Without saying so, lean toward moments that would make a good story there: a scene, a choice, something they could show.`]
+              ? [`They publish on ${where.map(channelLabel).join(", ")}. Without saying so, lean toward things that would make a good story there: a choice, a surprise, something they could show.`]
               : [];
           })(),
           `Their recent posts, newest first. They show who they are, what they care about and who they write for. Use them to show you know them and to connect what they say now to what they've said before:`,
@@ -527,13 +527,13 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
           // Both at once: the piece and its share posts, then standalone posts from the same talk.
           const [piece, short] = await Promise.all([
             harvestArticle(env, s.turns, s.posts, s.targets ?? [], mode),
-            harvest(env, s.questions ?? [], s.turns, pillars, s.posts, s.targets ?? [], mode),
+            harvest(env, s.questions ?? [], s.turns, pillars, s.posts, s.targets ?? [], mode, s.weekNote ?? ""),
           ]);
           s.drafts = [...piece, ...short];
         } else {
           s.drafts = s.longform
             ? await harvestArticle(env, s.turns, s.posts, s.targets ?? [], mode)
-            : await harvest(env, s.questions ?? [], s.turns, pillars, s.posts, s.targets ?? [], mode);
+            : await harvest(env, s.questions ?? [], s.turns, pillars, s.posts, s.targets ?? [], mode, s.weekNote ?? "");
         }
         s.harvestMode = mode;
         s.harvestedTurns = s.turns.length;
@@ -567,6 +567,28 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
         s.drafts = []; // back to talking: a reload lands on the conversation, and the next harvest reads it all
         await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: fallback ? "keep talking, reply FAILED" : "keep talking" }));
         result = { ...(await view(env, client, s)), replyFallback: Boolean(fallback) };
+        break;
+      }
+      case "/api/revise": {
+        // "Ask for changes" on one draft: same transcript, their note, no new interview.
+        const draft = s.drafts?.find((d) => d.id === body.id);
+        if (!draft || draft.later) throw new UserError("That draft isn't here any more. Reload the page and try again.");
+        if (s.saved?.includes(draft.id)) throw new UserError("That one's already in Buffer. Edit it there.");
+        const request = textInput(body.note, 600, "Keep the request to a few sentences.");
+        if (request.length < 3) throw new UserError("Say what you'd like changed, like \"add what I was building\".");
+        const current = textInput(body.text ?? draft.text, 10_000, "Keep each piece to 10,000 characters or fewer.") || draft.text;
+        if (!hasModel(env)) throw new UserError("Revising isn't available right now. You can edit the draft directly.");
+        if (!(await modelAllowedToday(env, "typed"))) throw new UsageLimitError("Revising is resting for today. You can still edit the draft directly.");
+        s.typedStarts = reserveWindow(s.typedStarts, 3600_000, TYPED_CALLS_PER_HOUR * capFactor(env, s), "That's a lot of changes in one hour. Take a short break, or edit the draft directly.");
+        await saveSession(env, id, s);
+        const began = Date.now();
+        const out = await revise(env, s.turns ?? [], draft, current, request, s.harvestMode ?? "draft", s.weekNote ?? "");
+        if (out.post) {
+          draft.text = out.post;
+          draft.flags = (draft.flags ?? []).filter((f) => !/^Kept close/.test(f));
+        }
+        await logRun(env, s, (r) => r.events.push({ at: new Date().toISOString(), what: `asked for changes (${out.post ? "revised" : "kept as is"}, ${Date.now() - began}ms): ${request.slice(0, 200)}` }));
+        result = { ...(await view(env, client, s)), revised: { id: draft.id, ok: Boolean(out.post), note: out.note } };
         break;
       }
       case "/api/save": {
