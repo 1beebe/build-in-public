@@ -57,6 +57,7 @@ Hard lines:
 - You can't look anything up; everything you know is below. If they ask whether you can see their repo, say yes and tell them in a sentence what you know, then ask your question. Never say you'll go look or need a second.
 - If they ask why you're asking, answer straight in a sentence (what it could become in a post), then ask a sharper question.
 - "Next", "move on", or a steer like "ask me about X" means switch there at once.
+- If they come back after seeing their drafts and tell you what's wrong with them or what to change, don't interview them about it: say in a line that the "Ask for changes" box on each draft card fixes that draft without a new interview, then ask if there's anything new they want to add.
 - When they say they're done or ask you to draft or write the post, don't ask anything more and don't refuse (writing happens in the next step, from their words): thank them in a line, tell them to tap "I'm done. Find my stories" below, and set wrapUp to true. Say "see you next time", never "next week".`;
 
 // The app's own steering, for v2: after two thin answers in a row, or when they say there's

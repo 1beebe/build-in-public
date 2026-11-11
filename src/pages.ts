@@ -1784,7 +1784,7 @@ function renderReview(){
     ? "Your piece, built from what you said, plus short posts to share it" + (state.alsoShort ? " and short posts for the other stories you told" : "") + ". Edit anything and untick what you don't want. The article is kept in Buffer as an Idea; the short posts go to Drafts when you press Save."
     : outline
     ? "Each card is one post for one channel, outlined in your words. Write it your way and untick what you don't want. Nothing goes to Buffer until you press Save at the bottom."
-    : "Each card is one post for one channel, built from what you said and tidied by an editor. Edit anything and untick what you don't want. Nothing goes to Buffer until you press Save at the bottom.";
+    : "Each card is one post for one channel, built from what you said and tidied by an editor. Edit anything, or use Ask for changes on a card, and untick what you don't want. Keep talking is for adding more stories. Nothing goes to Buffer until you press Save at the bottom.";
   promoteExtras(state.drafts);
   const extra = (state.drafts || []).filter(d => d.extra && !(state.saved||[]).includes(d.id));
   const real = (state.drafts || []).filter(d => !d.later).length;
