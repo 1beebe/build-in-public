@@ -703,6 +703,11 @@ button.chip.on{background:var(--solid);color:var(--solid-ink);box-shadow:none}
 .draft .lbl{font-size:.875rem;font-weight:600;color:var(--muted);display:block;margin-bottom:6px}
 .draft .text{min-height:150px}
 .draft .prompts{min-height:84px;font-size:1rem}
+.draft .ask-note{min-height:64px;font-size:1rem;width:100%}
+.draft .ask .row{margin-top:8px}
+.draft .ask-msg{margin:8px 0 0}
+.draft .ask-msg:empty{display:none}
+.draft .fresh{display:inline-block;margin-right:8px;padding:2px 8px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-size:.75rem;font-weight:600}
 .draft textarea{resize:vertical}
 .pick{justify-self:start;display:inline-flex;align-items:center;gap:10px;font-weight:600;cursor:pointer;min-height:44px}
 .pick input{width:22px;height:22px;margin:0;accent-color:var(--ink);cursor:pointer}
@@ -862,7 +867,8 @@ body:has(main.app) .feedback-open{display:none}
 #setup .panel select{border-color:transparent}
 #setup .panel .chip{background:rgba(13,42,28,.08);box-shadow:none;min-height:44px;padding:0 18px;font-size:1rem;font-weight:500}
 #setup .panel .chip:has(input:checked){background:var(--ink);color:var(--accent)}
-#setup .panel .chip:has(input:checked)::before{content:none}
+#setup .panel .chip::before{content:"";width:16px;height:16px;flex:none;border-radius:50%;box-shadow:inset 0 0 0 1.5px currentColor;opacity:.55}
+#setup .panel .chip:has(input:checked)::before{opacity:1;box-shadow:none;background:var(--accent) center/12px 12px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M3.2 8.2 6.3 11.3 12.8 4.7' stroke='%230d2a1c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
 #setup .panel .keep{color:var(--ink);font-size:.95rem}
 #setup .panel .keep input{accent-color:var(--ink)}
 #saveSetup{background:var(--solid);color:var(--accent);min-height:52px;padding-inline:26px}
@@ -1227,7 +1233,7 @@ function renderSetup(){
   if (only) $("chans").querySelector("input").checked = true;
   $("chans").hidden = !!only;
   $("chanLbl").textContent = only ? "Drafts will be written for " + only.label : "Write drafts for";
-  $("chanHint").textContent = only ? "That's the channel you have connected in Buffer." : (state.targets || []).length ? "Tap each channel you want drafts for. The ones you post on most are already picked." : "Tap each channel you want drafts for.";
+  $("chanHint").textContent = only ? "That's the channel you have connected in Buffer." : (state.targets || []).length ? "The ones you post on most are already ticked. Tap a channel to add or remove it." : "Tap each channel you want drafts for.";
   show("setup");
 }
 
@@ -1630,7 +1636,7 @@ $("harvestBtn").onclick = async () => {
     const lines = [steps[0]]; for (let i = 1; i < steps.length; i++) { if (heard[i - 1]) lines.push(heard[i - 1]); lines.push(steps[i]); }
     $("waitH").textContent = state.longform ? "Finding your piece" : "Finding your stories";
     show("waiting"); window.scrollTo({top:0}); shimmer.start(lines);
-    try { state = await api("/api/harvest", {mode}); promoteExtras(state.drafts); }
+    try { state = await api("/api/harvest", {mode, edits: Object.values(cardEdits)}); promoteExtras(state.drafts); cardEdits = {}; }
     catch(e){ shimmer.stop(); renderTalk(); throw e; }
     const n = (state.drafts || []).filter(d => !d.later && !d.extra && !d.article).length, art = (state.drafts || []).some(d => d.article);
     if (art || n) await shimmer.finish(art ? "Your piece is ready" : n === 1 ? "One story, ready for you" : (n === 2 ? "Two" : n === 3 ? "Three" : n) + " stories, ready for you");
@@ -1779,7 +1785,7 @@ function renderReview(){
     ? "Your piece, built from what you said, plus short posts to share it" + (state.alsoShort ? " and short posts for the other stories you told" : "") + ". Edit anything and untick what you don't want. The article is kept in Buffer as an Idea; the short posts go to Drafts when you press Save."
     : outline
     ? "Each card is one post for one channel, outlined in your words. Write it your way and untick what you don't want. Nothing goes to Buffer until you press Save at the bottom."
-    : "Each card is one post for one channel, built from what you said and tidied by an editor. Edit anything and untick what you don't want. Nothing goes to Buffer until you press Save at the bottom.";
+    : "Each card is one post for one channel, built from what you said and tidied by an editor. Edit anything, or use Ask for changes on a card, and untick what you don't want. Keep talking finds new stories and adds them here; these drafts and your edits stay. Nothing goes to Buffer until you press Save at the bottom.";
   promoteExtras(state.drafts);
   const extra = (state.drafts || []).filter(d => d.extra && !(state.saved||[]).includes(d.id));
   const real = (state.drafts || []).filter(d => !d.later).length;
@@ -1795,7 +1801,7 @@ function renderReview(){
     if ((state.saved||[]).includes(d.id)) { cb.checked = false; cb.disabled = true; top.lastChild.textContent = "Saved"; }
     cb.onchange = countPicked;
     if (d.format) {
-      const sh = el("div", "shape"); sh.append(el("span", "fmt", d.article ? "Article · for your newsletter or a LinkedIn article" : "For " + channelName(d.channel) + " · " + d.format)); card.append(sh);
+      const sh = el("div", "shape"); if (d.fresh) sh.append(el("span", "fresh", "New")); sh.append(el("span", "fmt", d.article ? "Article · for your newsletter or a LinkedIn article" : "For " + channelName(d.channel) + " · " + d.format)); card.append(sh);
       const key = (d.title || "").trim().toLowerCase(), share = /^sharing: /i.test(d.title || "");
       if (share) card.append(el("p", "same", "A post to share your piece."));
       else if (key && seen[key]) card.append(el("p", "same", "Same story as the " + seen[key] + " card."));
@@ -1816,6 +1822,27 @@ function renderReview(){
       acts.append(cp, dl); card.append(acts);
     }
     for (const f of d.flags || []) card.append(el("p", "flag", f));
+    if (!d.later && !(state.saved||[]).includes(d.id)) {
+      // Ask for changes: the editor redoes this one draft from the same interview, no new questions.
+      const fx = el("details", "fold ask"); fx.append(el("summary", "lbl", "Ask for changes"));
+      const nt = el("textarea", "ask-note"); nt.maxLength = 600; nt.rows = 2; nt.placeholder = "Say what to change, like: open with what I was building";
+      nt.setAttribute("aria-label", "What to change in this draft");
+      const go = el("button", "btn quiet small", "Revise this draft"); go.type = "button";
+      const msg = el("p", "hint ask-msg"); msg.setAttribute("aria-live", "polite");
+      go.onclick = async () => {
+        if (!nt.value.trim()) { nt.focus(); return; }
+        go.disabled = true; go.textContent = "Revising…"; msg.textContent = "";
+        try {
+          const r = await api("/api/revise", {id: d.id, text: x.value, note: nt.value});
+          const nd = (r.drafts||[]).find(q => q.id === d.id);
+          if (r.revised && r.revised.ok && nd) { x.value = nd.text; grow(x); d.text = nd.text; nt.value = ""; msg.textContent = r.revised.note || "Revised. Edit anything, or ask again."; }
+          else msg.textContent = (r.revised && r.revised.note) || "I couldn't make that change from your own words. Say what to add in your words, or edit the draft directly.";
+        } catch(e){ msg.textContent = e.message; }
+        finally { go.disabled = false; go.textContent = "Revise this draft"; }
+      };
+      const row = el("div", "row"); row.append(go);
+      fx.append(nt, row, msg); card.append(fx);
+    }
     if ((d.prompts||[]).length) {
       const pw = el("details", "fold"); pw.append(el("summary", "lbl", (outline ? "Questions to help you write it, added under your outline" : "Questions to help you finish it, added under your draft") + " (" + d.prompts.length + ")"));
       pw.addEventListener("toggle", () => pw.querySelectorAll("textarea").forEach(grow));
@@ -1837,9 +1864,12 @@ function renderReview(){
 function grow(t){ if (!t.offsetParent) return; t.style.height = "auto"; t.style.height = (t.scrollHeight + 4) + "px"; }
 function channelName(service){ const c = (state.channels||[]).find(c => c.service === service); return c ? c.label : service ? service : "Any channel"; }
 $("showMore").onclick = () => { document.querySelectorAll(".draft.extra").forEach(c => { c.hidden = false; c.querySelectorAll("textarea").forEach(grow); }); $("showMore").hidden = true; };
-$("backTalk").onclick = renderTalk;
+// Edits made on the cards ride along to the next harvest, so Keep talking never loses them.
+let cardEdits = {};
+function keepEdits(){ document.querySelectorAll(".draft").forEach(c => { const t = c.querySelector(".title"), x = c.querySelector(".text"); if (c.dataset.id && x) cardEdits[c.dataset.id] = {id: c.dataset.id, title: t ? t.value : "", text: x.value}; }); }
+$("backTalk").onclick = () => { keepEdits(); renderTalk(); };
 $("moreBtn").onclick = async () => {
-  err(""); const b = $("moreBtn"); b.disabled = true; b.textContent = "Finding a new question…";
+  err(""); keepEdits(); const b = $("moreBtn"); b.disabled = true; b.textContent = "Finding a new question…";
   try { state = await api("/api/more", {}); drawn = Math.max(0, (state.turns||[]).length - 1); renderTalk(); window.scrollTo({top:0}); $("say").focus({preventScroll:true}); }
   catch(e){ err(e.message); }
   finally { b.disabled = false; b.textContent = "Keep talking to find more"; }
@@ -1956,7 +1986,9 @@ function countUp(b, to){
 
 function route(){
   if (!state.repo && !state.noRepo) return renderSetup();
-  if ((state.drafts||[]).length) return (state.saved||[]).length ? renderDone() : renderReview();
+  // Back to talking after a look at the drafts (Keep talking): the conversation, not the cards.
+  const talkingMore = (state.turns||[]).length > (state.harvestedTurns||0) && !state.longform;
+  if ((state.drafts||[]).length && !talkingMore) return (state.saved||[]).length ? renderDone() : renderReview();
   if ((state.turns||[]).length) return renderTalk();
   renderSetup();
 }
