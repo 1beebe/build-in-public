@@ -77,6 +77,13 @@ npm run dev     # local, needs a .dev.vars file with the secrets below
 - Repository text, recent posts, notes and transcripts are serialized as untrusted JSON and the system prompts explicitly forbid following instructions found inside them.
 - Saving to Buffer caps draft (or fallback Idea) text at 10,000 characters and shaping prompts at 200 characters each.
 
+## Also in this repo
+
+- [`plugin/`](plugin/README.md): the same interview as an agent plugin, with a library of your own words kept on your computer.
+- [`evals/`](evals/README.md): the scripted personas and scoring run against the live typed interviewer before a prompt change ships, plus a synthetic-voice test for GPT-Live.
+- `demo/`: the source for the demo video and the looping clip on the landing page, built from the app's real screens.
+- [`slop-cannon/`](slop-cannon/README.md): Slop Cannon, a separate joke app with its own Buffer app client, Worker and KV namespace. It shares no code, data or sessions with The Interviewer.
+
 ## Later
 
 - A weekly check-in: an optional reminder to do an interview each week, picking up from what shipped since the last one.

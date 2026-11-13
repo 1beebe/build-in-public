@@ -86,6 +86,9 @@ async function readShipped(env: Env, repo: string, days: number): Promise<Shippe
     readmeText(env, repo),
     topLevel(env, repo),
   ]);
+  // Only public repos. A GITHUB_TOKEN that can see private code must never let
+  // someone read it through the app.
+  if (meta.private !== false) throw new RepoError("That repo isn't public, or the link has a typo.");
   return {
     repo,
     days,
