@@ -1,7 +1,7 @@
 {
   "name": "interviewer",
   "version": "1.0.0",
-  "description": "A weekly interview about what you built, saved to Buffer as Ideas in your own words.",
+  "description": "An interview about what you built, saved to Buffer as drafts in your own words.",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",

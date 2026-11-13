@@ -246,11 +246,16 @@ async function callback(req: Request, env: Env, url: URL): Promise<Response> {
 
   const tokens = await exchangeCode(env, code, verifier);
   // Signing in again keeps their setup and any interview in progress.
-  const existing = await loadSession(req, env);
-  const session: Session = existing ? { ...existing.data, tokens, scopeVersion: SCOPE_VERSION } : { tokens, scopeVersion: SCOPE_VERSION };
+  let existing = await loadSession(req, env);
+  let session: Session = existing ? { ...existing.data, tokens, scopeVersion: SCOPE_VERSION } : { tokens, scopeVersion: SCOPE_VERSION };
   const { orgs, accountId } = await getStart(new BufferClient(env, session));
-  // A different Buffer account signing in on this browser starts clean.
-  if (session.accountId && accountId && session.accountId !== accountId) session.keepMemory = false;
+  // A different Buffer account signing in on this browser starts clean, in a
+  // new session: nothing from the last person's setup, posts or interview carries over.
+  if (existing && existing.data.accountId && accountId && existing.data.accountId !== accountId) {
+    await env.SESSIONS.delete(`s:${existing.id}`);
+    existing = null;
+    session = { tokens: session.tokens, scopeVersion: SCOPE_VERSION };
+  }
   session.accountId = accountId;
   if (!orgs.some((o) => o.id === session.organizationId)) {
     Object.assign(session, { organizationId: undefined, organizationName: undefined, repo: undefined, questions: [], turns: [], drafts: [], saved: [], savedAsIdeas: [] });
@@ -308,6 +313,12 @@ async function api(req: Request, env: Env, path: string): Promise<Response> {
   // Saving drafts needs a permission older sign-ins didn't grant. Connecting
   // again keeps their setup and interview.
   if (loaded.data.scopeVersion !== SCOPE_VERSION) return json({ error: "Please connect again." }, 401);
+  // Only reads may be GETs. Everything that changes the interview, spends a
+  // model call or writes to Buffer must be a same-origin POST, so a link on
+  // another site can't reset or restart someone's interview.
+  if (req.method !== "POST" && !(req.method === "GET" && (path === "/api/state" || path === "/api/source"))) {
+    return json({ error: "Not found" }, 404);
+  }
   const { id, data: s } = loaded;
   const client = new BufferClient(env, s);
   let body: Record<string, unknown> = {};
